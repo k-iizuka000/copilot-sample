@@ -1,0 +1,128 @@
+{
+  "name": "office-markdown",
+  "displayName": "Office Markdown",
+  "description": "Convert Office OOXML files to Markdown plus extracted assets.",
+  "version": "0.1.0",
+  "publisher": "local",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:officeMarkdown.convertResource",
+    "onCommand:officeMarkdown.convertCurrentFile",
+    "onCommand:officeMarkdown.openLastManifest"
+  ],
+  "main": "./dist/extension.cjs",
+  "contributes": {
+    "commands": [
+      {
+        "command": "officeMarkdown.convertResource",
+        "title": "Convert Office File to Markdown",
+        "category": "Office Markdown"
+      },
+      {
+        "command": "officeMarkdown.convertCurrentFile",
+        "title": "Convert Active Office File to Markdown",
+        "category": "Office Markdown"
+      },
+      {
+        "command": "officeMarkdown.openLastManifest",
+        "title": "Open Last Office Markdown Manifest",
+        "category": "Office Markdown"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "officeMarkdown.convertResource",
+          "when": "resourceScheme == file && (resourceExtname == .xlsx || resourceExtname == .xlsm || resourceExtname == .pptx || resourceExtname == .docx)",
+          "group": "navigation@50"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "Office Markdown",
+      "properties": {
+        "officeMarkdown.outputLocation": {
+          "type": "string",
+          "enum": ["nextToSource", "convertedFolder", "askEachTime"],
+          "default": "nextToSource",
+          "description": "Controls where generated Markdown and assets are written."
+        },
+        "officeMarkdown.overwritePolicy": {
+          "type": "string",
+          "enum": ["confirm", "overwrite", "createUnique"],
+          "default": "confirm",
+          "description": "Controls how repeated conversions handle existing generated files."
+        },
+        "officeMarkdown.includeExcelHiddenSheets": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include hidden Excel sheets in generated Markdown."
+        },
+        "officeMarkdown.excelFormulaMode": {
+          "type": "string",
+          "enum": ["valuesOnly", "valuesWithManifest", "inlineFormulaTable"],
+          "default": "valuesWithManifest",
+          "description": "Controls how Excel formulas are represented."
+        },
+        "officeMarkdown.includePowerPointNotes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include PowerPoint speaker notes when present."
+        },
+        "officeMarkdown.includeConversionReport": {
+          "type": "boolean",
+          "default": true,
+          "description": "Append a short conversion report to generated Markdown."
+        },
+        "officeMarkdown.maxTableRows": {
+          "type": "number",
+          "default": 1000,
+          "minimum": 1,
+          "description": "Maximum rows emitted for a single Markdown table."
+        },
+        "officeMarkdown.maxExtractedAssetBytes": {
+          "type": "number",
+          "default": 50000000,
+          "minimum": 1,
+          "description": "Maximum bytes allowed for one extracted asset."
+        },
+        "officeMarkdown.maxPackageUncompressedBytes": {
+          "type": "number",
+          "default": 300000000,
+          "minimum": 1,
+          "description": "Maximum total uncompressed package bytes."
+        },
+        "officeMarkdown.maxEntryCount": {
+          "type": "number",
+          "default": 10000,
+          "minimum": 1,
+          "description": "Maximum number of package entries read from one Office file."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs && tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "package": "mkdir -p ../../dist && npm run build && vsce package --no-dependencies --allow-missing-repository --out ../../dist/office-markdown-0.1.0.vsix"
+  },
+  "dependencies": {
+    "@office-markdown/core": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/vscode": "^1.90.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.5.4",
+    "vitest": "^3.2.4"
+  }
+}

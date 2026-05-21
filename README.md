@@ -16,6 +16,7 @@ lockfile、CI、container、script、entrypoint を確認させます。
 | `.github/agents/` | リバースエンジニアリング作業用の専門 custom agent です。 |
 | `.github/skills/` | 環境再構築とコードベース解析の再利用可能な workflow です。 |
 | `.github/instructions/` | manifest、検証、未知コード向けの path-specific instructions です。 |
+| `office-markdown-vscode-extension/` | Office Markdown VS Code 拡張の実装、SPEC、テスト、VSIXをまとめた成果物ディレクトリです。 |
 
 これらの配置は、GitHub Copilot の repository instructions、custom agents、
 agent skills、path-specific instructions の実行面に合わせています。

@@ -1,0 +1,28 @@
+{
+  "name": "office-markdown-vscode-extension-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Office Markdown VS Code extension workspace.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "package:extension": "npm run package -w office-markdown",
+    "security:paths": "node scripts/check-public-safe.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^2.32.0",
+    "esbuild": "^0.25.0",
+    "fast-xml-parser": "^5.8.0",
+    "jszip": "^3.10.1",
+    "typescript": "^5.5.4",
+    "vitest": "^3.2.4"
+  }
+}
