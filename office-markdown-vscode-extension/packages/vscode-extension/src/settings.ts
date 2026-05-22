@@ -17,6 +17,9 @@ const DEFAULT_SETTINGS: OfficeMarkdownSettings = {
   includePowerPointNotes: true,
   includeConversionReport: true,
   maxTableRows: 1000,
+  maxPdfPages: 500,
+  maxPdfTextItemsPerPage: 20000,
+  maxPdfMarkdownChars: 5000000,
   maxExtractedAssetBytes: 50000000,
   maxPackageUncompressedBytes: 300000000,
   maxEntryCount: 10000
@@ -62,6 +65,17 @@ export function resolveSettings(configuration: ConfigurationReader): OfficeMarkd
       DEFAULT_SETTINGS.includeConversionReport
     ),
     maxTableRows: positiveIntegerSetting(configuration, "maxTableRows", DEFAULT_SETTINGS.maxTableRows),
+    maxPdfPages: positiveIntegerSetting(configuration, "maxPdfPages", DEFAULT_SETTINGS.maxPdfPages),
+    maxPdfTextItemsPerPage: positiveIntegerSetting(
+      configuration,
+      "maxPdfTextItemsPerPage",
+      DEFAULT_SETTINGS.maxPdfTextItemsPerPage
+    ),
+    maxPdfMarkdownChars: positiveIntegerSetting(
+      configuration,
+      "maxPdfMarkdownChars",
+      DEFAULT_SETTINGS.maxPdfMarkdownChars
+    ),
     maxExtractedAssetBytes: positiveIntegerSetting(
       configuration,
       "maxExtractedAssetBytes",

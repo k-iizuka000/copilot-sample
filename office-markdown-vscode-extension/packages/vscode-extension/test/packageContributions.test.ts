@@ -42,6 +42,7 @@ describe("VS Code package contributions", () => {
     expect(menu?.when).toContain("resourceExtname == .xlsm");
     expect(menu?.when).toContain("resourceExtname == .pptx");
     expect(menu?.when).toContain("resourceExtname == .docx");
+    expect(menu?.when).toContain("resourceExtname == .pdf");
   });
 
   it("contributes settings with documented defaults", () => {
@@ -55,6 +56,9 @@ describe("VS Code package contributions", () => {
     expect(properties["officeMarkdown.excelFormulaMode"]?.default).toBe("valuesWithManifest");
     expect(properties["officeMarkdown.includePowerPointNotes"]?.default).toBe(true);
     expect(properties["officeMarkdown.maxTableRows"]?.default).toBe(1000);
+    expect(properties["officeMarkdown.maxPdfPages"]?.default).toBe(500);
+    expect(properties["officeMarkdown.maxPdfTextItemsPerPage"]?.default).toBe(20000);
+    expect(properties["officeMarkdown.maxPdfMarkdownChars"]?.default).toBe(5000000);
     expect(properties["officeMarkdown.maxEntryCount"]?.default).toBe(10000);
   });
 });

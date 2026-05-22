@@ -10,6 +10,7 @@ export type {
   ExcelFormulaMode,
   ManifestItem,
   OverwritePolicy,
+  PdfOptions,
   ResolvedConvertFileOptions,
   SourceRef,
   SupportedFormat

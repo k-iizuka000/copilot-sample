@@ -1,4 +1,4 @@
-export type SupportedFormat = "xlsx" | "xlsm" | "pptx" | "docx";
+export type SupportedFormat = "xlsx" | "xlsm" | "pptx" | "docx" | "pdf";
 
 export type ConversionStatus = "success" | "partial" | "failed";
 
@@ -7,7 +7,7 @@ export type OverwritePolicy = "confirm" | "overwrite" | "createUnique";
 export type ExcelFormulaMode = "valuesOnly" | "valuesWithManifest" | "inlineFormulaTable";
 
 export interface SourceRef {
-  container: "workbook" | "sheet" | "slide" | "document" | "package";
+  container: "workbook" | "sheet" | "slide" | "document" | "pdf" | "package";
   name?: string;
   index?: number;
   part?: string;
@@ -37,6 +37,12 @@ export interface PowerPointOptions {
   includeSpeakerNotes: boolean;
 }
 
+export interface PdfOptions {
+  maxPages: number;
+  maxTextItemsPerPage: number;
+  maxMarkdownChars: number;
+}
+
 export interface SafetyOptions {
   maxPackageUncompressedBytes: number;
   maxExtractedAssetBytes: number;
@@ -51,6 +57,7 @@ export interface ConvertFileOptions {
   includeConversionReport?: boolean;
   excel?: Partial<ExcelOptions>;
   pptx?: Partial<PowerPointOptions>;
+  pdf?: Partial<PdfOptions>;
   safety?: Partial<SafetyOptions>;
 }
 
@@ -62,6 +69,7 @@ export interface ResolvedConvertFileOptions {
   includeConversionReport: boolean;
   excel: ExcelOptions;
   pptx: PowerPointOptions;
+  pdf: PdfOptions;
   safety: SafetyOptions;
 }
 

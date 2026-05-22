@@ -108,6 +108,52 @@ describe("Office Markdown core conversion", () => {
     expect(manifest.warnings.map((warning) => warning.code)).toContain("macro-ignored");
     expect(await exists(path.join(result.assetDir, "vbaProject.bin"))).toBe(false);
   });
+
+  it("converts PDF text into Markdown and manifest output", async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "office-md-pdf-"));
+    const inputPath = path.join(tempDir, "paper.pdf");
+    await writePdf(inputPath, "Hello PDF");
+
+    const result = await convertFile({ inputPath, overwritePolicy: "overwrite" });
+    const markdown = await fs.readFile(result.markdownPath, "utf8");
+    const manifest = JSON.parse(await fs.readFile(result.manifestPath, "utf8")) as {
+      source: { format: string };
+      warnings: Array<{ code: string }>;
+    };
+
+    expect(result.status).toBe("success");
+    expect(result.format).toBe("pdf");
+    expect(markdown).toContain("# PDF: paper.pdf");
+    expect(markdown).toContain("## Page 1");
+    expect(markdown).toContain("Hello PDF");
+    expect(manifest.source.format).toBe("pdf");
+    expect(manifest.warnings).toEqual([]);
+  });
+
+  it("limits PDF page and Markdown output size with warnings", async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "office-md-pdf-limits-"));
+    const inputPath = path.join(tempDir, "long.pdf");
+    await writePdf(inputPath, ["First page has enough text", "Second page should be skipped"]);
+
+    const result = await convertFile({
+      inputPath,
+      overwritePolicy: "overwrite",
+      pdf: { maxPages: 1, maxMarkdownChars: 10 }
+    });
+    const markdown = await fs.readFile(result.markdownPath, "utf8");
+    const manifest = JSON.parse(await fs.readFile(result.manifestPath, "utf8")) as {
+      warnings: Array<{ code: string }>;
+    };
+
+    expect(result.status).toBe("partial");
+    expect(markdown).toContain("## Page 1");
+    expect(markdown).not.toContain("## Page 2");
+    expect(markdown).toContain("First page");
+    expect(markdown).not.toContain("enough text");
+    expect(manifest.warnings.map((warning) => warning.code)).toEqual(
+      expect.arrayContaining(["pdf-page-limit-exceeded", "pdf-markdown-size-limit-exceeded"])
+    );
+  });
 });
 
 describe("OOXML package safety", () => {
@@ -290,6 +336,42 @@ function rel(id: string, type: string, target: string, targetMode?: "External"):
 async function writeZip(filePath: string, zip: JSZip): Promise<void> {
   const buffer = await zip.generateAsync({ type: "nodebuffer" });
   await fs.writeFile(filePath, buffer);
+}
+
+async function writePdf(filePath: string, text: string | string[]): Promise<void> {
+  const pages = Array.isArray(text) ? text : [text];
+  const pageRefs = pages.map((_, index) => `${4 + index * 2} 0 R`).join(" ");
+  const objects = [
+    "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n",
+    `2 0 obj\n<< /Type /Pages /Kids [${pageRefs}] /Count ${pages.length} >>\nendobj\n`,
+    "3 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n"
+  ];
+  for (const [index, pageText] of pages.entries()) {
+    const pageObjectNumber = 4 + index * 2;
+    const contentObjectNumber = pageObjectNumber + 1;
+    const textBytes = `BT /F1 24 Tf 100 700 Td (${escapePdfString(pageText)}) Tj ET\n`;
+    objects.push(
+      `${pageObjectNumber} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentObjectNumber} 0 R >>\nendobj\n`,
+      `${contentObjectNumber} 0 obj\n<< /Length ${Buffer.byteLength(textBytes)} >>\nstream\n${textBytes}endstream\nendobj\n`
+    );
+  }
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  for (const object of objects) {
+    offsets.push(Buffer.byteLength(pdf));
+    pdf += object;
+  }
+  const xrefOffset = Buffer.byteLength(pdf);
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  for (const offset of offsets.slice(1)) {
+    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  }
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+  await fs.writeFile(filePath, pdf, "binary");
+}
+
+function escapePdfString(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
 }
 
 async function exists(filePath: string): Promise<boolean> {

@@ -61,7 +61,7 @@ export async function convertResource(
   resource: ResourceUri | undefined
 ): Promise<void> {
   if (!resource) {
-    await host.showErrorMessage("Open or select a supported Office file before running Office Markdown.");
+    await host.showErrorMessage("Open or select a supported Office or PDF file before running Office Markdown.");
     return;
   }
 
@@ -91,7 +91,7 @@ export async function convertResource(
       `Converting ${path.basename(resource.fsPath)} to Markdown`,
       async (progress) => {
         progress.report("Preparing output");
-        progress.report("Converting Office package");
+        progress.report("Converting source file");
         return converter.convertFile(options);
       }
     );
@@ -136,6 +136,11 @@ export function buildConvertFileOptions(
     },
     pptx: {
       includeSpeakerNotes: settings.includePowerPointNotes
+    },
+    pdf: {
+      maxPages: settings.maxPdfPages,
+      maxTextItemsPerPage: settings.maxPdfTextItemsPerPage,
+      maxMarkdownChars: settings.maxPdfMarkdownChars
     },
     safety: {
       maxPackageUncompressedBytes: settings.maxPackageUncompressedBytes,

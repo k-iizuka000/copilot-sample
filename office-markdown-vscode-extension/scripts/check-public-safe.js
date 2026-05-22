@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import JSZip from "jszip";
+import { getDocument, VerbosityLevel } from "pdfjs-dist/legacy/build/pdf.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -35,12 +36,51 @@ async function scanZip(rel, fullPath) {
   }
 }
 
+async function scanPdf(rel, fullPath) {
+  const buffer = fs.readFileSync(fullPath);
+  scanText(rel, buffer.toString("latin1"));
+
+  const loadingTask = getDocument({
+    data: new Uint8Array(buffer),
+    verbosity: VerbosityLevel.ERRORS,
+    useSystemFonts: true
+  });
+  const pdf = await loadingTask.promise;
+  try {
+    const metadata = await pdf.getMetadata().catch(() => undefined);
+    if (metadata) {
+      scanText(`${rel}!metadata`, JSON.stringify(metadata));
+    }
+
+    const pageLimit = Math.min(pdf.numPages, 100);
+    for (let pageNumber = 1; pageNumber <= pageLimit; pageNumber += 1) {
+      const page = await pdf.getPage(pageNumber);
+      const textContent = await page.getTextContent();
+      const text = textContent.items
+        .slice(0, 10000)
+        .map((item) =>
+          item && typeof item === "object" && "str" in item && typeof item.str === "string"
+            ? item.str
+            : ""
+        )
+        .join("\n");
+      scanText(`${rel}!page-${pageNumber}`, text);
+    }
+  } finally {
+    await pdf.destroy();
+  }
+}
+
 async function scanFile(rel, fullPath) {
   if (/\.(zip|vsix|xlsx|xlsm|pptx|docx)$/i.test(fullPath)) {
     await scanZip(rel, fullPath);
     return;
   }
-  if (/\.(png|jpe?g|gif|pdf)$/i.test(fullPath)) {
+  if (/\.pdf$/i.test(fullPath)) {
+    await scanPdf(rel, fullPath);
+    return;
+  }
+  if (/\.(png|jpe?g|gif)$/i.test(fullPath)) {
     return;
   }
   scanText(rel, fs.readFileSync(fullPath, "utf8"));

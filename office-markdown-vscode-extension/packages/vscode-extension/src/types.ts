@@ -4,7 +4,7 @@ export const COMMANDS = {
   openLastManifest: "officeMarkdown.openLastManifest"
 } as const;
 
-export type SupportedFormat = "xlsx" | "xlsm" | "pptx" | "docx";
+export type SupportedFormat = "xlsx" | "xlsm" | "pptx" | "docx" | "pdf";
 
 export type OutputLocation = "nextToSource" | "convertedFolder" | "askEachTime";
 
@@ -20,6 +20,9 @@ export interface OfficeMarkdownSettings {
   includePowerPointNotes: boolean;
   includeConversionReport: boolean;
   maxTableRows: number;
+  maxPdfPages: number;
+  maxPdfTextItemsPerPage: number;
+  maxPdfMarkdownChars: number;
   maxExtractedAssetBytes: number;
   maxPackageUncompressedBytes: number;
   maxEntryCount: number;
@@ -38,6 +41,11 @@ export interface ConvertFileOptions {
   };
   pptx: {
     includeSpeakerNotes: boolean;
+  };
+  pdf: {
+    maxPages: number;
+    maxTextItemsPerPage: number;
+    maxMarkdownChars: number;
   };
   safety: {
     maxPackageUncompressedBytes: number;

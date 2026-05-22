@@ -2,12 +2,12 @@ import path from "node:path";
 import { promises as fs } from "node:fs";
 import type { ConvertFileOptions, ResolvedConvertFileOptions, SupportedFormat } from "./types.js";
 
-const supportedExtensions = new Set([".xlsx", ".xlsm", ".pptx", ".docx"]);
+const supportedExtensions = new Set([".xlsx", ".xlsm", ".pptx", ".docx", ".pdf"]);
 
 export function getSupportedFormat(inputPath: string): SupportedFormat {
   const extension = path.extname(inputPath).toLowerCase();
   if (!supportedExtensions.has(extension)) {
-    throw new Error("This file type is not supported yet. Supported: .xlsx, .xlsm, .pptx, .docx.");
+    throw new Error("This file type is not supported yet. Supported: .xlsx, .xlsm, .pptx, .docx, .pdf.");
   }
   return extension.slice(1) as SupportedFormat;
 }
@@ -35,6 +35,11 @@ export async function resolveOptions(options: ConvertFileOptions): Promise<Resol
     },
     pptx: {
       includeSpeakerNotes: options.pptx?.includeSpeakerNotes ?? true
+    },
+    pdf: {
+      maxPages: options.pdf?.maxPages ?? 500,
+      maxTextItemsPerPage: options.pdf?.maxTextItemsPerPage ?? 20000,
+      maxMarkdownChars: options.pdf?.maxMarkdownChars ?? 5000000
     },
     safety: {
       maxPackageUncompressedBytes: options.safety?.maxPackageUncompressedBytes ?? 300_000_000,

@@ -148,10 +148,15 @@ describe("Office Markdown commands", () => {
       },
       pptx: {
         includeSpeakerNotes: true
+      },
+      pdf: {
+        maxPages: 500,
+        maxTextItemsPerPage: 20000,
+        maxMarkdownChars: 5000000
       }
     });
     expect(host.progressTitles[0]).toContain("book.xlsx");
-    expect(host.progressMessages).toEqual(["Preparing output", "Converting Office package"]);
+    expect(host.progressMessages).toEqual(["Preparing output", "Converting source file"]);
     expect(host.workspaceState.get(LAST_MANIFEST_KEY)).toBe(
       path.join("workspace", "book.assets", "manifest.json")
     );
@@ -170,6 +175,19 @@ describe("Office Markdown commands", () => {
     expect(converter.calls[0]?.outputMarkdownPath).toBe(path.join("workspace", "deck.md"));
   });
 
+  it("accepts PDF resources from Explorer", async () => {
+    const host = new TestHost();
+    const converter = new TestConverter();
+    registerOfficeMarkdownCommands(host, converter);
+
+    const inputPath = path.join("workspace", "paper.pdf");
+    await host.commands.get(COMMANDS.convertResource)?.({ fsPath: inputPath, scheme: "file" });
+
+    expect(converter.calls).toHaveLength(1);
+    expect(converter.calls[0]?.inputPath).toBe(inputPath);
+    expect(converter.calls[0]?.outputMarkdownPath).toBe(path.join("workspace", "paper.md"));
+  });
+
   it("rejects unsupported resources before invoking the converter", async () => {
     const host = new TestHost();
     const converter = new TestConverter();
@@ -181,7 +199,7 @@ describe("Office Markdown commands", () => {
     });
 
     expect(converter.calls).toHaveLength(0);
-    expect(host.errorMessages[0]).toContain(".xlsx, .xlsm, .pptx, .docx");
+    expect(host.errorMessages[0]).toContain(".xlsx, .xlsm, .pptx, .docx, .pdf");
   });
 
   it("opens the last manifest when workspace state points to an existing manifest", async () => {

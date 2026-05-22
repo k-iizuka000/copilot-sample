@@ -6,9 +6,12 @@ import { openOoxmlPackage } from "./ooxml/package-reader.js";
 import { createManifest, addError, writeManifest } from "./manifest.js";
 import { renderMarkdown } from "./markdown/markdown-writer.js";
 import { convertDocx } from "./converters/docx/docx-converter.js";
+import { convertPdf } from "./converters/pdf/pdf-converter.js";
 import { convertPptx } from "./converters/pptx/pptx-converter.js";
 import { convertXlsx } from "./converters/xlsx/xlsx-converter.js";
 import { errorMessage } from "./converters/common.js";
+
+type OoxmlFormat = Exclude<SupportedFormat, "pdf">;
 
 export async function convertFile(options: ConvertFileOptions): Promise<ConversionResult> {
   const format = getSupportedFormat(options.inputPath);
@@ -25,18 +28,27 @@ export async function convertFile(options: ConvertFileOptions): Promise<Conversi
   const markdownBlocks: MarkdownBlock[] = [];
 
   try {
-    const pkg = await openOoxmlPackage(resolved.inputPath, resolved.safety);
-    const context: ConversionContext = {
-      format,
-      sourceFileName: path.basename(resolved.inputPath),
-      options: resolved,
-      pkg,
-      manifest,
-      markdownBlocks,
-      warnings,
-      errors
-    };
-    await runConverter(format, context);
+    if (format === "pdf") {
+      await convertPdf({
+        sourceFileName: path.basename(resolved.inputPath),
+        options: resolved,
+        manifest,
+        markdownBlocks
+      });
+    } else {
+      const pkg = await openOoxmlPackage(resolved.inputPath, resolved.safety);
+      const context: ConversionContext = {
+        format,
+        sourceFileName: path.basename(resolved.inputPath),
+        options: resolved,
+        pkg,
+        manifest,
+        markdownBlocks,
+        warnings,
+        errors
+      };
+      await runConverter(format, context);
+    }
   } catch (error) {
     addError(manifest, {
       code: "conversion-failed",
@@ -65,7 +77,7 @@ export async function convertFile(options: ConvertFileOptions): Promise<Conversi
   };
 }
 
-async function runConverter(format: SupportedFormat, context: ConversionContext): Promise<void> {
+async function runConverter(format: OoxmlFormat, context: ConversionContext): Promise<void> {
   switch (format) {
     case "docx":
       await convertDocx(context);

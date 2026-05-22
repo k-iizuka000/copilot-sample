@@ -6,10 +6,11 @@ const SUPPORTED_BY_EXTENSION = new Map<string, SupportedFormat>([
   [".xlsx", "xlsx"],
   [".xlsm", "xlsm"],
   [".pptx", "pptx"],
-  [".docx", "docx"]
+  [".docx", "docx"],
+  [".pdf", "pdf"]
 ]);
 
-export const SUPPORTED_EXTENSION_LIST = [".xlsx", ".xlsm", ".pptx", ".docx"] as const;
+export const SUPPORTED_EXTENSION_LIST = [".xlsx", ".xlsm", ".pptx", ".docx", ".pdf"] as const;
 
 export function getSupportedFormat(filePath: string): SupportedFormat | undefined {
   return SUPPORTED_BY_EXTENSION.get(path.extname(filePath).toLowerCase());

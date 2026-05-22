@@ -25,6 +25,9 @@ describe("resolveSettings", () => {
         includePowerPointNotes: false,
         includeConversionReport: false,
         maxTableRows: 25,
+        maxPdfPages: 3,
+        maxPdfTextItemsPerPage: 40,
+        maxPdfMarkdownChars: 500,
         maxExtractedAssetBytes: 1024,
         maxPackageUncompressedBytes: 2048,
         maxEntryCount: 50
@@ -39,6 +42,9 @@ describe("resolveSettings", () => {
       includePowerPointNotes: false,
       includeConversionReport: false,
       maxTableRows: 25,
+      maxPdfPages: 3,
+      maxPdfTextItemsPerPage: 40,
+      maxPdfMarkdownChars: 500,
       maxExtractedAssetBytes: 1024,
       maxPackageUncompressedBytes: 2048,
       maxEntryCount: 50
