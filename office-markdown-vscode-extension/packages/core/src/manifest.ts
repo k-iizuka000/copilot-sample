@@ -13,7 +13,7 @@ export function createManifest(inputPath: string, sizeBytes: number, format: Sup
     schemaVersion: 1,
     tool: {
       name: "office-markdown",
-      version: "0.1.0"
+      version: "0.1.1"
     },
     source: {
       fileName: path.basename(inputPath),

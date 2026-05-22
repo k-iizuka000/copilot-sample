@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 
 import { getDocument, VerbosityLevel } from "pdfjs-dist/legacy/build/pdf.mjs";
+import * as pdfjsWorker from "pdfjs-dist/legacy/build/pdf.worker.mjs";
 
 import { addWarning } from "../../manifest.js";
 import type {
@@ -23,6 +24,12 @@ interface PdfTextItem {
   hasEOL?: boolean;
 }
 
+interface PdfJsWorkerGlobal {
+  pdfjsWorker?: {
+    WorkerMessageHandler?: unknown;
+  };
+}
+
 export async function convertPdf(context: PdfConversionContext): Promise<void> {
   const data = await fs.readFile(context.options.inputPath);
   if (data.byteLength > context.options.safety.maxPackageUncompressedBytes) {
@@ -30,6 +37,8 @@ export async function convertPdf(context: PdfConversionContext): Promise<void> {
       `PDF size ${data.byteLength} bytes exceeds configured limit ${context.options.safety.maxPackageUncompressedBytes} bytes.`
     );
   }
+
+  ensurePdfJsWorkerHandler();
 
   const loadingTask = getDocument({
     data: new Uint8Array(data),
@@ -165,4 +174,12 @@ function isPdfTextItem(item: unknown): item is PdfTextItem {
 
 function recordPdfWarning(context: PdfConversionContext, warning: ConversionWarning): void {
   addWarning(context.manifest, warning);
+}
+
+export function ensurePdfJsWorkerHandler(): void {
+  const pdfGlobal = globalThis as typeof globalThis & PdfJsWorkerGlobal;
+  if (pdfGlobal.pdfjsWorker?.WorkerMessageHandler) {
+    return;
+  }
+  pdfGlobal.pdfjsWorker = pdfjsWorker;
 }

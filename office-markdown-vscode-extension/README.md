@@ -45,12 +45,12 @@ npm run build
 npm run package:extension
 ```
 
-生成されたVSIXは `dist/office-markdown-0.1.0.vsix` に出力されます。
+生成されたVSIXは `dist/office-markdown-0.1.1.vsix` に出力されます。
 
 ## VS Codeでの使い方
 
 1. `npm run package:extension` でVSIXを作成します。
-2. VS Code Desktopに `dist/office-markdown-0.1.0.vsix` をインストールします。
+2. VS Code Desktopに `dist/office-markdown-0.1.1.vsix` をインストールします。
 3. Explorerで `.xlsx`, `.xlsm`, `.pptx`, `.docx`, `.pdf` を右クリックします。
 4. `Convert Office/PDF File to Markdown` を実行します。
 

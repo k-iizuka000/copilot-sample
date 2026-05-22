@@ -4,6 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import JSZip from "jszip";
 import { convertFile } from "../src/index.js";
+import { ensurePdfJsWorkerHandler } from "../src/converters/pdf/pdf-converter.js";
 import { openOoxmlPackage } from "../src/ooxml/package-reader.js";
 import { normalizeZipEntryName, resolveRelationshipTarget } from "../src/ooxml/path-safety.js";
 
@@ -128,6 +129,26 @@ describe("Office Markdown core conversion", () => {
     expect(markdown).toContain("Hello PDF");
     expect(manifest.source.format).toBe("pdf");
     expect(manifest.warnings).toEqual([]);
+  });
+
+  it("installs the bundled PDF.js worker handler for extension hosts", () => {
+    const pdfGlobal = globalThis as typeof globalThis & {
+      pdfjsWorker?: { WorkerMessageHandler?: unknown };
+    };
+    const previousWorker = pdfGlobal.pdfjsWorker;
+
+    try {
+      Reflect.deleteProperty(pdfGlobal, "pdfjsWorker");
+      ensurePdfJsWorkerHandler();
+
+      expect(pdfGlobal.pdfjsWorker?.WorkerMessageHandler).toEqual(expect.any(Function));
+    } finally {
+      if (previousWorker) {
+        pdfGlobal.pdfjsWorker = previousWorker;
+      } else {
+        Reflect.deleteProperty(pdfGlobal, "pdfjsWorker");
+      }
+    }
   });
 
   it("limits PDF page and Markdown output size with warnings", async () => {

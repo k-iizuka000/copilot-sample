@@ -291,7 +291,7 @@ For unsafe or long source filenames, sanitize only generated output names. Do no
   "schemaVersion": 1,
   "tool": {
     "name": "office-markdown",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "source": {
     "fileName": "sample.xlsx",

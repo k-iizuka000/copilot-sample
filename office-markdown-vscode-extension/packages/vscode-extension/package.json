@@ -2,7 +2,7 @@
   "name": "office-markdown",
   "displayName": "Office Markdown",
   "description": "Convert Office OOXML and PDF files to Markdown plus extracted assets.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "local",
   "license": "MIT",
   "type": "module",
@@ -131,10 +131,10 @@
     "build": "node esbuild.mjs && tsc -p tsconfig.json --noEmit",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "package": "mkdir -p ../../dist && npm run build && vsce package --no-dependencies --allow-missing-repository --out ../../dist/office-markdown-0.1.0.vsix"
+    "package": "mkdir -p ../../dist && npm run build && vsce package --no-dependencies --allow-missing-repository --out ../../dist/office-markdown-0.1.1.vsix"
   },
   "dependencies": {
-    "@office-markdown/core": "0.1.0"
+    "@office-markdown/core": "0.1.1"
   },
   "devDependencies": {
     "@types/node": "^20.12.12",
