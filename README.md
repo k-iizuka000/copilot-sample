@@ -12,6 +12,7 @@
 | `.github/skills/` | コピーして使える skill |
 | `.github/instructions/` | 特定用途や特定パス向けの instructions |
 | `office-markdown-vscode-extension/` | Office ファイルを Markdown に変換する VS Code 拡張の独立ツール |
+| `markdown-html-vscode-extension/` | Markdown ファイルを HTML に変換する VS Code 拡張の独立ツール |
 | `AGENT.md` | AI エージェント向けの作業地図 |
 
 ## 追加ルール

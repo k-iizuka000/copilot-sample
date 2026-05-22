@@ -1,0 +1,131 @@
+{
+  "name": "markdown-html-exporter",
+  "displayName": "Markdown HTML Exporter",
+  "description": "Export Markdown files to clean standalone HTML from VS Code.",
+  "version": "0.1.3",
+  "publisher": "local",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:markdownHtml.exportResource",
+    "onCommand:markdownHtml.exportCurrentFile",
+    "onCommand:markdownHtml.openLastHtml"
+  ],
+  "main": "./dist/extension.cjs",
+  "contributes": {
+    "commands": [
+      {
+        "command": "markdownHtml.exportResource",
+        "title": "Export Markdown to HTML",
+        "category": "Markdown HTML"
+      },
+      {
+        "command": "markdownHtml.exportCurrentFile",
+        "title": "Export Active Markdown to HTML",
+        "category": "Markdown HTML"
+      },
+      {
+        "command": "markdownHtml.openLastHtml",
+        "title": "Open Last Exported HTML",
+        "category": "Markdown HTML"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "markdownHtml.exportResource",
+          "when": "resourceScheme == file && (resourceExtname == .md || resourceExtname == .markdown)",
+          "group": "navigation@55"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "markdownHtml.exportCurrentFile",
+          "when": "resourceScheme == file && (editorLangId == markdown || resourceExtname == .md || resourceExtname == .markdown)",
+          "group": "navigation@55"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "markdownHtml.exportCurrentFile",
+          "when": "resourceScheme == file && (editorLangId == markdown || resourceExtname == .md || resourceExtname == .markdown)",
+          "group": "navigation@55"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "markdownHtml.exportCurrentFile",
+          "when": "editorLangId == markdown"
+        }
+      ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "Markdown HTML",
+      "properties": {
+        "markdownHtml.outputLocation": {
+          "type": "string",
+          "enum": ["nextToSource", "htmlFolder", "askEachTime"],
+          "default": "nextToSource",
+          "description": "Controls where generated HTML files are written."
+        },
+        "markdownHtml.outputFolderName": {
+          "type": "string",
+          "default": "html",
+          "description": "Folder name used when markdownHtml.outputLocation is htmlFolder."
+        },
+        "markdownHtml.overwritePolicy": {
+          "type": "string",
+          "enum": ["overwrite", "confirm", "createUnique"],
+          "default": "overwrite",
+          "description": "Controls how repeated exports handle an existing HTML file."
+        },
+        "markdownHtml.openAfterExport": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open a VS Code preview after exporting HTML."
+        },
+        "markdownHtml.allowRawHtml": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow raw HTML embedded in the Markdown source."
+        },
+        "markdownHtml.linkify": {
+          "type": "boolean",
+          "default": true,
+          "description": "Autoconvert URL-like text into links."
+        },
+        "markdownHtml.typographer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable language-neutral typographic replacements."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node esbuild.mjs && tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "package:extension": "node -e \"const fs=require('fs'); const p=require('./package.json'); fs.mkdirSync('dist',{recursive:true}); for (const f of fs.readdirSync('dist')) if (f.startsWith(p.name+'-') && f.endsWith('.vsix')) fs.rmSync('dist/'+f,{force:true});\" && npm run build && node -e \"const p=require('./package.json'); require('child_process').execFileSync('vsce',['package','--no-dependencies','--allow-missing-repository','--out','dist/'+p.name+'-'+p.version+'.vsix'],{stdio:'inherit'});\""
+  },
+  "dependencies": {
+    "markdown-it": "^14.1.0",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^20.12.12",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^2.32.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.5.4",
+    "vitest": "^3.2.4"
+  }
+}
