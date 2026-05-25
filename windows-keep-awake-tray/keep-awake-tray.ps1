@@ -1,3 +1,48 @@
+param(
+    [string]$LogPath = (Join-Path $PSScriptRoot "keep-awake-tray.log")
+)
+
+$ErrorActionPreference = "Stop"
+
+function Write-KeepAwakeLog {
+    param(
+        [string]$Message
+    )
+
+    try {
+        $logDirectory = Split-Path -Parent $LogPath
+        if ($logDirectory -and -not (Test-Path -LiteralPath $logDirectory)) {
+            [void](New-Item -ItemType Directory -Path $logDirectory -Force)
+        }
+
+        $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        Add-Content -LiteralPath $LogPath -Value "[$timestamp] $Message"
+    }
+    catch {
+    }
+}
+
+trap {
+    $errorText = ($_ | Out-String).Trim()
+    Write-KeepAwakeLog "FATAL: $errorText"
+
+    try {
+        Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show(
+            "Keep Awake Tray could not start.`r`n`r`n$errorText`r`n`r`nLog: $LogPath",
+            "Keep Awake Tray",
+            [System.Windows.Forms.MessageBoxButtons]::OK,
+            [System.Windows.Forms.MessageBoxIcon]::Error
+        ) | Out-Null
+    }
+    catch {
+    }
+
+    exit 1
+}
+
+Write-KeepAwakeLog "Starting Keep Awake Tray."
+
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
@@ -16,7 +61,7 @@ Add-Type -TypeDefinition $nativeSource
 
 $ExecutionStateSystemRequired = [uint32]0x00000001
 $ExecutionStateDisplayRequired = [uint32]0x00000002
-$ExecutionStateContinuous = [uint32]0x80000000
+$ExecutionStateContinuous = [uint32]2147483648
 
 $script:keepDisplayAwake = $false
 $script:activeOptionId = $null
@@ -59,6 +104,7 @@ function Start-AwakeSession {
         $script:activeOptionId = $OptionId
         $script:expiresAt = (Get-Date).AddMinutes($Minutes)
         $script:lastShownError = $null
+        Write-KeepAwakeLog "Started session $OptionId. KeepDisplay=$($script:keepDisplayAwake)."
     }
     catch {
         try {
@@ -81,6 +127,7 @@ function Cancel-AwakeSession {
         $script:activeOptionId = $null
         $script:expiresAt = $null
         $script:lastShownError = $null
+        Write-KeepAwakeLog "Cancelled active session."
     }
     catch {
         $script:activeOptionId = "error"
@@ -166,6 +213,7 @@ function Exit-KeepAwakeTray {
 
     $script:refreshTimer.Stop()
     $script:notifyIcon.Visible = $false
+    Write-KeepAwakeLog "Exiting Keep Awake Tray."
     [System.Windows.Forms.Application]::Exit()
 }
 
@@ -242,6 +290,7 @@ $script:refreshTimer.Start()
 
 try {
     Update-TrayState
+    Write-KeepAwakeLog "Tray UI is ready."
     [System.Windows.Forms.Application]::Run()
 }
 finally {

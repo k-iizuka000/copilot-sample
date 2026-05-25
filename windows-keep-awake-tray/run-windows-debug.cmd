@@ -17,10 +17,16 @@ if not exist "%POWERSHELL%" (
   set "POWERSHELL=powershell.exe"
 )
 
-start "" "%POWERSHELL%" -NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File "%SCRIPT%" -LogPath "%LOG%"
+echo Starting Keep Awake Tray in debug mode.
+echo Close the tray app first, then close this PowerShell window.
+echo Log: %LOG%
+echo.
+
+"%POWERSHELL%" -NoProfile -ExecutionPolicy Bypass -STA -NoExit -File "%SCRIPT%" -LogPath "%LOG%"
 if errorlevel 1 (
   echo.
-  echo Could not start Windows PowerShell.
+  echo Keep Awake Tray exited with an error.
+  echo Log: %LOG%
   pause
   exit /b 1
 )

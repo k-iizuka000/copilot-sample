@@ -14,6 +14,21 @@ windows-keep-awake-tray/run-windows.cmd
 標準の Windows PowerShell で起動するため、.NET SDK のインストールは不要です。
 `artifacts/` や `KeepAwakeTray.exe` がなくても動きます。
 
+`run-windows.cmd` の黒い画面はすぐ閉じます。これは起動用の画面だけで、アプリ本体は画面右下のタスクトレイに常駐します。
+見当たらない場合は、タスクバー右下の隠れているインジケーターも確認してください。
+
+もし何も起きない場合は、次のファイルを実行してください。PowerShell画面を残したまま起動するため、エラーを確認できます。
+
+```text
+windows-keep-awake-tray/run-windows-debug.cmd
+```
+
+起動ログはここに出ます。
+
+```text
+windows-keep-awake-tray/keep-awake-tray.log
+```
+
 ## アプリの使い方
 
 起動すると、画面右下のタスクトレイに常駐します。画面に大きなウィンドウは出ません。
