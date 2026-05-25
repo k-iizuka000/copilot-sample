@@ -1,4 +1,7 @@
 .DS_Store
 windows-keep-awake-tray/**/bin/
 windows-keep-awake-tray/**/obj/
-windows-keep-awake-tray/artifacts/
+windows-keep-awake-tray/artifacts/**
+!windows-keep-awake-tray/artifacts/
+!windows-keep-awake-tray/artifacts/win-x64/
+!windows-keep-awake-tray/artifacts/win-x64/KeepAwakeTray-win-x64.zip

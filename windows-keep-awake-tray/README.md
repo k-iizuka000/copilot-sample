@@ -11,22 +11,15 @@ Windows のスリープを一時的に止める、シンプルなタスクトレ
 windows-keep-awake-tray/run-windows.cmd
 ```
 
-標準の Windows PowerShell で起動するため、.NET SDK のインストールは不要です。
-`artifacts/` や `KeepAwakeTray.exe` がなくても動きます。
+同梱しているビルド済みzipを自動で展開してから起動するため、.NET SDK のインストールは不要です。
 
 `run-windows.cmd` の黒い画面はすぐ閉じます。これは起動用の画面だけで、アプリ本体は画面右下のタスクトレイに常駐します。
 見当たらない場合は、タスクバー右下の隠れているインジケーターも確認してください。
 
-もし何も起きない場合は、次のファイルを実行してください。PowerShell画面を残したまま起動するため、エラーを確認できます。
+自動展開に失敗した場合は、次のzipを右クリックして `Extract All` で展開してから、もう一度 `run-windows.cmd` を実行してください。
 
 ```text
-windows-keep-awake-tray/run-windows-debug.cmd
-```
-
-起動ログはここに出ます。
-
-```text
-windows-keep-awake-tray/keep-awake-tray.log
+windows-keep-awake-tray/artifacts/win-x64/KeepAwakeTray-win-x64.zip
 ```
 
 ## アプリの使い方
@@ -51,7 +44,7 @@ windows-keep-awake-tray/keep-awake-tray.log
 1. `run-windows.cmd` を起動します。
 2. タスクトレイのアイコンを右クリックします。
 3. `30 min` などの時間を選びます。
-4. PowerShell を開いて、次を実行します。
+4. PowerShell または コマンドプロンプトを開いて、次を実行します。
 
 ```powershell
 powercfg /requests
@@ -69,7 +62,7 @@ powercfg /requests
 
 ## 自分でビルドだけしたい場合
 
-PowerShell版ではなく、C# / WinForms版の exe を自分で作りたい場合だけ .NET 8 SDK が必要です。
+同梱zipではなく、C# / WinForms版の exe を自分で作り直したい場合だけ .NET 8 SDK が必要です。
 その場合は、Windowsでこのファイルをダブルクリックしてください。
 
 ```text
