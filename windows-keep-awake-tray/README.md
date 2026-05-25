@@ -5,22 +5,14 @@ Windows のスリープを一時的に止める、シンプルなタスクトレ
 
 ## まずWindowsでやること
 
-`artifacts/` は生成物なので、GitでWindowsに持っていった直後は存在しないことがあります。
-
 まず、Windowsでこのファイルをダブルクリックしてください。
 
 ```text
 windows-keep-awake-tray/run-windows.cmd
 ```
 
-`artifacts/` がなければ自動で作成してから、アプリを起動します。
-
-もし `dotnet was not found` と表示された場合は、Windowsに .NET 8 SDK が入っていません。
-その場合は .NET 8 SDK を入れてから、もう一度 `run-windows.cmd` を実行してください。
-
-```text
-https://dotnet.microsoft.com/download/dotnet/8.0
-```
+標準の Windows PowerShell で起動するため、.NET SDK のインストールは不要です。
+`artifacts/` や `KeepAwakeTray.exe` がなくても動きます。
 
 ## アプリの使い方
 
@@ -41,7 +33,7 @@ https://dotnet.microsoft.com/download/dotnet/8.0
 
 ## Windowsでの動作確認
 
-1. `KeepAwakeTray.exe` を起動します。
+1. `run-windows.cmd` を起動します。
 2. タスクトレイのアイコンを右クリックします。
 3. `30 min` などの時間を選びます。
 4. PowerShell を開いて、次を実行します。
@@ -62,7 +54,8 @@ powercfg /requests
 
 ## 自分でビルドだけしたい場合
 
-アプリを起動せず、exe だけ作りたい場合は、Windowsでこのファイルをダブルクリックしてください。
+PowerShell版ではなく、C# / WinForms版の exe を自分で作りたい場合だけ .NET 8 SDK が必要です。
+その場合は、Windowsでこのファイルをダブルクリックしてください。
 
 ```text
 windows-keep-awake-tray/build-windows.cmd
