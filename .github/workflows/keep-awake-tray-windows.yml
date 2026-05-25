@@ -66,6 +66,11 @@ jobs:
       - name: Verify published executable stays running
         run: |
           $exe = Join-Path $PWD "artifacts/ci/win-x64/KeepAwakeTray.exe"
+          $log = Join-Path $env:LOCALAPPDATA "KeepAwakeTray/KeepAwakeTray.log"
+          if (Test-Path -LiteralPath $log) {
+            Remove-Item -LiteralPath $log -Force
+          }
+
           $process = Start-Process -FilePath $exe -PassThru
           Start-Sleep -Seconds 5
           $process.Refresh()
@@ -74,7 +79,19 @@ jobs:
             throw "KeepAwakeTray.exe exited too early with code $($process.ExitCode)"
           }
 
-          Stop-Process -Id $process.Id -Force
+          try {
+            if (!(Test-Path -LiteralPath $log)) {
+              throw "Startup log was not created: $log"
+            }
+
+            $content = Get-Content -LiteralPath $log -Raw
+            if ($content -notmatch "Tray icon is visible") {
+              throw "Startup log did not include tray-visible signal. Log content: $content"
+            }
+          }
+          finally {
+            Stop-Process -Id $process.Id -Force
+          }
 
       - name: Package verified executable
         run: |
@@ -122,6 +139,11 @@ jobs:
             throw "Prebuilt smoke test failed with exit code $($smoke.ExitCode)"
           }
 
+          $log = Join-Path $env:LOCALAPPDATA "KeepAwakeTray/KeepAwakeTray.log"
+          if (Test-Path -LiteralPath $log) {
+            Remove-Item -LiteralPath $log -Force
+          }
+
           $process = Start-Process -FilePath $exe -PassThru
           Start-Sleep -Seconds 5
           $process.Refresh()
@@ -130,4 +152,16 @@ jobs:
             throw "Prebuilt KeepAwakeTray.exe exited too early with code $($process.ExitCode)"
           }
 
-          Stop-Process -Id $process.Id -Force
+          try {
+            if (!(Test-Path -LiteralPath $log)) {
+              throw "Prebuilt startup log was not created: $log"
+            }
+
+            $content = Get-Content -LiteralPath $log -Raw
+            if ($content -notmatch "Tray icon is visible") {
+              throw "Prebuilt startup log did not include tray-visible signal. Log content: $content"
+            }
+          }
+          finally {
+            Stop-Process -Id $process.Id -Force
+          }
