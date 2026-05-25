@@ -13,6 +13,7 @@ windows-keep-awake-tray/run-windows.cmd
 
 同梱しているビルド済みzipを自動で展開してから起動するため、.NET SDK のインストールは不要です。
 
+起動すると `Keep Awake is running` という通知が出ます。
 `run-windows.cmd` の黒い画面はすぐ閉じます。これは起動用の画面だけで、アプリ本体は画面右下のタスクトレイに常駐します。
 見当たらない場合は、タスクバー右下の隠れているインジケーターも確認してください。
 
@@ -20,6 +21,12 @@ windows-keep-awake-tray/run-windows.cmd
 
 ```text
 windows-keep-awake-tray/artifacts/win-x64/KeepAwakeTray-win-x64.zip
+```
+
+起動失敗や動作中のエラーは、次のログにも出ます。
+
+```text
+%LOCALAPPDATA%\KeepAwakeTray\KeepAwakeTray.log
 ```
 
 ## アプリの使い方

@@ -6,9 +6,9 @@ set "EXE=%~dp0artifacts\win-x64\KeepAwakeTray.exe"
 set "ZIP=%~dp0artifacts\win-x64\KeepAwakeTray-win-x64.zip"
 set "TAR=%SystemRoot%\System32\tar.exe"
 
-if exist "%EXE%" goto run_app
-
 if not exist "%ZIP%" (
+  if exist "%EXE%" goto run_app
+
   echo.
   echo Could not find:
   echo   %EXE%
@@ -30,6 +30,19 @@ if not exist "%TAR%" (
   echo   %~f0
   pause
   exit /b 1
+)
+
+if exist "%EXE%" (
+  del /f /q "%EXE%" >nul 2>nul
+  if exist "%EXE%" (
+    echo.
+    echo Could not replace the existing app:
+    echo   %EXE%
+    echo.
+    echo If Keep Awake Tray is already running, exit it from the tray menu and try again.
+    pause
+    exit /b 1
+  )
 )
 
 echo Extracting prebuilt app...

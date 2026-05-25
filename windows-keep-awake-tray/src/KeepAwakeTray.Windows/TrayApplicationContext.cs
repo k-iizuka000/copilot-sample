@@ -12,6 +12,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
     private readonly ToolStripMenuItem cancelItem;
     private readonly System.Windows.Forms.Timer refreshTimer;
     private string? lastShownError;
+    private bool startupBalloonShown;
 
     public TrayApplicationContext(AwakeSessionController sessionController)
     {
@@ -68,10 +69,12 @@ internal sealed class TrayApplicationContext : ApplicationContext
         refreshTimer.Start();
 
         RefreshState();
+        ShowStartupSignal();
     }
 
     protected override void ExitThreadCore()
     {
+        AppLogger.Info("Exiting KeepAwakeTray tray application.");
         refreshTimer.Stop();
         sessionController.Dispose();
         notifyIcon.Visible = false;
@@ -84,23 +87,29 @@ internal sealed class TrayApplicationContext : ApplicationContext
 
     private void StartDuration(AwakeDurationOption option)
     {
+        AppLogger.Info($"Starting awake session. Duration={option.Label}; KeepDisplayAwake={keepDisplayAwakeItem.Checked}.");
         sessionController.Start(option, keepDisplayAwakeItem.Checked);
         RefreshState();
         ShowFailureIfNeeded();
+        LogFailureIfNeeded("Failed to start awake session.");
     }
 
     private void CancelSession()
     {
+        AppLogger.Info("Cancelling awake session.");
         sessionController.Cancel();
         RefreshState();
         ShowFailureIfNeeded();
+        LogFailureIfNeeded("Failed to cancel awake session.");
     }
 
     private void UpdateDisplayAwake()
     {
+        AppLogger.Info($"Updating display awake setting. KeepDisplayAwake={keepDisplayAwakeItem.Checked}.");
         sessionController.SetKeepDisplayAwake(keepDisplayAwakeItem.Checked);
         RefreshState();
         ShowFailureIfNeeded();
+        LogFailureIfNeeded("Failed to update display awake setting.");
     }
 
     private void RefreshState()
@@ -132,7 +141,29 @@ internal sealed class TrayApplicationContext : ApplicationContext
         }
 
         lastShownError = state.ErrorMessage;
+        AppLogger.Info($"Showing failure notification. Error={state.ErrorMessage}.");
         notifyIcon.ShowBalloonTip(5_000, "Keep Awake failed", state.ErrorMessage, ToolTipIcon.Error);
+    }
+
+    private void LogFailureIfNeeded(string message)
+    {
+        var state = sessionController.State;
+        if (state.Status is AwakeSessionStatus.Failed && !string.IsNullOrWhiteSpace(state.ErrorMessage))
+        {
+            AppLogger.Info($"{message} Error={state.ErrorMessage}.");
+        }
+    }
+
+    private void ShowStartupSignal()
+    {
+        if (startupBalloonShown)
+        {
+            return;
+        }
+
+        startupBalloonShown = true;
+        AppLogger.Info($"Tray icon is visible. LogPath={AppLogger.LogPath}.");
+        notifyIcon.ShowBalloonTip(3_000, "Keep Awake is running", "Use the tray icon to choose an awake duration.", ToolTipIcon.Info);
     }
 
     private static string BuildTooltip(AwakeSessionState state)

@@ -1,0 +1,133 @@
+name: Keep Awake Tray Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      validate_prebuilt:
+        description: Validate the checked-in prebuilt zip
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+  push:
+    paths:
+      - ".github/workflows/keep-awake-tray-windows.yml"
+      - "windows-keep-awake-tray/**"
+
+jobs:
+  windows-smoke:
+    name: Build and smoke test on Windows
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: windows-keep-awake-tray
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run unit tests
+        run: dotnet test KeepAwakeTray.sln --configuration Release
+
+      - name: Publish self-contained app
+        run: |
+          dotnet publish src/KeepAwakeTray.Windows/KeepAwakeTray.Windows.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            -p:PublishTrimmed=false `
+            -o artifacts/ci/win-x64
+
+      - name: Smoke test published executable
+        run: |
+          $exe = Join-Path $PWD "artifacts/ci/win-x64/KeepAwakeTray.exe"
+          if (!(Test-Path -LiteralPath $exe)) {
+            throw "Published executable was not found: $exe"
+          }
+
+          & $exe --smoke-test
+          if ($LASTEXITCODE -ne 0) {
+            throw "Smoke test failed with exit code $LASTEXITCODE"
+          }
+
+      - name: Verify published executable stays running
+        run: |
+          $exe = Join-Path $PWD "artifacts/ci/win-x64/KeepAwakeTray.exe"
+          $process = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 5
+          $process.Refresh()
+
+          if ($process.HasExited) {
+            throw "KeepAwakeTray.exe exited too early with code $($process.ExitCode)"
+          }
+
+          Stop-Process -Id $process.Id -Force
+
+      - name: Package verified executable
+        run: |
+          $zip = Join-Path $PWD "artifacts/ci/KeepAwakeTray-win-x64.zip"
+          if (Test-Path -LiteralPath $zip) {
+            Remove-Item -LiteralPath $zip -Force
+          }
+
+          Compress-Archive `
+            -Path "artifacts/ci/win-x64/KeepAwakeTray.exe" `
+            -DestinationPath $zip `
+            -CompressionLevel Optimal
+
+      - name: Upload verified package
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeepAwakeTray-win-x64
+          path: windows-keep-awake-tray/artifacts/ci/KeepAwakeTray-win-x64.zip
+          if-no-files-found: error
+
+      - name: Validate checked-in prebuilt zip
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.validate_prebuilt == 'true' }}
+        run: |
+          $zip = Join-Path $PWD "artifacts/win-x64/KeepAwakeTray-win-x64.zip"
+          $out = Join-Path $PWD "artifacts/prebuilt-check/win-x64"
+
+          if (!(Test-Path -LiteralPath $zip)) {
+            throw "Prebuilt zip was not found: $zip"
+          }
+
+          if (Test-Path -LiteralPath $out) {
+            Remove-Item -LiteralPath $out -Recurse -Force
+          }
+
+          New-Item -ItemType Directory -Path $out | Out-Null
+          Expand-Archive -LiteralPath $zip -DestinationPath $out -Force
+
+          $exe = Join-Path $out "KeepAwakeTray.exe"
+          if (!(Test-Path -LiteralPath $exe)) {
+            throw "Prebuilt executable was not found after extraction: $exe"
+          }
+
+          & $exe --smoke-test
+          if ($LASTEXITCODE -ne 0) {
+            throw "Prebuilt smoke test failed with exit code $LASTEXITCODE"
+          }
+
+          $process = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 5
+          $process.Refresh()
+
+          if ($process.HasExited) {
+            throw "Prebuilt KeepAwakeTray.exe exited too early with code $($process.ExitCode)"
+          }
+
+          Stop-Process -Id $process.Id -Force
