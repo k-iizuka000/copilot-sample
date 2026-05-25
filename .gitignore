@@ -1,1 +1,4 @@
 .DS_Store
+windows-keep-awake-tray/**/bin/
+windows-keep-awake-tray/**/obj/
+windows-keep-awake-tray/artifacts/
