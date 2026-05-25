@@ -58,9 +58,9 @@ jobs:
             throw "Published executable was not found: $exe"
           }
 
-          & $exe --smoke-test
-          if ($LASTEXITCODE -ne 0) {
-            throw "Smoke test failed with exit code $LASTEXITCODE"
+          $smoke = Start-Process -FilePath $exe -ArgumentList "--smoke-test" -Wait -PassThru
+          if ($smoke.ExitCode -ne 0) {
+            throw "Smoke test failed with exit code $($smoke.ExitCode)"
           }
 
       - name: Verify published executable stays running
@@ -117,9 +117,9 @@ jobs:
             throw "Prebuilt executable was not found after extraction: $exe"
           }
 
-          & $exe --smoke-test
-          if ($LASTEXITCODE -ne 0) {
-            throw "Prebuilt smoke test failed with exit code $LASTEXITCODE"
+          $smoke = Start-Process -FilePath $exe -ArgumentList "--smoke-test" -Wait -PassThru
+          if ($smoke.ExitCode -ne 0) {
+            throw "Prebuilt smoke test failed with exit code $($smoke.ExitCode)"
           }
 
           $process = Start-Process -FilePath $exe -PassThru
