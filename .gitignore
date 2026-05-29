@@ -1,4 +1,30 @@
 .DS_Store
+node_modules/
+coverage/
+.vscode-test/
+
+# Local secrets and credentials must never be committed.
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.mobileprovision
+id_rsa*
+id_ed25519*
+
+# Local runtime/cache output.
+*.log
+*.tmp
+*.bak
+*.sqlite
+*.sqlite3
+*.db
+*.tsbuildinfo
+
 windows-keep-awake-tray/**/bin/
 windows-keep-awake-tray/**/obj/
 windows-keep-awake-tray/artifacts/**
