@@ -1,68 +1,136 @@
 # instructions ディレクトリ取扱説明書
 
-`instructions` は、特定の種類のファイルを扱う時に常に守ってほしいルールを置くディレクトリです。ここにある `*.instructions.md` は、毎回手動で読む長い手順書ではなく、「このパターンのファイルを触るなら、この注意を忘れないで」という短い常時ルールです。
+`instructions` は、特定のファイルやディレクトリを扱う時に、AIへ常に守ってほしいルールを書く場所です。ここに置く `*.instructions.md` は、個別の作業依頼ではありません。対象ファイルに対する基本方針を、短く、継続的に効かせるための説明書です。
 
-たとえば Java ファイルを触る時は Java/Spring の指示、SQL や migration を触る時はデータベース指示、README を触る時はドキュメント指示を見る、という関係です。
+たとえば、Javaファイルを触る時の責務分離、テストファイルを触る時のテスト方針、READMEを触る時の書き方などをここに書きます。
 
-## 全体像
+## instructions とは何か
+
+instructions は「この種類のファイルを扱うなら、常にこのルールを意識して」という補助ルールです。
 
 ```mermaid
 flowchart TD
-    A[変更するファイル] --> B{applyTo に一致する?}
-    B -->|Java / Gradle / Maven| C[java-spring.instructions.md]
-    B -->|Test / spec| D[testing.instructions.md]
-    B -->|SQL / migration / Entity| E[database.instructions.md]
-    B -->|設定 / secret / auth / Docker| F[security.instructions.md]
-    B -->|README / docs| G[documentation.instructions.md]
-    B -->|.github 配下のAI設定| H[agent-harness.instructions.md]
-    C --> I[短いルールを守って作業]
-    D --> I
-    E --> I
-    F --> I
-    G --> I
-    H --> I
+    A[AIがファイルを扱う] --> B{applyTo に一致するか}
+    B -->|一致する| C[instructions の内容を参照]
+    B -->|一致しない| D[通常の依頼だけで進める]
+    C --> E[実装・レビュー・修正時の判断に影響]
 ```
 
-## ファイルの見方
+`agents` が専門担当者、`prompts` が依頼テンプレート、`skills` が手順書だとすると、`instructions` は対象ファイルにかかる常時ルールです。
 
-`*.instructions.md` を開いたら、最初に `applyTo` を見ます。
+## 基本構造
 
-| 見る場所 | 何が書いてあるか | 読む目的 |
-| --- | --- | --- |
-| 先頭の `applyTo` | どのファイル名、拡張子、ディレクトリにこの指示が効くか | 今の作業に関係する指示か判断する |
-| `# ... 指示` | 指示の種類 | Java、テスト、DB、セキュリティなどの分類を見る |
-| 箇条書き | 守るべき短いルール | 作業中に忘れてはいけない確認事項を見る |
+```markdown
+---
+applyTo: "**/*.java,**/pom.xml"
+---
 
-このディレクトリのファイルは短いです。詳細な手順は `agents`、`skills`、`prompts` に分け、ここには「常に守るべき基本ルール」だけを置く方針です。
+# Java / Spring 指示
 
-## ファイル一覧
+- Spring Boot では Controller、Service、Repository、DTO の責務を分ける。
+- 外部入力は Controller 境界で検証する。
+- 例外やログに機密情報を含めない。
+```
 
-| ファイル | 対象になる主なファイル | ファイルに書いてあること | どこを見ればいいか |
+上の `---` で囲まれた部分がメタデータです。本文は短い箇条書きで、守るべきルールを書きます。
+
+## メタデータの意味
+
+| 項目 | 何を書くか | 書く理由 | AIへの効き方 |
 | --- | --- | --- | --- |
-| `agent-harness.instructions.md` | `.github/agents/**`、`.github/skills/**`、`.github/prompts/**`、`.github/instructions/**`、`.github/copilot-instructions.md` | Copilot 用の agents、skills、prompts、instructions を作る時の配置ルールと分担。repository-wide 指示は `copilot-instructions.md`、path-specific 指示は `instructions`、詳細手順は agents/skills/prompts に分ける、と書いてある。 | 先頭の `applyTo` で `.github` 配下のAI設定が対象か確認する。箇条書きの後半で、agents、skills、prompts それぞれに何を書くべきかを見る。 |
-| `database.instructions.md` | `*.sql`、`migrations/**`、`db/**`、`schema/**`、`*Entity.java`、`*Repository.java` など | 本番DB変更は migration で管理する、適用済み migration は編集しない、大きなテーブルではロックや全件更新を確認する、Repository の N+1 やページング漏れを見る、といったDB作業の基本ルール。 | migration を触るなら先頭から読む。Entity/Repository を触る時は、後半の Repository と Entity に関する箇条書きを見る。 |
-| `documentation.instructions.md` | `*.md`、`*.mdx`、`README*`、`docs/**` | 読者が必要な結論を先に書く、現在の構成やコマンドと一致させる、古いツール名や未確認の前提を残さない、公開できない情報を書かない、というドキュメント作成ルール。 | README や docs を更新する前に全部読む。特に「実コードと矛盾しないか」「公開できない情報がないか」を確認する。 |
-| `java-spring.instructions.md` | `*.java`、`pom.xml`、`build.gradle`、`settings.gradle` など | Spring Boot の Controller、Service、Repository、DTO の責務分離、コンストラクタインジェクション、Bean Validation、トランザクション境界、APIレスポンス、例外処理、既存規約への合わせ方。 | Java実装では全体を読む。特に Controller/Service/Repository の分担と、入力検証、トランザクション、例外処理の箇条書きを見る。 |
-| `security.instructions.md` | Java、JS/TS、Python、SQL、YAML、properties、`.env.example`、Dockerfile、config/security 配下など | APIキーや個人情報をコミットしない、外部入力を検証する、SQLはパラメータ化する、未サニタイズ入力をHTML/Markdown/log/errorに出さない、認証認可やCORSなどを再確認する、というセキュリティの常時ルール。 | 設定、認証、入力、ログ、Docker、環境変数を触る時に読む。秘密情報と外部入力に関する前半の箇条書きは特に重要。 |
-| `testing.instructions.md` | `*Test.java`、`*Tests.java`、`*IT.java`、`src/test/**`、`tests/**`、`*spec.*`、`*test.*`、build設定 | 新機能やバグ修正では先に期待動作や再現条件をテストで固定する、テストを独立させる、カバレッジ数値だけで完了判断しない、実行コマンドと未実行理由を報告する、というテスト作業の基本ルール。 | テスト追加や修正時に全部読む。完了報告前には最後の「実行したコマンド、結果、未実行の理由」を確認する。 |
+| `applyTo` | この指示を適用するファイルパターン | どのファイルにこのルールを効かせるか決めるため | 一致するファイルを扱う時に、この指示が参照されやすくなる |
 
-## 重なった時の考え方
+このディレクトリでは、基本的に `applyTo` が最重要です。`name` や `description` ではなく、「どのファイルに効くか」を先頭で決めます。
 
-1つの作業に複数の instructions が当たることがあります。たとえば `UserRepository.java` を変更するなら、`java-spring.instructions.md` と `database.instructions.md` の両方が関係します。認可条件も変えるなら `security.instructions.md` も関係します。
+## `applyTo` の読み方
+
+`applyTo` は、ファイル名やディレクトリに対するパターンです。
+
+```yaml
+applyTo: "**/*.java,**/pom.xml,**/build.gradle"
+```
+
+この例は、次のような意味です。
+
+- `**/*.java`: どの階層にある Java ファイルにも当たる
+- `**/pom.xml`: どの階層にある Maven 設定にも当たる
+- `**/build.gradle`: どの階層にある Gradle 設定にも当たる
+
+カンマで複数のパターンを並べると、どれかに一致した時にその指示の対象になります。
+
+## `applyTo` を広くしすぎない
+
+`applyTo` が広すぎると、関係ない作業にもルールがかかります。たとえばセキュリティ指示を全ファイルに広げすぎると、普通のドキュメント修正でも過剰にセキュリティ観点へ寄る可能性があります。
 
 ```mermaid
 flowchart LR
-    A[変更: UserRepository.java] --> B[java-spring]
-    A --> C[database]
-    A --> D{認証/認可も変更?}
-    D -->|はい| E[security]
-    B --> F[全部の短いルールを合わせて確認]
-    C --> F
-    E --> F
+    A[狭い applyTo] --> B[必要な場面で効く]
+    C[広すぎる applyTo] --> D[関係ない作業にも混ざる]
+    B --> E[判断が安定する]
+    D --> F[指示同士が衝突しやすい]
 ```
 
-## 注意点
+ルールは「必要な場所にだけ効く」ように書くのが基本です。
 
-- instructions は「常時の短い注意書き」です。作業の細かい手順は `skills` や `prompts` を見ます。
-- `applyTo` がいちばん重要です。ここを見れば、その指示がどのファイルに関係するか分かります。
-- ファイルが短いので、対象に当たるものは部分読みではなく全体を読んだ方が安全です。
+## 本文に書くこと
+
+instructions の本文は、長い手順ではなく、常に守る短い原則を書きます。
+
+| 書く内容 | 例 | 書く理由 |
+| --- | --- | --- |
+| 守るべき設計方針 | Controller と Service の責務を分ける | 実装の方向性を揃える |
+| セキュリティ上の禁止事項 | APIキーやパスワードをコミットしない | 重大事故を防ぐ |
+| テストの基本姿勢 | バグ修正では再現テストを先に作る | 修正の妥当性を確認する |
+| ドキュメントの書き方 | 古いコマンドや未確認の前提を残さない | 読者が迷わないようにする |
+| 完了報告で必要なこと | 実行したコマンドと未実行理由を書く | 検証済みと未検証を分ける |
+
+## なぜ短く書くのか
+
+instructions は、対象ファイルを扱うたびに効く可能性があります。そのため、長すぎるとノイズになります。
+
+悪い例:
+
+```markdown
+- Java の歴史、Spring Boot の思想、詳しい設計パターンを長文で説明する。
+```
+
+よい例:
+
+```markdown
+- Spring Boot では Controller、Service、Repository、DTO の責務を分ける。
+```
+
+詳しい手順や専門知識は `skills` に置き、instructions には「いつも忘れてほしくないこと」だけを書きます。
+
+## ルールが重なった時
+
+1つのファイルに複数の instructions が当たることがあります。たとえば Java の Repository を触る時は、Java/Spring の指示とデータベースの指示が同時に関係します。
+
+```mermaid
+flowchart TD
+    A[対象ファイル] --> B[Java / Spring 指示]
+    A --> C[Database 指示]
+    A --> D[Security 指示]
+    B --> E[全部を矛盾しないように読む]
+    C --> E
+    D --> E
+```
+
+重なった場合は、どれか1つだけを見るのではなく、関係する短いルールを合わせて読みます。矛盾しそうな場合は、より安全側のルールや、ユーザーの明示指示を優先します。
+
+## 作る時の手順
+
+1. どの種類のファイルに効かせたいか決める。
+2. `applyTo` に対象パターンを書く。
+3. 本文には短い箇条書きで常時ルールを書く。
+4. 詳しい作業手順になってきたら `skills` に分ける。
+5. 特定の担当者の振る舞いになってきたら `agents` に分ける。
+6. 繰り返し使う依頼文になってきたら `prompts` に分ける。
+
+## 書き方の注意
+
+- instructions は「常時ルール」です。長い作業手順を詰め込みすぎないでください。
+- `applyTo` は狭すぎても効かず、広すぎてもノイズになります。
+- 箇条書きは、AIが行動に移せる表現にします。
+- 「品質を高くする」のような抽象語だけではなく、「実行したコマンドと未実行理由を書く」のように具体化します。
+- 他の instructions と矛盾するルールを書かないようにします。
