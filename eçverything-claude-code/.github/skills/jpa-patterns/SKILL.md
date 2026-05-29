@@ -7,6 +7,12 @@ description: Spring BootでJPA/Hibernateのentity、repository、transaction、q
 
 JPA は便利ですが、entity design、fetch strategy、transaction boundary を曖昧にすると production で性能と整合性の問題になります。
 
+## Related assets
+
+- 主な入口 prompts: `code-review`, `plan`, `verify`
+- 主な agents: `java-reviewer`, `database-reviewer`, `architect`
+- 関連 instructions: `java-spring`, `database`, `testing`
+
 ## 使うタイミング
 
 - entity / relationship を追加する

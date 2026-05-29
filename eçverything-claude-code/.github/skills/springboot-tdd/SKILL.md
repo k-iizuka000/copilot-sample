@@ -7,6 +7,12 @@ description: Spring BootでJUnit 5、Mockito、MockMvc、DataJpaTest、Testconta
 
 Spring Boot の TDD では、service、web、repository、integration の各層に合ったテストを選びます。
 
+## Related assets
+
+- 主な入口 prompts: `tdd`, `test-coverage`
+- 主な agents: `tdd-guide`
+- 関連 instructions: `testing`, `java-spring`, `database`
+
 ## 使うタイミング
 
 - endpoint や use case を追加する

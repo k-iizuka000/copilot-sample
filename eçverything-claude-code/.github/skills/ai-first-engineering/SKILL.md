@@ -7,6 +7,12 @@ description: AIが実装量を大きく担うチームで、計画、レビュ�
 
 AI支援で出荷速度を上げるときは、タイピング量ではなく「仕様の明確さ」「検証の強さ」「レビュー観点」が成果を決めます。
 
+## Related assets
+
+- 主な入口 prompts: `orchestrate`, `plan`, `learn`, `skill-create`
+- 主な agents: `planner`, `architect`
+- 関連 instructions: `copilot-instructions`, `documentation`
+
 ## 使うタイミング
 
 - AI agent に大きめの実装を任せる前

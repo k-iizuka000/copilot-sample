@@ -7,6 +7,12 @@ description: Spring Bootのcontroller、service、repository、DTO、validation�
 
 Spring Boot では、controller は薄く、service は transaction と business rule を持ち、repository は永続化に集中させます。
 
+## Related assets
+
+- 主な入口 prompts: `plan`, `code-review`, `update-docs`
+- 主な agents: `architect`, `java-reviewer`
+- 関連 instructions: `java-spring`, `testing`
+
 ## 使うタイミング
 
 - REST API を追加する

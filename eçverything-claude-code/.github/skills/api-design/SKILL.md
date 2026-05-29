@@ -7,6 +7,12 @@ description: REST APIのresource設計、HTTP status、pagination、filtering、
 
 API は実装都合ではなく、resource、contract、error semantics を中心に設計します。
 
+## Related assets
+
+- 主な入口 prompts: `plan`, `code-review`, `update-docs`
+- 主な agents: `architect`, `java-reviewer`, `doc-updater`
+- 関連 instructions: `java-spring`, `security`, `documentation`
+
 ## 使うタイミング
 
 - 新しい endpoint を設計する

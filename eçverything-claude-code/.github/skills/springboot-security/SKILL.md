@@ -7,6 +7,12 @@ description: Spring Boot / Spring Securityで認証、認可、CSRF、headers、
 
 Spring Security は deny by default、最小権限、明示的な boundary validation を基本にします。
 
+## Related assets
+
+- 主な入口 prompts: `code-review`, `verify`, `quality-gate`
+- 主な agents: `security-reviewer`, `java-reviewer`
+- 関連 instructions: `security`, `java-spring`
+
 ## 使うタイミング
 
 - login、JWT、session、OAuth2 を実装する

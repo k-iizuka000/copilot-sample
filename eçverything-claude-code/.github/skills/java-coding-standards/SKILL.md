@@ -7,6 +7,12 @@ description: Java 17+とSpring Bootサービスで、読みやすく型安全で
 
 Java code は clever さより、読みやすさ、型安全性、明示的な error handling を優先します。
 
+## Related assets
+
+- 主な入口 prompts: `code-review`, `quality-gate`, `verify`
+- 主な agents: `java-reviewer`, `code-reviewer`
+- 関連 instructions: `java-spring`, `testing`
+
 ## 原則
 
 - 明確さを最優先する。

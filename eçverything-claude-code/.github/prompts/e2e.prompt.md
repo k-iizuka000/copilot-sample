@@ -8,6 +8,14 @@ This is a reusable VS Code prompt file, not a custom agent. Invoke it manually f
 
 指定されたユーザーフローを、Playwright などプロジェクトで使われている E2E ツールで検証してください。既存のテスト規約を先に確認し、既存パターンに合わせます。
 
+## Related assets
+
+- 推奨 custom agent: `.github/agents/e2e-runner.agent.md`
+- 必ず参照する skills: `.github/skills/e2e-testing/SKILL.md`、`.github/skills/ai-regression-testing/SKILL.md`、`.github/skills/verification-loop/SKILL.md`
+- 関連 instructions: `.github/instructions/testing.instructions.md`、認証や PII を扱う場合は `.github/instructions/security.instructions.md`
+
+運用チェーン: e2e-runner が対象フローを E2E testing skill で設計し、回帰と証跡を verification-loop で確認する。
+
 ## 手順
 
 1. 対象フロー、画面、API、既存 E2E 設定を確認する。

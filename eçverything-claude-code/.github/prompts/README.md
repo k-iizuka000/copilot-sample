@@ -20,6 +20,8 @@ flowchart TD
 
 実ファイルの冒頭にある `This is a reusable VS Code prompt file, not a custom agent...` という文は、「これは agent 定義ではなく、チャットから手動で選んで使う依頼テンプレートです」という意味です。つまり、このファイルを置くだけでAIの人格が変わるのではなく、利用者がその prompt を選んだ時に依頼文として使われます。
 
+ただし、この pack では prompt と runner/agent の関係を無関係なままにはしません。各 prompt の `## Related assets` に、推奨 custom agent または推奨実行先、必ず参照する skills、関連 instructions を明記します。全体のつながりは `.github/ASSET-GRAPH.md` の inventory でも確認できる前提です。
+
 ## 基本構造
 
 ```markdown
@@ -69,6 +71,7 @@ prompt の本文は、「どう頼むか」と「どう返してほしいか」�
 | --- | --- | --- |
 | `# ...` | prompt の名前 | 人間がどの依頼テンプレートか分かるようにする |
 | 冒頭文 | この prompt の目的 | AIに作業のゴールを伝える |
+| `## Related assets` | 推奨 agent/実行先、参照する skills、関連 instructions | prompt から agent、skill、instructions への運用チェーンを明示する |
 | `## 入力` | 利用者が追加で指定する値 | 対象、モード、オプションを明確にする。必要な prompt だけに置く |
 | `## モード` | 実行の深さや種類 | quick / full など、作業の重さを選べるようにする。必要な prompt だけに置く |
 | `## 手順` | AIに進めてほしい順番 | 調査、実行、確認、報告の流れを固定する。多くの prompt で中心になる |
@@ -123,9 +126,11 @@ flowchart LR
 
 ## runner を固定しない考え方
 
-prompt は、Ask、Plan、Agent、custom agent など、実行先を選んで使える依頼テンプレートです。最初から runner や tools を固定すると、利用者がその場で選びにくくなります。
+prompt は、Ask、Plan、Agent、custom agent など、実行先を選んで使える依頼テンプレートです。最初から runner や tools を frontmatter で固定すると、利用者がその場で選びにくくなります。
 
-このリポジトリでは、共有しやすさを優先して、基本的に runner を固定していません。
+このリポジトリでは、共有しやすさを優先して、基本的に runner を frontmatter では固定していません。一方で、どの custom agent、skill、instructions と組み合わせるとよいかは、各 prompt の `## Related assets` と `.github/ASSET-GRAPH.md` に文書化します。
+
+これは「prompt ファイルが自動的に agent になる」という意味ではありません。prompt は依頼テンプレートのままで、利用者または実行環境が `## Related assets` を見て適切な実行先と参照資料を選びます。
 
 固定した方がよいのは、次のような場合です。
 
@@ -141,13 +146,15 @@ prompt は、Ask、Plan、Agent、custom agent など、実行先を選んで使
 3. 冒頭で、この prompt の目的を書く。
 4. 毎回変わる情報を `入力` に書く。
 5. AIに守ってほしい進め方を `手順` に書く。
-6. 最後に欲しい報告を `出力` に書く。
-7. 必要な場合だけ `mode` や `tools` を固定する。
+6. `## Related assets` に推奨 agent/実行先、skills、instructions、短い運用チェーンを書く。
+7. 最後に欲しい報告を `出力` に書く。
+8. 必要な場合だけ `mode` や `tools` を固定する。
 
 ## 書き方の注意
 
 - prompt は「依頼テンプレート」です。専門担当の人格や役割を細かく定義したい場合は `agents` に分けます。
 - 常に守る短いルールを書きたい場合は `instructions` に分けます。
 - 詳しい専門手順を書きたい場合は `skills` に分けます。
+- prompt と agents/skills/instructions の推奨関係は `## Related assets` と `.github/ASSET-GRAPH.md` に揃えて書きます。
 - `手順` と `出力` をセットで書くと、作業の流れと報告の形が揃いやすくなります。
 - 1つの prompt に複数の目的を詰め込みすぎないでください。

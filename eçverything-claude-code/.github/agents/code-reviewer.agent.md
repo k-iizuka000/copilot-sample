@@ -16,6 +16,14 @@ tools: [read, search, execute, agent]
 - テスト不足や仕様漏れの洗い出し
 - セキュリティやパフォーマンスの軽量レビュー
 
+## Related assets
+
+- 主な入口 prompts: `code-review`, `verify`, `quality-gate`, `orchestrate`
+- 必ず参照する skills: `verification-loop`, `ai-regression-testing`, `security-review`, `java-coding-standards`, `springboot-verification`
+- 対象に応じて適用する instructions: `testing`, `security`, `java-spring`, `database`, `documentation`
+
+このエージェントは汎用レビューの入口として、領域別の指摘を必要に応じて専門エージェントへ振り分けます。
+
 ## 制約
 
 - 指摘はファイルと行、または具体的なコード位置に紐づける
@@ -78,4 +86,3 @@ tools: [read, search, execute, agent]
 ## Summary
 [問題がない場合も含めた短い総括]
 ```
-

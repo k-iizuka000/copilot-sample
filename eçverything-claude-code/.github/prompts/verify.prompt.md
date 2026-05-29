@@ -8,6 +8,15 @@ This is a reusable VS Code prompt file, not a custom agent. Invoke it manually f
 
 現在のコードベースを検証してください。失敗した場合もこの prompt では編集せず、原因と修正案を報告します。修正が必要な場合は、別の修正依頼または編集用 prompt に切り出してください。
 
+## Related assets
+
+- 推奨実行先: Agent mode（この pack に専用 verifier agent はありません）
+- 任意 reviewer: pre-pr やセキュリティ影響がある差分確認は `.github/agents/code-reviewer.agent.md`
+- 必ず参照する skills: `.github/skills/verification-loop/SKILL.md`、`.github/skills/springboot-verification/SKILL.md`、pre-pr または security-sensitive scope では `.github/skills/security-review/SKILL.md`
+- 関連 instructions: `.github/instructions/testing.instructions.md`、セキュリティ影響がある場合は `.github/instructions/security.instructions.md`、Java/Spring 対象は `.github/instructions/java-spring.instructions.md`
+
+運用チェーン: Agent mode で検証を実行し、pre-pr や security-sensitive な範囲では code-reviewer と security-review を接続する。
+
 ## モード
 
 - `quick`: ビルドと型チェック中心

@@ -7,6 +7,12 @@ description: AI agentのtool、observation、recovery contract、context budget�
 
 agent harness の品質は、agent の賢さだけでなく、操作空間、観測結果、失敗時の復旧導線、context budget に強く依存します。
 
+## Related assets
+
+- 主な入口 prompts: `skill-create`, `update-docs`, `learn`, `learn-eval`
+- 主な agents: `doc-updater`, `architect`
+- 関連 instructions: `agent-harness`, `documentation`
+
 ## 使うタイミング
 
 - agent 向け tool / command / workflow を設計するとき

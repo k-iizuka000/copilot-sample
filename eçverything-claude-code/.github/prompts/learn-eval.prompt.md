@@ -8,6 +8,14 @@ This is a reusable VS Code prompt file, not a custom agent. Invoke it manually f
 
 今回の作業から再利用できる知見を抽出し、保存すべきかを評価してください。ファイル作成や追記は、ユーザー確認を得るまで行わないでください。
 
+## Related assets
+
+- 推奨実行先: 通常のチャットまたは Agent mode（専用 custom agent なし）
+- 必ず参照する skills: `.github/skills/agentic-engineering/SKILL.md`、`.github` assets に保存する場合は `.github/skills/agent-harness-construction/SKILL.md`
+- 関連 instructions: `.github/instructions/documentation.instructions.md`、`.github` assets を扱う場合は `.github/instructions/agent-harness.instructions.md`
+
+運用チェーン: セッション知見を agentic-engineering 観点で評価し、`.github` assets 化する場合だけ agent-harness の規約に接続する。
+
 ## 抽出対象
 
 - エラー解決パターン: 症状、根本原因、修正、再利用条件

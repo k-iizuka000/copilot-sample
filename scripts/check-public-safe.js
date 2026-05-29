@@ -14,6 +14,22 @@ const ignoredDirs = new Set([
   ".vscode-test"
 ]);
 
+const forbiddenBasenames = new Set([
+  ".DS_Store",
+  ".env",
+  ".env.local",
+  "id_rsa",
+  "id_ed25519"
+]);
+
+const forbiddenExtensions = new Set([
+  ".key",
+  ".mobileprovision",
+  ".p12",
+  ".pem",
+  ".pfx"
+]);
+
 const textExtensions = new Set([
   ".bat",
   ".cmd",
@@ -51,13 +67,14 @@ const textExtensions = new Set([
 const archiveExtensions = new Set([".docx", ".pptx", ".vsix", ".xlsx", ".xlsm", ".zip"]);
 
 const riskyPatterns = [
-  { name: "local user path", pattern: /\/Users\/kei\b/g },
+  { name: "macOS local user path", pattern: /\/Users\/[A-Za-z0-9._-]+\b/g },
+  { name: "Windows local user path", pattern: /[A-Za-z]:\\Users\\[A-Za-z0-9._-]+\b/g },
   { name: "repo-local absolute path", pattern: /ghq\/github\.com\/k-iizuka000/g },
   { name: "private key", pattern: /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/g },
   { name: "AWS access key", pattern: /AKIA[0-9A-Z]{16}/g },
   { name: "GitHub classic token", pattern: /ghp_[A-Za-z0-9_]{36}/g },
   { name: "GitHub fine-grained token", pattern: /github_pat_[A-Za-z0-9_]{22,}_[A-Za-z0-9_]{59,}/g },
-  { name: "OpenAI-style API key", pattern: /sk-[A-Za-z0-9_-]{20,}/g },
+  { name: "OpenAI-style API key", pattern: /(?:sk-(?:admin|proj|svcacct)-[A-Za-z0-9_-]{20,}|sk-[A-Za-z0-9]{48})/g },
   { name: "Google API key", pattern: /AIza[0-9A-Za-z_-]{35}/g },
   { name: "Slack token", pattern: /xox[baprs]-[A-Za-z0-9-]{20,}/g }
 ];
@@ -86,6 +103,14 @@ function isArchive(filePath) {
   return archiveExtensions.has(path.extname(filePath).toLowerCase());
 }
 
+function isForbiddenPublicFileName(filePath) {
+  const basename = path.basename(filePath);
+  if (basename.endsWith(".example")) {
+    return false;
+  }
+  return forbiddenBasenames.has(basename) || forbiddenExtensions.has(path.extname(basename).toLowerCase());
+}
+
 function archiveEntries(filePath) {
   try {
     return execFileSync("unzip", ["-Z1", filePath], { encoding: "utf8" })
@@ -99,17 +124,16 @@ function archiveEntries(filePath) {
 function scanArchive(fullPath) {
   const rel = relativeLabel(fullPath);
   for (const entry of archiveEntries(fullPath)) {
-    if (!isTextFile(entry)) {
-      continue;
+    if (isForbiddenPublicFileName(entry)) {
+      findings.push(`${rel}!${entry}: forbidden public file`);
     }
     try {
-      const text = execFileSync("unzip", ["-p", fullPath, archiveEntryPattern(entry)], {
-        encoding: "utf8",
-        maxBuffer: 20 * 1024 * 1024
+      const content = execFileSync("unzip", ["-p", fullPath, archiveEntryPattern(entry)], {
+        maxBuffer: 100 * 1024 * 1024
       });
-      scanText(`${rel}!${entry}`, text);
+      scanText(`${rel}!${entry}`, content.toString(isTextFile(entry) ? "utf8" : "latin1"));
     } catch {
-      // Binary or platform-specific archive entries are ignored by this text scan.
+      // Platform-specific archive entries are best-effort in this scanner.
     }
   }
 }
@@ -120,14 +144,15 @@ function archiveEntryPattern(entry) {
 
 function scanFile(fullPath) {
   const rel = relativeLabel(fullPath);
+  if (isForbiddenPublicFileName(fullPath)) {
+    findings.push(`${rel}: forbidden public file`);
+  }
   if (isArchive(fullPath)) {
     scanArchive(fullPath);
     return;
   }
-  if (!isTextFile(fullPath)) {
-    return;
-  }
-  scanText(rel, fs.readFileSync(fullPath, "utf8"));
+  const content = fs.readFileSync(fullPath);
+  scanText(rel, content.toString(isTextFile(fullPath) ? "utf8" : "latin1"));
 }
 
 function walk(dir) {
@@ -145,7 +170,27 @@ function walk(dir) {
   }
 }
 
-walk(root);
+function scanGitPublicFiles() {
+  try {
+    return execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], {
+      cwd: root
+    })
+      .toString("utf8")
+      .split("\0")
+      .filter(Boolean);
+  } catch {
+    return undefined;
+  }
+}
+
+const publicFiles = scanGitPublicFiles();
+if (publicFiles) {
+  for (const rel of publicFiles) {
+    scanFile(path.join(root, rel));
+  }
+} else {
+  walk(root);
+}
 
 if (findings.length > 0) {
   console.error("Potential public-repo safety issues found:");

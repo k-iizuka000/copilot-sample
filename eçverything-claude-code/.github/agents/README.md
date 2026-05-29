@@ -48,6 +48,14 @@ tools: [read, search, edit, execute]
 
 - こういう時に使う
 
+## Related assets
+
+- 主な入口 prompts: `example`
+- 必ず参照する skills: `example-skill`
+- 対象に応じて適用する instructions: `example-instructions`
+
+このエージェントが、prompt から呼ばれて skill と instructions をどう使うかを短く説明する。
+
 ## 制約
 
 - 守るべきこと
@@ -115,10 +123,29 @@ description: 変更差分を品質、保守性、セキュリティ、テスト�
 | `# ...` | 表示用のタイトル | 人間がファイルを開いた時に何の担当か分かるようにする |
 | 冒頭文 | 「あなたは何の専門家か」 | AIの立場を最初に固定する |
 | `## 使う場面` | どんな依頼で使うか | 呼ぶべき時と呼ばない時を分ける |
+| `## Related assets` | 関連する prompts、skills、instructions とワークフロー上の役割 | prompt から agent、agent から skill/instructions へつながる関係を明示する |
 | `## 制約` | やってはいけないこと、必ず守ること | AIが勝手に範囲を広げたり、未確認で断言したりするのを防ぐ |
 | `## ワークフロー` | 作業順序 | 調査、判断、実行、検証、報告の順番を固定する |
 | `## レビュー観点` や `## 設計原則` | 専門領域ごとのチェック観点 | その担当者らしい判断基準を持たせる |
 | `## 出力形式` | 報告テンプレート | 返答の形を揃え、チームが読みやすくする |
+
+## Related assets の書き方
+
+この pack を connected workflow として使う場合、agent には `## Related assets` を置き、関連する `prompts`、`skills`、`instructions` を明示します。これにより、ユーザーの依頼がどの prompt から入り、どの agent が担当し、どの skill と instructions を読んで判断するかをファイル内で追えるようになります。
+
+基本形は次の通りです。
+
+```markdown
+## Related assets
+
+- 主な入口 prompts: `plan`, `orchestrate`
+- 必ず参照する skills: `verification-loop`, `tdd-workflow`
+- 対象に応じて適用する instructions: `testing`, `security`
+
+このエージェントがワークフローの中で担う役割を1文で書く。
+```
+
+`主な入口 prompts` には、この agent を呼ぶ起点になりやすい prompt を書きます。`必ず参照する skills` には、担当作業で前提として読むべき skill を書きます。`対象に応じて適用する instructions` には、変更対象や調査対象によって追加で効かせる instructions を書きます。
 
 ## なぜ制約を書くのか
 
@@ -163,10 +190,11 @@ flowchart TD
     B --> C[description に対象領域と作業内容を書く]
     C --> D[必要最小限の tools を選ぶ]
     D --> E[使う場面を書く]
-    E --> F[制約を書く]
-    F --> G[ワークフローを書く]
-    G --> H[出力形式を書く]
-    H --> I[既存 agent と役割が重複しすぎていないか確認]
+    E --> F[Related assets に関連 prompt/skill/instructions を書く]
+    F --> G[制約を書く]
+    G --> H[ワークフローを書く]
+    H --> I[出力形式を書く]
+    I --> J[既存 agent と役割が重複しすぎていないか確認]
 ```
 
 ## 書き方の注意
@@ -174,6 +202,7 @@ flowchart TD
 - 1つの agent に何でもやらせないでください。担当が広すぎると、判断基準がぼやけます。
 - `description` は短く具体的に書いてください。ここが曖昧だと、使いどころも曖昧になります。
 - `tools` は多ければよいわけではありません。読むだけでよい担当に編集権限を持たせない方が安全です。
+- connected workflow として使う agent では、`## Related assets` に関連する prompts、skills、instructions を明示してください。
 - `制約` には、失敗してほしくないことを明確に書きます。
 - `ワークフロー` には、最初に読むもの、判断すること、最後に確認することを書きます。
 - `出力形式` には、チームが欲しい報告の順番を書きます。

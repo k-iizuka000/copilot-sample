@@ -7,6 +7,12 @@ description: 変更後やPR前に、build、type/static check、lint、test、se
 
 変更が完了したように見えても、検証が終わるまでは完了ではありません。実行した command と未検証事項を明確に分けます。
 
+## Related assets
+
+- 主な入口 prompts: `verify`, `quality-gate`, `checkpoint`, `code-review`, `orchestrate`, `update-docs`, `e2e`
+- 主な agents: `code-reviewer`, `e2e-runner`, `planner`, `tdd-guide`, `security-reviewer`, `java-reviewer`
+- 関連 instructions: `testing`, `security`, `documentation`
+
 ## 使うタイミング
 
 - 機能実装や bug fix の後

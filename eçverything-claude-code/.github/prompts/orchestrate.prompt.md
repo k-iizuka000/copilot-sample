@@ -8,6 +8,15 @@ This is a reusable VS Code prompt file, not a custom agent. Invoke it manually f
 
 複雑なタスクを、役割ごとのフェーズに分けて進めてください。複数エージェントを使える環境では独立した調査やレビューを分担し、使えない環境では同じ順序を単一セッションで実行します。
 
+## Related assets
+
+- 推奨 custom agent: coordinator は `.github/agents/planner.agent.md`
+- 専門 delegate: フェーズに応じて `.github/agents/tdd-guide.agent.md`、`.github/agents/code-reviewer.agent.md`、`.github/agents/security-reviewer.agent.md`、`.github/agents/database-reviewer.agent.md`、`.github/agents/e2e-runner.agent.md`、`.github/agents/doc-updater.agent.md`
+- 必ず参照する skills: `.github/skills/agentic-engineering/SKILL.md`、`.github/skills/ai-first-engineering/SKILL.md`、`.github/skills/tdd-workflow/SKILL.md`、`.github/skills/verification-loop/SKILL.md`、`.github/skills/security-review/SKILL.md`、`.github/skills/ai-regression-testing/SKILL.md`
+- 関連 instructions: `.github/copilot-instructions.md` と、変更対象に応じて `.github/instructions/agent-harness.instructions.md`、`.github/instructions/testing.instructions.md`、`.github/instructions/security.instructions.md`、`.github/instructions/java-spring.instructions.md`、`.github/instructions/database.instructions.md`、`.github/instructions/documentation.instructions.md`
+
+運用チェーン: planner が作業をフェーズ化し、各段階で必要な delegate、skills、path-specific instructions にハンドオフする。
+
 ## ワークフロー
 
 - `feature`: 計画 -> TDD 実装 -> コードレビュー -> セキュリティ確認

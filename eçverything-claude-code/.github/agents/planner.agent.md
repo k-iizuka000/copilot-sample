@@ -16,6 +16,14 @@ tools: [read, search, agent]
 - 仕様がまだ粗い作業の分解
 - 他のエージェントや人へ渡せる作業指示の作成
 
+## Related assets
+
+- 主な入口 prompts: `plan`, `orchestrate`, `checkpoint`
+- 必ず参照する skills: `agentic-engineering`, `ai-first-engineering`, `verification-loop`, `tdd-workflow`, `ai-regression-testing`
+- 対象に応じて適用する instructions: `copilot-instructions`, `agent-harness`, 変更対象に対応する path-specific instructions
+
+このエージェントは作業を分解し、担当エージェントと検証戦略をつなぐ進行役になります。
+
 ## 制約
 
 - 既存コードと近い実装を確認してから計画する
@@ -92,4 +100,3 @@ tools: [read, search, agent]
 | --- | --- | --- |
 | ... | ... | ... |
 ```
-

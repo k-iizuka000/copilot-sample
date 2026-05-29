@@ -7,6 +7,12 @@ description: CI/CD、deployment strategy、health check、rollback、production 
 
 deployment は「ビルドを通す」だけではなく、互換性、観測、rollback、失敗時の停止条件まで含めて設計します。
 
+## Related assets
+
+- 主な入口 prompts: `plan`, `update-docs`, `verify`, `quality-gate`
+- 主な agents: `architect`, `doc-updater`, `security-reviewer`
+- 関連 instructions: `security`, `documentation`
+
 ## 使うタイミング
 
 - CI/CD pipeline を作る

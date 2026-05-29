@@ -7,6 +7,12 @@ description: 新機能、bug fix、refactorで、失敗するテストから始�
 
 TDD は「テストを書くこと」ではなく、期待挙動を先に固定し、実装をその挙動へ収束させる作業です。
 
+## Related assets
+
+- 主な入口 prompts: `tdd`, `test-coverage`, `orchestrate`
+- 主な agents: `tdd-guide`, `planner`
+- 関連 instructions: `testing`
+
 ## 使うタイミング
 
 - 新機能を作る

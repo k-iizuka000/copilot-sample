@@ -7,6 +7,12 @@ description: Playwrightを中心にE2Eテスト、Page Object、CI artifact、fl
 
 E2E test は unit test の代わりではなく、重要な user journey と system integration を守るために使います。
 
+## Related assets
+
+- 主な入口 prompts: `e2e`, `orchestrate`, `verify`
+- 主な agents: `e2e-runner`
+- 関連 instructions: `testing`, `security`
+
 ## 使うタイミング
 
 - login、checkout、作成、検索など critical flow を守る

@@ -7,6 +7,12 @@ description: Dockerfile、Docker Compose、container security、networking、vol
 
 Docker は local development と production parity を上げる一方で、image size、権限、secret、volume、networking の事故を起こしやすい領域です。
 
+## Related assets
+
+- 主な入口 prompts: `update-docs`, `quality-gate`, `verify`, `code-review`
+- 主な agents: `security-reviewer`, `doc-updater`
+- 関連 instructions: `security`, `documentation`
+
 ## 使うタイミング
 
 - Dockerfile / Compose を追加または修正する

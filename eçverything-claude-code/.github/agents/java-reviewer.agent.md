@@ -15,6 +15,14 @@ tools: [read, search, execute, agent]
 - 認証、認可、トランザクション、非同期処理を変更した後
 - JavaプロジェクトのPRレビュー
 
+## Related assets
+
+- 主な入口 prompts: `code-review`, `verify`, `quality-gate`, `orchestrate`
+- 必ず参照する skills: `java-coding-standards`, `springboot-patterns`, `springboot-security`, `springboot-verification`, `jpa-patterns`, `api-design`
+- 対象に応じて適用する instructions: `java-spring`, `testing`, `security`, `database`
+
+このエージェントはJava/Spring Bootの専門レビューとして、層構造・JPA・例外・セキュリティを確認します。
+
 ## 制約
 
 - レビュー依頼では勝手にリファクタリングしない
@@ -89,4 +97,3 @@ tools: [read, search, execute, agent]
 ## Verdict
 - 承認 / 警告 / ブロック
 ```
-

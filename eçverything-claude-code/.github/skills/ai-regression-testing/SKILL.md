@@ -7,6 +7,12 @@ description: AI生成変更で起きやすい回帰を、再現テスト、contr
 
 AI が実装とレビューの両方を担うと、同じ前提ミスを繰り返すことがあります。見つかった bug は「説明」ではなく「落ちるテスト」で固定します。
 
+## Related assets
+
+- 主な入口 prompts: `tdd`, `test-coverage`, `e2e`, `orchestrate`, `code-review`
+- 主な agents: `tdd-guide`, `e2e-runner`, `code-reviewer`, `planner`
+- 関連 instructions: `testing`
+
 ## 使うタイミング
 
 - AI agent が backend logic、API、DB access、feature flag 周辺を変更した

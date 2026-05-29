@@ -8,6 +8,15 @@ This is a reusable VS Code prompt file, not a custom agent. Invoke it manually f
 
 リポジトリの Git 履歴と既存ファイルから、チームの繰り返しパターンを抽出し、Copilot などの AI 支援に渡せるスキル文書案を作成してください。新規ファイルの作成先は、ユーザー確認を得てから決めます。
 
+## Related assets
+
+- 推奨実行先: 通常のチャットまたは Agent mode（専用 custom agent なし）
+- 任意 delegate: ユーザーがファイル作成を承認した後のドキュメント整備は `.github/agents/doc-updater.agent.md`
+- 必ず参照する skills: `.github/skills/agent-harness-construction/SKILL.md`、`.github/skills/agentic-engineering/SKILL.md`、`.github/skills/ai-first-engineering/SKILL.md`
+- 関連 instructions: `.github/instructions/agent-harness.instructions.md`、`.github/instructions/documentation.instructions.md`
+
+運用チェーン: 既存 evidence から skill 案を作り、ユーザー承認後にだけ doc-updater と agent-harness 規約でファイル化する。
+
 ## 分析対象
 
 - コミットメッセージ規約

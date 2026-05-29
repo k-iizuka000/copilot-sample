@@ -8,6 +8,15 @@ This is a reusable VS Code prompt file, not a custom agent. Invoke it manually f
 
 指定されたパスまたは現在のプロジェクトに対して品質ゲートを実行してください。`--fix` が明示されていない限り、自動修正は行わず結果を報告します。
 
+## Related assets
+
+- 推奨実行先: Agent mode（この pack に専用 quality-gate agent はありません）
+- 任意 reviewer: diff やセキュリティ観点のレビューが必要な場合は `.github/agents/code-reviewer.agent.md`
+- 必ず参照する skills: `.github/skills/verification-loop/SKILL.md`、`.github/skills/springboot-verification/SKILL.md`、必要に応じて `.github/skills/security-review/SKILL.md`
+- 関連 instructions: `.github/instructions/testing.instructions.md`、セキュリティ影響がある場合は `.github/instructions/security.instructions.md`、Java/Spring 対象は `.github/instructions/java-spring.instructions.md`
+
+運用チェーン: Agent mode で品質ゲートを実行し、必要に応じて code-reviewer と verification/security skills で結果を補強する。
+
 ## 入力
 
 - 対象: 指定がなければ現在の作業範囲

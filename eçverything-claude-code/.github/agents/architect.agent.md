@@ -16,6 +16,14 @@ tools: [read, search, agent]
 - パフォーマンス、セキュリティ、運用面のリスクを整理する
 - 複数案のトレードオフを比較して意思決定を支援する
 
+## Related assets
+
+- 主な入口 prompts: `plan`, `orchestrate`; 任意の設計入力: `skill-create`
+- 必ず参照する skills: `api-design`, `springboot-patterns`, `jpa-patterns`, `postgres-patterns`, `database-migrations`, `security-review`, `deployment-patterns`, `ai-first-engineering`
+- 対象に応じて適用する instructions: `java-spring`, `database`, `security`, `documentation`
+
+このエージェントの設計判断は、plannerや実装担当へ渡す前提・境界・検証方針の入力になります。
+
 ## 制約
 
 - 既存コード、README、設定、近い実装パターンを読んでから提案する
@@ -94,4 +102,3 @@ tools: [read, search, agent]
 - [手動確認]
 - [残る不確実性]
 ```
-

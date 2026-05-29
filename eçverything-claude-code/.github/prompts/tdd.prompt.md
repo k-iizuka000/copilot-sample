@@ -8,6 +8,14 @@ This is a reusable VS Code prompt file, not a custom agent. Invoke it manually f
 
 指定された機能またはバグ修正を TDD で進めてください。既存テストの構成を確認し、プロジェクトのテストフレームワークに合わせます。
 
+## Related assets
+
+- 推奨 custom agent: `.github/agents/tdd-guide.agent.md`
+- 必ず参照する skills: `.github/skills/tdd-workflow/SKILL.md`、`.github/skills/springboot-tdd/SKILL.md`、`.github/skills/ai-regression-testing/SKILL.md`、`.github/skills/verification-loop/SKILL.md`、`.github/skills/springboot-verification/SKILL.md`
+- 関連 instructions: `.github/instructions/testing.instructions.md`、`.github/instructions/java-spring.instructions.md`、永続化を扱う場合は `.github/instructions/database.instructions.md`、認証や入力を扱う場合は `.github/instructions/security.instructions.md`
+
+運用チェーン: tdd-guide が RED/GREEN/REFACTOR を進め、Spring Boot と回帰検証の skills/instructions で実装を支える。
+
 ## 手順
 
 1. 要件と期待動作を整理する。

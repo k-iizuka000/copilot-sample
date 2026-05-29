@@ -8,6 +8,14 @@ This is a reusable VS Code prompt file, not a custom agent. Invoke it manually f
 
 目的は、現在の作業状態を後から比較できる形で記録または確認することです。ユーザーの指定がない場合は、まず `create`、`verify`、`list` のどれを実行するか確認してください。
 
+## Related assets
+
+- 推奨実行先: 通常のチャットまたは Agent mode（専用 custom agent なし）
+- 必ず参照する skills: `.github/skills/verification-loop/SKILL.md`
+- 関連 instructions: `.github/copilot-instructions.md`、報告時は `.github/instructions/documentation.instructions.md`、`.github` assets 編集時は `.github/instructions/agent-harness.instructions.md`
+
+運用チェーン: git 状態を記録・比較し、stash や commit など履歴に影響する操作はユーザー確認なしに実行しない。
+
 ## 入力
 
 - `create <name>`: 現在の状態を名前付きで記録

@@ -7,6 +7,12 @@ description: Spring BootプロジェクトでPR前またはリリース前にbui
 
 Spring Boot の変更後は、build だけでなく、静的解析、テスト、セキュリティ、差分意図をまとめて確認します。
 
+## Related assets
+
+- 主な入口 prompts: `verify`, `quality-gate`, `code-review`, `tdd`
+- 主な agents: `java-reviewer`, `code-reviewer`, `database-reviewer`, `tdd-guide`
+- 関連 instructions: `testing`, `java-spring`, `security`
+
 ## 使うタイミング
 
 - PR 前

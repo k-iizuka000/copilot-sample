@@ -8,6 +8,15 @@ This is a reusable VS Code prompt file, not a custom agent. Invoke it manually f
 
 未コミット変更をレビューしてください。この prompt ではコードを編集せず、発見事項を優先度順に報告します。修正が必要な場合は、別の修正依頼または編集用 prompt に切り出してください。
 
+## Related assets
+
+- 推奨 custom agent: `.github/agents/code-reviewer.agent.md`
+- 専門 delegate: Java 変更は `.github/agents/java-reviewer.agent.md`、DB 変更は `.github/agents/database-reviewer.agent.md`、セキュリティ影響がある変更は `.github/agents/security-reviewer.agent.md`
+- 必ず参照する skills: `.github/skills/verification-loop/SKILL.md`、`.github/skills/ai-regression-testing/SKILL.md`、`.github/skills/security-review/SKILL.md`、`.github/skills/java-coding-standards/SKILL.md`、`.github/skills/springboot-verification/SKILL.md`
+- 関連 instructions: 変更範囲に応じて `.github/instructions/security.instructions.md`、`.github/instructions/java-spring.instructions.md`、`.github/instructions/database.instructions.md`、`.github/instructions/testing.instructions.md`、`.github/instructions/documentation.instructions.md`
+
+運用チェーン: code-reviewer を主担当にし、変更領域に応じて専門 reviewer と skills/instructions を参照して findings first で報告する。
+
 ## レビュー観点
 
 - 重大: 認証情報、SQL injection、XSS、入力検証不足、危険な依存関係、path traversal

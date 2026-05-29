@@ -8,6 +8,14 @@ This is a reusable VS Code prompt file, not a custom agent. Invoke it manually f
 
 信頼できる情報源からドキュメントを同期してください。推測で運用手順を書かず、確認できない項目は未確認として明記します。
 
+## Related assets
+
+- 推奨 custom agent: `.github/agents/doc-updater.agent.md`
+- 必ず参照する skills: `.github/skills/verification-loop/SKILL.md`、必要に応じて `.github/skills/docker-patterns/SKILL.md`、`.github/skills/deployment-patterns/SKILL.md`、`.github/skills/api-design/SKILL.md`、`.github` docs では `.github/skills/agent-harness-construction/SKILL.md`
+- 関連 instructions: `.github/instructions/documentation.instructions.md`、`.github` assets 編集時は `.github/instructions/agent-harness.instructions.md`、秘密情報を避けるため `.github/instructions/security.instructions.md`
+
+運用チェーン: doc-updater が信頼できる情報源を確認し、対象領域の skills/instructions と verification-loop でドキュメント差分を裏付ける。
+
 ## 信頼する情報源
 
 - `package.json` の scripts と依存関係

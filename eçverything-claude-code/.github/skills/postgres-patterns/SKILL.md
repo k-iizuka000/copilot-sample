@@ -7,6 +7,12 @@ description: PostgreSQLのschema、index、query、RLS、timeout、pooling、mig
 
 PostgreSQL では、query pattern に合った schema と index、適切な timeout、最小権限が production 安定性を支えます。
 
+## Related assets
+
+- 主な入口 prompts: `code-review`, `plan`, `verify`
+- 主な agents: `database-reviewer`, `architect`
+- 関連 instructions: `database`, `security`
+
 ## 使うタイミング
 
 - schema / migration を設計する

@@ -16,6 +16,14 @@ tools: [read, search, edit, execute, agent]
 - 依存関係更新や設定変更の確認
 - セキュリティ修正の再確認
 
+## Related assets
+
+- 主な入口 prompts: `code-review`, `quality-gate`, `verify`, `orchestrate`
+- 必ず参照する skills: `security-review`, `springboot-security`, `docker-patterns`, `deployment-patterns`, `verification-loop`
+- 対象に応じて適用する instructions: `security`, `java-spring`, `database`, `testing`
+
+このエージェントは認証・入力・シークレット・依存関係のリスクを専門的に扱います。
+
 ## 制約
 
 - 実在するリスクを優先し、根拠の薄い一般論で埋めない

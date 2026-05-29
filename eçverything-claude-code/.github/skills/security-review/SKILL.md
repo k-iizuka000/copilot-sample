@@ -7,6 +7,12 @@ description: 認証、認可、入力検証、secret、API、依存関係、clou
 
 security review は最後の儀式ではなく、設計、実装、検証の各段階で行います。
 
+## Related assets
+
+- 主な入口 prompts: `code-review`, `verify`, `quality-gate`, `orchestrate`
+- 主な agents: `security-reviewer`, `code-reviewer`, `architect`
+- 関連 instructions: `security`
+
 ## 使うタイミング
 
 - 認証 / 認可を変更する

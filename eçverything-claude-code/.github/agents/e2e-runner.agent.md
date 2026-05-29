@@ -16,6 +16,14 @@ tools: [read, search, edit, execute, agent]
 - リリース前に主要導線を確認する
 - スクリーンショット、動画、トレースなどの証跡を整理する
 
+## Related assets
+
+- 主な入口 prompts: `e2e`, `orchestrate`, `verify`, `quality-gate`
+- 必ず参照する skills: `e2e-testing`, `ai-regression-testing`, `verification-loop`; 任意: `security-review` は認証やPIIを扱うフローで参照する
+- 対象に応じて適用する instructions: `testing`, `security`
+
+このエージェントはE2E promptから起動し、E2E skillを読んだ上で検証と報告ルールに沿って結果を返します。
+
 ## 制約
 
 - まず既存のE2E基盤、設定、テストデータ、実行コマンドを確認する
@@ -79,4 +87,3 @@ tools: [read, search, edit, execute, agent]
 ## 未検証
 - [環境やデータ制約で確認できなかったこと]
 ```
-

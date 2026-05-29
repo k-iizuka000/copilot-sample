@@ -7,6 +7,12 @@ description: production databaseのschema change、data migration、rollback、z
 
 production database の変更は、アプリケーション deploy と同じくらい慎重に扱います。実行済み migration は編集せず、forward-only で修正します。
 
+## Related assets
+
+- 主な入口 prompts: `plan`, `code-review`, `verify`, `orchestrate`
+- 主な agents: `database-reviewer`, `architect`
+- 関連 instructions: `database`, `security`, `testing`
+
 ## 使うタイミング
 
 - table、column、index を追加または削除する

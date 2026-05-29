@@ -16,6 +16,14 @@ tools: [read, search, edit, execute, agent]
 - マルチテナントやRLSの確認
 - データ移行、バックフィル、破壊的変更の計画
 
+## Related assets
+
+- 主な入口 prompts: `code-review`, `plan`, `orchestrate`, `verify`
+- 必ず参照する skills: `postgres-patterns`, `database-migrations`, `jpa-patterns`, `security-review`, `springboot-verification`
+- 対象に応じて適用する instructions: `database`, `security`, `java-spring`, `testing`
+
+このエージェントはDB変更に対して、スキーマ・クエリ・マイグレーションの安全性を検証します。
+
 ## 制約
 
 - 既存のマイグレーション規約、命名、ロールバック方針を確認する
@@ -81,4 +89,3 @@ tools: [read, search, edit, execute, agent]
 ## 未検証
 - [本番データ量、実行計画など]
 ```
-

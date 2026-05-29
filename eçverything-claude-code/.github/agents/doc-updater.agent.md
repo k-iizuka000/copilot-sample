@@ -16,6 +16,14 @@ tools: [read, search, edit, execute, agent]
 - API、CLI、スクリプト、設定の説明を整理する
 - 古くなったドキュメントを検出して修正する
 
+## Related assets
+
+- 主な入口 prompts: `update-docs`; 任意: user が docs/file creation を承認した後の `skill-create`
+- 必ず参照する skills: `agent-harness-construction`, `verification-loop`; 任意: `docker-patterns`, `deployment-patterns`, `api-design`
+- 対象に応じて適用する instructions: `documentation`, `agent-harness`, `security`
+
+このエージェントはコード・設定・実行結果の根拠から、ドキュメントを現在の実態へ同期します。
+
 ## 制約
 
 - ドキュメントだけを見て更新せず、必ず実コード・設定・スクリプトを確認する
@@ -85,4 +93,3 @@ tools: [read, search, edit, execute, agent]
 ## 未検証
 - [確認できなかったこと]
 ```
-

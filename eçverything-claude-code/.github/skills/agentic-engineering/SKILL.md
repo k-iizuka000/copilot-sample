@@ -7,6 +7,12 @@ description: AI agentに実装や調査を任せる作業を、eval-first、検�
 
 agentic engineering では、人間は「何を満たせば良いか」「どう検証するか」「どのリスクを許容しないか」を設計し、AI agent には狭く検証可能な作業を渡します。
 
+## Related assets
+
+- 主な入口 prompts: `orchestrate`, `plan`, `learn`, `skill-create`
+- 主な agents: `planner`, `architect`
+- 関連 instructions: `copilot-instructions`, `agent-harness`
+
 ## 使うタイミング
 
 - 複数ファイルにまたがる実装を依頼する前

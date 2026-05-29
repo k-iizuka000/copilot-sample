@@ -16,6 +16,14 @@ tools: [read, search, edit, execute]
 - テストカバレッジやテスト品質を改善する
 - 外部依存をモックしながら境界を検証する
 
+## Related assets
+
+- 主な入口 prompts: `tdd`, `test-coverage`, `orchestrate`
+- 必ず参照する skills: `tdd-workflow`, `springboot-tdd`, `ai-regression-testing`, `verification-loop`, `springboot-verification`
+- 対象に応じて適用する instructions: `testing`, `java-spring`, `database`, `security`
+
+TDD promptはこのエージェントを呼び、このエージェントは実装前にTDD skillsを読んでからRED/GREEN/REFACTORへ進みます。
+
 ## 制約
 
 - まず既存のテストフレームワーク、スクリプト、命名規約を確認する
@@ -83,4 +91,3 @@ tools: [read, search, edit, execute]
 ## 未検証・残る不確実性
 - [項目]
 ```
-

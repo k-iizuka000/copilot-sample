@@ -25,6 +25,8 @@ flowchart TD
 
 `instructions` は常時ルール、`prompts` は依頼テンプレート、`agents` は専門担当者です。`skills` は、専門作業の中身を詳しく書く場所です。
 
+各 skill には必要に応じて `## Related assets` を置きます。これは prompts / agents / instructions から見た時に「この作業手順はどの入口や専門担当とつながるか」を逆引きするための短い索引です。
+
 ## 基本構造
 
 ```text
@@ -44,6 +46,12 @@ description: どんな場面で使う skill かを短く説明する。
 # Example Skill
 
 この skill は、〇〇を進める時の手順です。
+
+## Related assets
+
+- 主な入口 prompts: `example-prompt`
+- 主な agents: `example-agent`
+- 関連 instructions: `example-instruction`
 
 ## 使うタイミング
 
@@ -120,6 +128,7 @@ description: テストについて説明する。
 | --- | --- | --- |
 | `# ...` | skill のタイトル | 人間が何の手順書か分かるようにする |
 | 冒頭文 | skill の目的 | AIに、この手順で何を達成するか伝える |
+| `## Related assets` | 関連する prompts、agents、instructions | 入口や担当者から skill を逆引きしやすくする |
 | `## 使うタイミング` | skill を使う場面 | 呼ぶべき時と呼ばない時を分ける |
 | `## 手順`、`## Loop`、`## Phases` | 作業の順番 | AIが確認や検証を飛ばさないようにする |
 | `## Checklist`、`## Review checklist` | 見落とし防止の確認項目 | レビューや設計の観点を揃える |
