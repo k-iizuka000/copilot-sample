@@ -30,6 +30,7 @@ export interface OfficeMarkdownSettings {
 
 export interface ConvertFileOptions {
   inputPath: string;
+  outputDir?: string;
   outputMarkdownPath?: string;
   outputAssetDir?: string;
   overwritePolicy: OverwritePolicy;
@@ -66,7 +67,9 @@ export interface ConversionErrorInfo {
 
 export interface ConversionResult {
   inputPath: string;
+  outputDir: string;
   markdownPath: string;
+  markdownPaths: string[];
   assetDir: string;
   manifestPath: string;
   format: SupportedFormat;

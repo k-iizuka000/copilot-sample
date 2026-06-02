@@ -24,12 +24,17 @@ describe("Office Markdown core conversion", () => {
     };
 
     expect(result.status).toBe("success");
+    expect(result.outputDir).toBe(path.join(tempDir, "sample"));
+    expect(result.markdownPath).toBe(path.join(tempDir, "sample", "sample.md"));
+    expect(result.markdownPaths).toEqual([result.markdownPath]);
+    expect(result.assetDir).toBe(path.join(tempDir, "sample", "assets"));
+    expect(result.manifestPath).toBe(path.join(tempDir, "sample", "manifest.json"));
     expect(markdown).toContain("# Document: sample.docx");
     expect(markdown).toContain("# Project Overview");
     expect(markdown).toContain("Paragraph with [Example](https://example.com).");
     expect(markdown).toContain("| Key | Value |");
-    expect(markdown).toContain("![Document image 1](sample.assets/doc-image-001.png)");
-    expect(markdown).toContain("[Embedded object 1](sample.assets/doc-object-001.bin)");
+    expect(markdown).toContain("![Document image 1](assets/doc-image-001.png)");
+    expect(markdown).toContain("[Embedded object 1](assets/doc-object-001.bin)");
     expect(await exists(path.join(result.assetDir, "doc-image-001.png"))).toBe(true);
     expect(await exists(path.join(result.assetDir, "doc-object-001.bin"))).toBe(true);
     expect(manifest.items.map((item) => item.kind)).toEqual(
@@ -55,8 +60,8 @@ describe("Office Markdown core conversion", () => {
     expect(markdown).toContain("| Metric | Result |");
     expect(markdown).toContain("### Speaker Notes");
     expect(markdown).toContain("Mention retention risk.");
-    expect(markdown).toContain("![Slide 1 image 1](deck.assets/slide-001-image-001.png)");
-    expect(markdown).toContain("[Slide 1 embedded object 1](deck.assets/slide-001-object-001.bin)");
+    expect(markdown).toContain("![Slide 1 image 1](assets/slide-001-image-001.png)");
+    expect(markdown).toContain("[Slide 1 embedded object 1](assets/slide-001-object-001.bin)");
     expect(await exists(path.join(result.assetDir, "slide-001-image-001.png"))).toBe(true);
     expect(await exists(path.join(result.assetDir, "slide-001-object-001.bin"))).toBe(true);
     expect(manifest.items.map((item) => item.kind)).toEqual(expect.arrayContaining(["image", "embeddedObject"]));
@@ -76,23 +81,39 @@ describe("Office Markdown core conversion", () => {
     const manifest = JSON.parse(await fs.readFile(result.manifestPath, "utf8")) as {
       items: Array<{ kind: string; status: string; message?: string }>;
       warnings: Array<{ code: string }>;
+      output: { primaryMarkdownFile: string; markdownFiles: string[]; assetDir: string };
     };
+    const sheetMarkdownPath = path.join(result.outputDir, "001-Summary.md");
+    const sheetMarkdown = await fs.readFile(sheetMarkdownPath, "utf8");
 
     expect(result.status).toBe("partial");
+    expect(result.markdownPath).toBe(path.join(tempDir, "book", "book.md"));
+    expect(result.markdownPaths.map((markdownPath) => path.basename(markdownPath))).toEqual([
+      "book.md",
+      "001-Summary.md"
+    ]);
     expect(markdown).toContain("# Workbook: book.xlsx");
-    expect(markdown).toContain("## Sheet 1: Summary");
-    expect(markdown).toContain("| Row | A | B |");
-    expect(markdown).toContain("| 1 | Revenue | 42 |");
-    expect(markdown).toContain("| A2 | SUM(B1:B1) | 42 |");
-    expect(markdown).toContain("> Important textbox");
-    expect(markdown).toContain("![Summary image 1](book.assets/sheet-001-image-001.png)");
-    expect(markdown).toContain("[Summary embedded object 1](book.assets/sheet-001-object-001.bin)");
+    expect(markdown).toContain("## Sheets");
+    expect(markdown).toContain("[001-Summary.md](001-Summary.md)");
+    expect(markdown).toContain("| Sheet 2: Hidden | Skipped |  |");
+    expect(sheetMarkdown).toContain("# Sheet 1: Summary");
+    expect(sheetMarkdown).toContain("| Row | A | B |");
+    expect(sheetMarkdown).toContain("| 1 | Revenue | 42 |");
+    expect(sheetMarkdown).toContain("| A2 | SUM(B1:B1) | 42 |");
+    expect(sheetMarkdown).toContain("> Important textbox");
+    expect(sheetMarkdown).toContain("![Summary image 1](assets/sheet-001-image-001.png)");
+    expect(sheetMarkdown).toContain("[Summary embedded object 1](assets/sheet-001-object-001.bin)");
     expect(await exists(path.join(result.assetDir, "sheet-001-image-001.png"))).toBe(true);
     expect(await exists(path.join(result.assetDir, "sheet-001-object-001.bin"))).toBe(true);
     expect(manifest.items.map((item) => item.kind)).toEqual(
       expect.arrayContaining(["formula", "image", "textBox", "embeddedObject", "hiddenSheet", "chart"])
     );
     expect(manifest.warnings.map((warning) => warning.code)).toContain("chart-visual-unsupported");
+    expect(manifest.output).toEqual({
+      primaryMarkdownFile: "book.md",
+      markdownFiles: ["book.md", "001-Summary.md"],
+      assetDir: "assets"
+    });
   });
 
   it("reports XLSM macro parts without executing or extracting them as usable output", async () => {
@@ -124,11 +145,44 @@ describe("Office Markdown core conversion", () => {
 
     expect(result.status).toBe("success");
     expect(result.format).toBe("pdf");
+    expect(result.markdownPath).toBe(path.join(tempDir, "paper", "paper.md"));
     expect(markdown).toContain("# PDF: paper.pdf");
     expect(markdown).toContain("## Page 1");
     expect(markdown).toContain("Hello PDF");
     expect(manifest.source.format).toBe("pdf");
     expect(manifest.warnings).toEqual([]);
+  });
+
+  it("handles output directory conflicts with confirm, createUnique, and overwrite policies", async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "office-md-overwrite-"));
+    const inputPath = path.join(tempDir, "sample.docx");
+    const outputDir = path.join(tempDir, "export");
+    await writeZip(inputPath, docxFixture());
+    await fs.mkdir(outputDir, { recursive: true });
+    await fs.writeFile(path.join(outputDir, "stale.md"), "stale", "utf8");
+
+    await expect(convertFile({ inputPath, outputDir, overwritePolicy: "confirm" })).rejects.toThrow(
+      /Output already exists/
+    );
+
+    const unique = await convertFile({ inputPath, outputDir, overwritePolicy: "createUnique" });
+    expect(unique.outputDir).toBe(path.join(tempDir, "export-2"));
+    expect(await exists(path.join(outputDir, "stale.md"))).toBe(true);
+
+    const overwritten = await convertFile({ inputPath, outputDir, overwritePolicy: "overwrite" });
+    expect(overwritten.outputDir).toBe(outputDir);
+    expect(await exists(path.join(outputDir, "stale.md"))).toBe(false);
+    expect(await exists(path.join(outputDir, "export.md"))).toBe(true);
+  });
+
+  it("refuses to overwrite unsafe output directories that could contain the input file", async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "office-md-overwrite-guard-"));
+    const inputPath = path.join(tempDir, "sample.docx");
+    await writeZip(inputPath, docxFixture());
+
+    await expect(convertFile({ inputPath, outputDir: tempDir, overwritePolicy: "overwrite" })).rejects.toThrow(
+      /unsafe output directory/
+    );
   });
 
   it("installs the bundled PDF.js worker handler for extension hosts", () => {

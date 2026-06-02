@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document set prepares implementation of a VS Code extension that converts Office files into Markdown plus an asset directory. The target user should only need to install the VS Code extension. They should not need to install Python, Pandoc, LibreOffice, MarkItDown, or any other command line tool.
+This document set prepares implementation of a VS Code extension that converts Office files into an output directory containing Markdown, extracted assets, and a manifest. The target user should only need to install the VS Code extension. They should not need to install Python, Pandoc, LibreOffice, MarkItDown, or any other command line tool.
 
 The core product idea is:
 
@@ -29,7 +29,7 @@ MVP:
 - Desktop VS Code extension.
 - File conversion for `.xlsx`, `.xlsm`, `.pptx`, and `.docx`.
 - Markdown output next to the source file or in a configured output directory.
-- Asset extraction into a deterministic sibling directory.
+- Asset extraction into a deterministic `assets/` directory inside each output directory.
 - Conversion manifest with extracted, skipped, and unsupported items.
 - No external runtime installation.
 - No macro execution, no external link fetching, and no network calls.
@@ -76,6 +76,6 @@ MVP is complete only when all of the following are true:
 
 - Confirm the extension name and command labels.
 - Confirm the default output layout:
-  - Recommended: `source-name.md` and `source-name.assets/`.
+  - Recommended: `source-name/source-name.md`, `source-name/assets/`, and `source-name/manifest.json`.
 - Confirm whether `.xlsm` should be accepted in MVP with macro parts ignored and preserved only as warning metadata.
 - Confirm whether the initial public release should include telemetry. Current spec assumes no telemetry.

@@ -51,6 +51,7 @@ export interface SafetyOptions {
 
 export interface ConvertFileOptions {
   inputPath: string;
+  outputDir?: string;
   outputMarkdownPath?: string;
   outputAssetDir?: string;
   overwritePolicy?: OverwritePolicy;
@@ -63,6 +64,8 @@ export interface ConvertFileOptions {
 
 export interface ResolvedConvertFileOptions {
   inputPath: string;
+  outputDir: string;
+  outputBaseName: string;
   outputMarkdownPath: string;
   outputAssetDir: string;
   overwritePolicy: OverwritePolicy;
@@ -75,7 +78,9 @@ export interface ResolvedConvertFileOptions {
 
 export interface ConversionResult {
   inputPath: string;
+  outputDir: string;
   markdownPath: string;
+  markdownPaths: string[];
   assetDir: string;
   manifestPath: string;
   format: SupportedFormat;
@@ -91,7 +96,8 @@ export interface ManifestSource {
 }
 
 export interface ManifestOutput {
-  markdownFile: string;
+  primaryMarkdownFile: string;
+  markdownFiles: string[];
   assetDir: string;
 }
 
@@ -117,7 +123,7 @@ export interface ManifestItem {
 }
 
 export interface ConversionManifest {
-  schemaVersion: 1;
+  schemaVersion: 2;
   tool: {
     name: "office-markdown";
     version: string;
@@ -139,6 +145,12 @@ export type MarkdownBlock =
   | { kind: "quote"; text: string; sourceRef?: SourceRef }
   | { kind: "code"; language: string; text: string }
   | { kind: "warning"; code: string; message: string; sourceRef?: SourceRef };
+
+export interface MarkdownDocument {
+  markdownPath: string;
+  relativePath: string;
+  blocks: MarkdownBlock[];
+}
 
 export interface Relationship {
   id: string;
@@ -172,7 +184,9 @@ export interface ConversionContext {
   options: ResolvedConvertFileOptions;
   pkg: OoxmlPackage;
   manifest: ConversionManifest;
+  markdownPath: string;
   markdownBlocks: MarkdownBlock[];
+  markdownDocuments: MarkdownDocument[];
   warnings: ConversionWarning[];
   errors: ConversionErrorInfo[];
 }

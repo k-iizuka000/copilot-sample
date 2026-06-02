@@ -53,7 +53,7 @@
           "type": "string",
           "enum": ["nextToSource", "convertedFolder", "askEachTime"],
           "default": "nextToSource",
-          "description": "Controls where generated Markdown and assets are written."
+          "description": "Controls where generated output directories, Markdown files, assets, and manifests are written."
         },
         "officeMarkdown.overwritePolicy": {
           "type": "string",
@@ -80,7 +80,7 @@
         "officeMarkdown.includeConversionReport": {
           "type": "boolean",
           "default": true,
-          "description": "Append a short conversion report to generated Markdown."
+          "description": "Append a short conversion report to the primary generated Markdown file."
         },
         "officeMarkdown.maxTableRows": {
           "type": "number",

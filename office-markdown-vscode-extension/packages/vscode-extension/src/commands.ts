@@ -90,7 +90,7 @@ export async function convertResource(
     const result = await host.withProgress(
       `Converting ${path.basename(resource.fsPath)} to Markdown`,
       async (progress) => {
-        progress.report("Preparing output");
+        progress.report("Preparing output directory");
         progress.report("Converting source file");
         return converter.convertFile(options);
       }
@@ -125,8 +125,7 @@ export function buildConvertFileOptions(
 ): ConvertFileOptions {
   return {
     inputPath,
-    outputMarkdownPath: outputPlan.markdownPath,
-    outputAssetDir: outputPlan.assetDir,
+    outputDir: outputPlan.outputDir,
     overwritePolicy: outputPlan.overwritePolicyForCore,
     includeConversionReport: settings.includeConversionReport,
     excel: {

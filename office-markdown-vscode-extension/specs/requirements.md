@@ -16,10 +16,12 @@ The user can convert Office files into Markdown that is useful for reading, AI c
   - PowerPoint: `.pptx`
   - Word: `.docx`
 - Output:
-  - One Markdown file per input file.
-  - One asset directory per input file.
+  - One output directory per input file.
+  - Excel/XLSM: one workbook index Markdown file plus one Markdown file per included sheet.
+  - Word/PowerPoint/PDF: one Markdown file per input file inside the output directory.
+  - One `assets/` directory per output directory.
   - One manifest file per conversion.
-  - Optional human-readable report section in the Markdown file.
+  - Optional human-readable report section in the primary Markdown file.
 - Runtime:
   - Bundled TypeScript/JavaScript dependencies only.
   - No required external binaries or language runtimes.
@@ -41,10 +43,10 @@ The user can convert Office files into Markdown that is useful for reading, AI c
 | --- | --- | --- | --- |
 | FR-001 | The extension can convert a supported Office file from the VS Code Explorer context menu. | Right-clicking `.xlsx`, `.xlsm`, `.pptx`, or `.docx` shows a conversion command and produces Markdown plus assets. | MVP |
 | FR-002 | The extension can convert the active editor file from the command palette. | Running the command on an active supported file produces the same output as the context menu. | MVP |
-| FR-003 | The converter writes Markdown with relative asset links. | Markdown references generated assets using paths relative to the Markdown file, such as `![image](sample.assets/sheet-001-image-001.png)`. | MVP |
-| FR-004 | The converter creates a deterministic asset directory. | For `sample.xlsx`, the default output is `sample.md` and `sample.assets/`, unless the user chooses another output root. | MVP |
-| FR-005 | The converter produces a machine-readable manifest. | Each conversion writes `sample.assets/manifest.json` with source metadata, output paths, extracted assets, warnings, skipped items, and errors. | MVP |
-| FR-006 | Excel conversion preserves workbook and sheet order. | Markdown sections appear in workbook sheet order and label each sheet with its source sheet name. | MVP |
+| FR-003 | The converter writes Markdown with relative asset links. | Markdown references generated assets using paths relative to the Markdown file, such as `![image](assets/sheet-001-image-001.png)`. | MVP |
+| FR-004 | The converter creates a deterministic output directory. | For `sample.xlsx`, the default output is `sample/sample.md`, sheet Markdown files, `sample/assets/`, and `sample/manifest.json`, unless the user chooses another output root. | MVP |
+| FR-005 | The converter produces a machine-readable manifest. | Each conversion writes `sample/manifest.json` with source metadata, output paths, extracted assets, warnings, skipped items, and errors. | MVP |
+| FR-006 | Excel conversion preserves workbook and sheet order. | The workbook index lists included sheets in order, and each included sheet has a Markdown file labeled with its source sheet name. | MVP |
 | FR-007 | Excel conversion outputs cell content as Markdown tables or structured ranges. | Non-empty used ranges are represented in Markdown with values. Large ranges are chunked or summarized according to configured limits. | MVP |
 | FR-008 | Excel conversion preserves formulas where configured. | Default mode shows displayed values and records formulas in manifest; formula-inclusive mode shows formulas beside values or in a dedicated formula table. | MVP |
 | FR-009 | Excel images are extracted as assets and referenced from Markdown. | Images referenced through worksheet drawing relationships are saved to assets and inserted near their anchor location or in an asset section for the sheet. | MVP |
@@ -88,10 +90,10 @@ The user can convert Office files into Markdown that is useful for reading, AI c
 
 Given an `.xlsx` file with two sheets, normal cells, a formula, one image, one text box, and one embedded object reference, when the user converts it, then:
 
-- The output Markdown has one section per sheet.
+- The output directory has a workbook index Markdown file and one Markdown file per included sheet.
 - Cell content is present in readable tables.
 - The formula is represented according to the configured formula mode.
-- The image is saved to `*.assets/` and referenced with `![](...)`.
+- The image is saved to `assets/` and referenced with `![](...)`.
 - The text box text appears in Markdown.
 - The embedded object is saved or reported with a warning if it cannot be decoded.
 - `manifest.json` records extracted assets and warnings.

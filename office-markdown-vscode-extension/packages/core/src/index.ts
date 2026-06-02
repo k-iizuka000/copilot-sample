@@ -1,5 +1,13 @@
 export { convertFile } from "./convert-file.js";
-export { getSupportedFormat, isSupportedOfficePath, resolveOptions, resolveWritableOutputPaths } from "./options.js";
+export {
+  assertSafeOutputDirectoryForOverwrite,
+  getSupportedFormat,
+  isSupportedOfficePath,
+  prepareOutputDirectory,
+  resolveOptions,
+  resolveWritableOutputPaths,
+  sanitizeOutputBaseName
+} from "./options.js";
 export type {
   ConvertFileOptions,
   ConversionErrorInfo,

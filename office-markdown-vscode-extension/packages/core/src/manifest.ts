@@ -7,10 +7,18 @@ import type {
   ManifestItem,
   SupportedFormat
 } from "./types.js";
+import { toPosixRelativePath } from "./ooxml/path-safety.js";
 
-export function createManifest(inputPath: string, sizeBytes: number, format: SupportedFormat, markdownPath: string, assetDir: string): ConversionManifest {
+export function createManifest(
+  inputPath: string,
+  sizeBytes: number,
+  format: SupportedFormat,
+  outputDir: string,
+  markdownPath: string,
+  assetDir: string
+): ConversionManifest {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     tool: {
       name: "office-markdown",
       version: "0.1.1"
@@ -21,13 +29,24 @@ export function createManifest(inputPath: string, sizeBytes: number, format: Sup
       sizeBytes
     },
     output: {
-      markdownFile: path.basename(markdownPath),
-      assetDir: path.basename(assetDir)
+      primaryMarkdownFile: toPosixRelativePath(outputDir, markdownPath),
+      markdownFiles: [toPosixRelativePath(outputDir, markdownPath)],
+      assetDir: toPosixRelativePath(outputDir, assetDir)
     },
     items: [],
     warnings: [],
     errors: []
   };
+}
+
+export function setManifestMarkdownFiles(
+  manifest: ConversionManifest,
+  outputDir: string,
+  primaryMarkdownPath: string,
+  markdownPaths: string[]
+): void {
+  manifest.output.primaryMarkdownFile = toPosixRelativePath(outputDir, primaryMarkdownPath);
+  manifest.output.markdownFiles = markdownPaths.map((markdownPath) => toPosixRelativePath(outputDir, markdownPath));
 }
 
 export function addManifestItem(manifest: ConversionManifest, item: ManifestItem): ManifestItem {

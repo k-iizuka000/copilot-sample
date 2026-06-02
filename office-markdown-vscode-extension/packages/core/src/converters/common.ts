@@ -63,7 +63,7 @@ export async function extractRelationshipAsset(
       bytes,
       source: request.source,
       label: request.label,
-      markdownPath: context.options.outputMarkdownPath,
+      markdownPath: context.markdownPath,
       assetDir: context.options.outputAssetDir
     };
     const result = await writeAsset(contentType ? { ...assetRequest, contentType } : assetRequest);

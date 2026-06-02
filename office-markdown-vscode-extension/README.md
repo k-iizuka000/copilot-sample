@@ -1,6 +1,6 @@
 # Office Markdown VS Code Extension
 
-Office OOXML/PDFファイルをMarkdownとassetディレクトリへ変換するVS Code拡張の成果物一式です。
+Office OOXML/PDFファイルを入力ごとの出力ディレクトリへ変換するVS Code拡張の成果物一式です。
 
 ## 内容
 
@@ -26,10 +26,12 @@ office-markdown-vscode-extension/
 ## 主な挙動
 
 - Explorerの右クリックメニュー、またはコマンドパレットから変換できます。
-- 既定では `source.md` と `source.assets/` を元ファイルの隣に生成します。
-- Office内の画像と埋め込みオブジェクトは `*.assets/` に抽出し、Markdownから相対リンクします。
+- 既定では `source/source.md`、`source/assets/`、`source/manifest.json` を元ファイルの隣に生成します。
+- Excel / XLSM は `source/source.md` を索引にし、表示対象シートごとに `001-Summary.md` のようなMarkdownを同じディレクトリへ生成します。
+- Word / PowerPoint / PDF は出力ディレクトリ内に1つのMarkdownを生成します。
+- Office内の画像と埋め込みオブジェクトは `assets/` に抽出し、Markdownから相対リンクします。
 - PDFは抽出可能なテキストをページ単位でMarkdown化します。
-- `*.assets/manifest.json` に抽出物、警告、エラー、非対応内容を記録します。
+- `manifest.json` に抽出物、警告、エラー、非対応内容を記録します。
 - `.xlsm` のマクロは実行せず、manifest/レポートに警告として記録します。
 - Python、Pandoc、LibreOffice、Office本体などの外部runtimeは不要です。
 

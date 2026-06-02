@@ -19,11 +19,21 @@ export function isSupportedOfficePath(inputPath: string): boolean {
 export async function resolveOptions(options: ConvertFileOptions): Promise<ResolvedConvertFileOptions> {
   const inputPath = path.resolve(options.inputPath);
   const parsed = path.parse(inputPath);
-  const outputMarkdownPath = path.resolve(options.outputMarkdownPath ?? path.join(parsed.dir, `${parsed.name}.md`));
-  const outputAssetDir = path.resolve(options.outputAssetDir ?? path.join(parsed.dir, `${parsed.name}.assets`));
+  const defaultOutputBaseName = sanitizeOutputBaseName(parsed.name);
+  const legacyMarkdownPath = options.outputMarkdownPath ? path.resolve(options.outputMarkdownPath) : undefined;
+  const outputDir = path.resolve(
+    options.outputDir ?? (legacyMarkdownPath ? path.dirname(legacyMarkdownPath) : path.join(parsed.dir, defaultOutputBaseName))
+  );
+  const outputBaseName = sanitizeOutputBaseName(
+    legacyMarkdownPath ? path.parse(legacyMarkdownPath).name : path.basename(outputDir)
+  );
+  const outputMarkdownPath = legacyMarkdownPath ?? path.join(outputDir, `${outputBaseName}.md`);
+  const outputAssetDir = path.resolve(options.outputAssetDir ?? path.join(outputDir, "assets"));
 
   return {
     inputPath,
+    outputDir,
+    outputBaseName,
     outputMarkdownPath,
     outputAssetDir,
     overwritePolicy: options.overwritePolicy ?? "confirm",
@@ -55,29 +65,62 @@ export async function resolveWritableOutputPaths(options: ResolvedConvertFileOpt
   }
 
   if (options.overwritePolicy === "confirm") {
-    const markdownExists = await exists(options.outputMarkdownPath);
-    const assetDirExists = await exists(options.outputAssetDir);
-    if (markdownExists || assetDirExists) {
+    if (await exists(options.outputDir)) {
       throw new Error("Output already exists. Confirm overwrite in the VS Code prompt or use createUnique.");
     }
     return options;
   }
 
   let index = 2;
-  let markdownPath = options.outputMarkdownPath;
-  let assetDir = options.outputAssetDir;
-  while (await exists(markdownPath) || await exists(assetDir)) {
-    const parsedMarkdown = path.parse(options.outputMarkdownPath);
-    const parsedAsset = path.parse(options.outputAssetDir);
-    markdownPath = path.join(parsedMarkdown.dir, `${parsedMarkdown.name}-${index}${parsedMarkdown.ext}`);
-    assetDir = path.join(parsedAsset.dir, `${parsedAsset.name}-${index}`);
+  const parsedOutputDir = path.parse(options.outputDir);
+  let outputDir = options.outputDir;
+  while (await exists(outputDir)) {
+    outputDir = path.join(parsedOutputDir.dir, `${parsedOutputDir.name}-${index}`);
     index += 1;
   }
+  const outputBaseName = sanitizeOutputBaseName(path.basename(outputDir));
   return {
     ...options,
-    outputMarkdownPath: markdownPath,
-    outputAssetDir: assetDir
+    outputDir,
+    outputBaseName,
+    outputMarkdownPath: path.join(outputDir, `${outputBaseName}.md`),
+    outputAssetDir: path.join(outputDir, "assets")
   };
+}
+
+export async function prepareOutputDirectory(options: ResolvedConvertFileOptions): Promise<void> {
+  if (options.overwritePolicy === "overwrite") {
+    assertSafeOutputDirectoryForOverwrite(options.inputPath, options.outputDir);
+    await fs.rm(options.outputDir, { recursive: true, force: true });
+  }
+  await fs.mkdir(options.outputDir, { recursive: true });
+  await fs.mkdir(options.outputAssetDir, { recursive: true });
+}
+
+export function assertSafeOutputDirectoryForOverwrite(inputPath: string, outputDir: string): void {
+  const resolvedInputPath = path.resolve(inputPath);
+  const resolvedOutputDir = path.resolve(outputDir);
+  const inputDir = path.dirname(resolvedInputPath);
+  const inputParentDir = path.dirname(inputDir);
+  const rootDir = path.parse(resolvedOutputDir).root;
+  const forbiddenDirs = new Set([rootDir, inputDir, inputParentDir]);
+
+  if (forbiddenDirs.has(resolvedOutputDir)) {
+    throw new Error(`Refusing to overwrite unsafe output directory: ${resolvedOutputDir}`);
+  }
+
+  const relativeInput = path.relative(resolvedOutputDir, resolvedInputPath);
+  if (relativeInput && !relativeInput.startsWith("..") && !path.isAbsolute(relativeInput)) {
+    throw new Error(`Refusing to overwrite an output directory that contains the input file: ${resolvedOutputDir}`);
+  }
+}
+
+export function sanitizeOutputBaseName(rawName: string): string {
+  const safe = rawName
+    .replace(/[<>:"\/\\|?*\u0000-\u001F]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
+  return safe.length > 0 ? safe.slice(0, 120) : "office-document";
 }
 
 async function exists(target: string): Promise<boolean> {

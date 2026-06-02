@@ -37,14 +37,17 @@ function createVscodeHost(context: vscode.ExtensionContext): ExtensionHost {
       Promise.resolve(vscode.window.showWarningMessage(message, ...items)),
     showErrorMessage: (message, ...items) =>
       Promise.resolve(vscode.window.showErrorMessage(message, ...items)),
-    showSaveDialog: (options) => {
-      const dialogOptions: vscode.SaveDialogOptions = {
+    showOpenDialog: (options) => {
+      const dialogOptions: vscode.OpenDialogOptions = {
+        canSelectFiles: options.canSelectFiles,
+        canSelectFolders: options.canSelectFolders,
+        canSelectMany: options.canSelectMany,
         defaultUri: vscode.Uri.file(options.defaultPath)
       };
-      if (options.filters) {
-        dialogOptions.filters = options.filters;
+      if (options.openLabel) {
+        dialogOptions.openLabel = options.openLabel;
       }
-      return Promise.resolve(vscode.window.showSaveDialog(dialogOptions));
+      return Promise.resolve(vscode.window.showOpenDialog(dialogOptions));
     },
     pathExists: async (filePath) => {
       try {

@@ -1,4 +1,5 @@
-import type { ConversionContext, SourceRef } from "../../types.js";
+import path from "node:path";
+import type { ConversionContext, MarkdownBlock, SourceRef } from "../../types.js";
 import {
   anchorFromDrawingNode,
   collectOrderedElements,
@@ -44,6 +45,7 @@ export async function convertXlsx(context: ConversionContext): Promise<void> {
   const workbookRelationships = await context.pkg.getRelationships(workbookPart);
   const sharedStrings = await readSharedStrings(context);
   const sheets = workbookSheets(workbook);
+  const sheetRows = [["Sheet", "Status", "Markdown"]];
 
   for (const sheet of sheets) {
     const sheetSource = { container: "sheet" as const, name: sheet.name, index: sheet.index };
@@ -55,6 +57,7 @@ export async function convertXlsx(context: ConversionContext): Promise<void> {
         status: "skipped",
         message: `Hidden sheet "${sheet.name}" was skipped by configuration.`
       });
+      sheetRows.push([`Sheet ${sheet.index}: ${sheet.name}`, "Skipped", ""]);
       continue;
     }
 
@@ -65,11 +68,33 @@ export async function convertXlsx(context: ConversionContext): Promise<void> {
         message: `Worksheet relationship for "${sheet.name}" could not be resolved.`,
         source: { ...sheetSource, relationshipId: sheet.relationshipId }
       });
+      sheetRows.push([`Sheet ${sheet.index}: ${sheet.name}`, "Warning", ""]);
       continue;
     }
 
-    await convertWorksheet(context, relationship.resolvedTarget, sheet, sharedStrings);
+    const sheetFileName = sheetMarkdownFileName(sheet);
+    const sheetMarkdownPath = path.join(context.options.outputDir, sheetFileName);
+    const sheetBlocks: MarkdownBlock[] = [];
+    context.markdownDocuments.push({
+      markdownPath: sheetMarkdownPath,
+      relativePath: sheetFileName,
+      blocks: sheetBlocks
+    });
+    await convertWorksheet(
+      {
+        ...context,
+        markdownPath: sheetMarkdownPath,
+        markdownBlocks: sheetBlocks
+      },
+      relationship.resolvedTarget,
+      sheet,
+      sharedStrings
+    );
+    sheetRows.push([`Sheet ${sheet.index}: ${sheet.name}`, "Converted", markdownLink(sheetFileName)]);
   }
+
+  context.markdownBlocks.push({ kind: "heading", depth: 2, text: "Sheets" });
+  context.markdownBlocks.push({ kind: "table", rows: sheetRows });
 }
 
 async function convertWorksheet(
@@ -79,7 +104,7 @@ async function convertWorksheet(
   sharedStrings: string[]
 ): Promise<void> {
   const sheetSource = { container: "sheet" as const, name: sheet.name, index: sheet.index, part: sheetPart };
-  context.markdownBlocks.push({ kind: "heading", depth: 2, text: `Sheet ${sheet.index}: ${sheet.name}` });
+  context.markdownBlocks.push({ kind: "heading", depth: 1, text: `Sheet ${sheet.index}: ${sheet.name}` });
 
   const worksheet = await context.pkg.readXml(sheetPart);
   const cells = readCells(worksheet, sharedStrings);
@@ -319,4 +344,20 @@ function columnLabel(index: number): string {
     value = Math.floor(value / 26);
   }
   return result;
+}
+
+function sheetMarkdownFileName(sheet: WorkbookSheet): string {
+  return `${humanIndex(sheet.index)}-${sanitizeSheetFileName(sheet.name)}.md`;
+}
+
+function sanitizeSheetFileName(rawName: string): string {
+  const safe = rawName
+    .replace(/[<>:"\/\\|?*\u0000-\u001F]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
+  return (safe.length > 0 ? safe : "Sheet").slice(0, 80);
+}
+
+function markdownLink(fileName: string): string {
+  return `[${fileName}](${fileName.split("/").map(encodeURIComponent).join("/")})`;
 }

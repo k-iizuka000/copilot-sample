@@ -2,15 +2,17 @@
 
 ## Overview
 
-The product is a VS Code extension named here as `Office Markdown` until a final name is chosen. It converts Office OOXML files into Markdown and assets:
+The product is a VS Code extension named here as `Office Markdown` until a final name is chosen. It converts Office OOXML/PDF files into an output directory containing Markdown, assets, and a manifest:
 
 ```text
 input.xlsx
-input.md
-input.assets/
+input/
+  input.md
+  001-Summary.md
   manifest.json
-  sheet-001-image-001.png
-  sheet-001-object-001.bin
+  assets/
+    sheet-001-image-001.png
+    sheet-001-object-001.bin
 ```
 
 The implementation should be split into a reusable conversion core and a thin VS Code extension layer. This makes tests faster, keeps parsing code independent from VS Code APIs, and leaves room for a future CLI without changing the conversion engine.
@@ -30,8 +32,8 @@ flowchart LR
   Xlsx --> Writer["Markdown and asset writer"]
   Pptx --> Writer
   Docx --> Writer
-  Writer --> Md["Markdown file"]
-  Writer --> Assets["assets directory"]
+  Writer --> Md["Markdown file(s)"]
+  Writer --> Assets["assets/ directory"]
   Writer --> Manifest["manifest.json"]
   Command --> Result["Open output and show report"]
 ```
@@ -154,10 +156,11 @@ This file type is not supported yet. Supported: .xlsx, .xlsm, .pptx, .docx.
 ### Public API
 
 ```ts
-export type SupportedFormat = "xlsx" | "xlsm" | "pptx" | "docx";
+export type SupportedFormat = "xlsx" | "xlsm" | "pptx" | "docx" | "pdf";
 
 export interface ConvertFileOptions {
   inputPath: string;
+  outputDir?: string;
   outputMarkdownPath?: string;
   outputAssetDir?: string;
   overwritePolicy: "confirm" | "overwrite" | "createUnique";
@@ -179,7 +182,9 @@ export interface ConvertFileOptions {
 
 export interface ConversionResult {
   inputPath: string;
+  outputDir: string;
   markdownPath: string;
+  markdownPaths: string[];
   assetDir: string;
   manifestPath: string;
   format: SupportedFormat;
@@ -261,11 +266,13 @@ Default layout:
 ```text
 <source-dir>/
   Quarterly Report.xlsx
-  Quarterly Report.md
-  Quarterly Report.assets/
+  Quarterly Report/
+    Quarterly Report.md
     manifest.json
-    sheet-001-image-001.png
-    sheet-001-object-001.bin
+    001-Summary.md
+    assets/
+      sheet-001-image-001.png
+      sheet-001-object-001.bin
 ```
 
 For unsafe or long source filenames, sanitize only generated output names. Do not rename source files.
@@ -288,7 +295,7 @@ For unsafe or long source filenames, sanitize only generated output names. Do no
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "tool": {
     "name": "office-markdown",
     "version": "0.1.1"
@@ -299,8 +306,9 @@ For unsafe or long source filenames, sanitize only generated output names. Do no
     "sizeBytes": 123456
   },
   "output": {
-    "markdownFile": "sample.md",
-    "assetDir": "sample.assets"
+    "primaryMarkdownFile": "sample.md",
+    "markdownFiles": ["sample.md", "001-Sheet1.md"],
+    "assetDir": "assets"
   },
   "items": [
     {
@@ -314,8 +322,8 @@ For unsafe or long source filenames, sanitize only generated output names. Do no
         "anchor": "B4"
       },
       "output": {
-        "path": "sample.assets/sheet-001-image-001.png",
-        "markdownRef": "![Sheet1 image 1](sample.assets/sheet-001-image-001.png)"
+        "path": "assets/sheet-001-image-001.png",
+        "markdownRef": "![Sheet1 image 1](assets/sheet-001-image-001.png)"
       },
       "contentType": "image/png",
       "status": "extracted"
@@ -355,22 +363,34 @@ Important parts:
 
 ### Markdown Structure
 
+Workbook index:
+
 ```md
 # Workbook: sample.xlsx
 
-## Sheet 1: Summary
+## Sheets
+
+| Sheet | Status | Markdown |
+| --- | --- | --- |
+| Sheet 1: Summary | Converted | [001-Summary.md](001-Summary.md) |
+```
+
+Sheet file:
+
+```md
+# Sheet 1: Summary
 
 | A | B | C |
 | --- | --- | --- |
 | ... | ... | ... |
 
-![Summary image 1](sample.assets/sheet-001-image-001.png)
+![Summary image 1](assets/sheet-001-image-001.png)
 
 ### Text Box: Summary object 1
 
 > Extracted text from shape.
 
-[Embedded object: Summary object 1](sample.assets/sheet-001-object-001.bin)
+[Embedded object: Summary object 1](assets/sheet-001-object-001.bin)
 ```
 
 ### Cell Extraction
@@ -464,7 +484,7 @@ Important parts:
 - Body bullet
 - Body bullet
 
-![Slide 1 image 1](sample.assets/slide-001-image-001.png)
+![Slide 1 image 1](assets/slide-001-image-001.png)
 
 ### Speaker Notes
 
@@ -525,7 +545,7 @@ Paragraph text with [link](https://example.com).
 | --- | --- |
 | Value A | Value B |
 
-![Document image 1](sample.assets/doc-image-001.png)
+![Document image 1](assets/doc-image-001.png)
 ```
 
 ### Text Extraction

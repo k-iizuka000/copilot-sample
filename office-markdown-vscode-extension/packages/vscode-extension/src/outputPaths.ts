@@ -5,18 +5,22 @@ import type { OfficeMarkdownSettings, OverwritePolicy, ResourceUri } from "./typ
 const CONVERTED_FOLDER_NAME = "converted";
 const MAX_UNIQUE_ATTEMPTS = 1000;
 
-export interface SaveDialogOptions {
+export interface OpenDialogOptions {
   defaultPath: string;
-  filters?: Record<string, string[]>;
+  canSelectFiles: boolean;
+  canSelectFolders: boolean;
+  canSelectMany: boolean;
+  openLabel?: string;
 }
 
 export interface OutputResolutionHost {
-  showSaveDialog(options: SaveDialogOptions): Promise<ResourceUri | undefined>;
+  showOpenDialog(options: OpenDialogOptions): Promise<ResourceUri[] | undefined>;
   showWarningMessage(message: string, ...items: string[]): Promise<string | undefined>;
   pathExists(filePath: string): Promise<boolean>;
 }
 
 export interface OutputPlan {
+  outputDir: string;
   markdownPath: string;
   assetDir: string;
   overwritePolicyForCore: OverwritePolicy;
@@ -56,17 +60,20 @@ export async function resolveOutputPlan(
   };
 }
 
-export function deriveAssetDir(markdownPath: string): string {
-  const parsed = path.parse(markdownPath);
-  return path.join(parsed.dir, `${parsed.name}.assets`);
+export function deriveAssetDir(outputDir: string): string {
+  return path.join(outputDir, "assets");
 }
 
-export function defaultMarkdownPath(inputPath: string, outputLocation: OfficeMarkdownSettings["outputLocation"]): string {
+export function derivePrimaryMarkdownPath(outputDir: string): string {
+  return path.join(outputDir, `${sanitizeOutputBaseName(path.basename(outputDir))}.md`);
+}
+
+export function defaultOutputDir(inputPath: string, outputLocation: OfficeMarkdownSettings["outputLocation"]): string {
   const parsed = path.parse(inputPath);
   const baseName = sanitizeOutputBaseName(parsed.name);
   const outputDir =
-    outputLocation === "convertedFolder" ? path.join(parsed.dir, CONVERTED_FOLDER_NAME) : parsed.dir;
-  return path.join(outputDir, `${baseName}.md`);
+    outputLocation === "convertedFolder" ? path.join(parsed.dir, CONVERTED_FOLDER_NAME, baseName) : path.join(parsed.dir, baseName);
+  return outputDir;
 }
 
 export function sanitizeOutputBaseName(rawName: string): string {
@@ -82,34 +89,36 @@ async function initialOutputPlan(
   settings: OfficeMarkdownSettings,
   host: OutputResolutionHost
 ): Promise<OutputPlan | undefined> {
-  const defaultPath = defaultMarkdownPath(inputPath, settings.outputLocation);
-  const markdownPath =
+  const defaultPath = defaultOutputDir(inputPath, settings.outputLocation);
+  const outputDir =
     settings.outputLocation === "askEachTime"
-      ? await askForMarkdownPath(defaultPath, host)
+      ? await askForOutputDir(defaultPath, host)
       : defaultPath;
 
-  if (!markdownPath) {
+  if (!outputDir) {
     return undefined;
   }
 
   return {
-    markdownPath,
-    assetDir: deriveAssetDir(markdownPath),
+    outputDir,
+    markdownPath: derivePrimaryMarkdownPath(outputDir),
+    assetDir: deriveAssetDir(outputDir),
     overwritePolicyForCore: settings.overwritePolicy
   };
 }
 
-async function askForMarkdownPath(
+async function askForOutputDir(
   defaultPath: string,
   host: OutputResolutionHost
 ): Promise<string | undefined> {
-  const selected = await host.showSaveDialog({
+  const selected = await host.showOpenDialog({
     defaultPath,
-    filters: {
-      Markdown: ["md"]
-    }
+    canSelectFiles: false,
+    canSelectFolders: true,
+    canSelectMany: false,
+    openLabel: "Select Output Folder"
   });
-  return selected?.fsPath;
+  return selected?.[0]?.fsPath;
 }
 
 async function findUniqueOutputPlan(plan: OutputPlan, host: OutputResolutionHost): Promise<OutputPlan> {
@@ -117,12 +126,13 @@ async function findUniqueOutputPlan(plan: OutputPlan, host: OutputResolutionHost
     return plan;
   }
 
-  const parsed = path.parse(plan.markdownPath);
+  const parsed = path.parse(plan.outputDir);
   for (let attempt = 2; attempt <= MAX_UNIQUE_ATTEMPTS; attempt += 1) {
-    const markdownPath = path.join(parsed.dir, `${parsed.name}-${attempt}${parsed.ext || ".md"}`);
+    const outputDir = path.join(parsed.dir, `${parsed.name}-${attempt}`);
     const candidate = {
-      markdownPath,
-      assetDir: deriveAssetDir(markdownPath),
+      outputDir,
+      markdownPath: derivePrimaryMarkdownPath(outputDir),
+      assetDir: deriveAssetDir(outputDir),
       overwritePolicyForCore: "createUnique" as const
     };
     if (!(await hasOutputConflict(candidate, host))) {
@@ -130,9 +140,9 @@ async function findUniqueOutputPlan(plan: OutputPlan, host: OutputResolutionHost
     }
   }
 
-  throw new Error(`Could not find a unique Office Markdown output path for ${path.basename(plan.markdownPath)}.`);
+  throw new Error(`Could not find a unique Office Markdown output directory for ${path.basename(plan.outputDir)}.`);
 }
 
 async function hasOutputConflict(plan: OutputPlan, host: OutputResolutionHost): Promise<boolean> {
-  return (await host.pathExists(plan.markdownPath)) || (await host.pathExists(plan.assetDir));
+  return host.pathExists(plan.outputDir);
 }

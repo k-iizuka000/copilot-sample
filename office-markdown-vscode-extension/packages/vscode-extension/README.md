@@ -6,7 +6,7 @@ Convert `.xlsx`, `.xlsm`, `.pptx`, `.docx`, and `.pdf` files into Markdown plus 
 
 1. Right-click a supported Office or PDF file in the VS Code Explorer.
 2. Run `Convert Office/PDF File to Markdown`.
-3. Inspect the generated `.md` file and sibling `.assets/manifest.json`.
+3. Inspect the generated output directory, Markdown file(s), `assets/`, and `manifest.json`.
 
 The command palette also provides `Office Markdown: Convert Active Office/PDF File to Markdown`.
 
@@ -15,11 +15,24 @@ The command palette also provides `Office Markdown: Convert Active Office/PDF Fi
 For `sample.docx`, the default output is:
 
 ```text
-sample.md
-sample.assets/
+sample/
+  sample.md
   manifest.json
-  doc-image-001.png
-  doc-object-001.bin
+  assets/
+    doc-image-001.png
+    doc-object-001.bin
+```
+
+For `book.xlsx`, the default output is:
+
+```text
+book/
+  book.md
+  001-Summary.md
+  002-Details.md
+  manifest.json
+  assets/
+    sheet-001-image-001.png
 ```
 
 The converter runs locally and does not require Python, Pandoc, LibreOffice, Office, OCR, or cloud services.

@@ -69,7 +69,7 @@ class TestHost implements ExtensionHost {
     return undefined;
   }
 
-  async showSaveDialog(): Promise<ResourceUri | undefined> {
+  async showOpenDialog(): Promise<ResourceUri[] | undefined> {
     return undefined;
   }
 
@@ -98,13 +98,17 @@ class TestConverter implements OfficeMarkdownConverter {
 
   async convertFile(options: ConvertFileOptions): Promise<ConversionResult> {
     this.calls.push(options);
-    const markdownPath = options.outputMarkdownPath ?? path.join("workspace", "output.md");
-    const assetDir = options.outputAssetDir ?? path.join("workspace", "output.assets");
+    const outputDir = options.outputDir ?? path.join("workspace", "output");
+    const outputBaseName = path.basename(outputDir);
+    const markdownPath = options.outputMarkdownPath ?? path.join(outputDir, `${outputBaseName}.md`);
+    const assetDir = options.outputAssetDir ?? path.join(outputDir, "assets");
     return {
       inputPath: options.inputPath,
+      outputDir,
       markdownPath,
+      markdownPaths: [markdownPath],
       assetDir,
-      manifestPath: path.join(assetDir, "manifest.json"),
+      manifestPath: path.join(outputDir, "manifest.json"),
       format: "xlsx",
       status: "success",
       warnings: [],
@@ -137,8 +141,7 @@ describe("Office Markdown commands", () => {
     expect(converter.calls).toHaveLength(1);
     expect(converter.calls[0]).toMatchObject({
       inputPath,
-      outputMarkdownPath: path.join("workspace", "book.md"),
-      outputAssetDir: path.join("workspace", "book.assets"),
+      outputDir: path.join("workspace", "book"),
       overwritePolicy: "overwrite",
       includeConversionReport: true,
       excel: {
@@ -156,9 +159,9 @@ describe("Office Markdown commands", () => {
       }
     });
     expect(host.progressTitles[0]).toContain("book.xlsx");
-    expect(host.progressMessages).toEqual(["Preparing output", "Converting source file"]);
+    expect(host.progressMessages).toEqual(["Preparing output directory", "Converting source file"]);
     expect(host.workspaceState.get(LAST_MANIFEST_KEY)).toBe(
-      path.join("workspace", "book.assets", "manifest.json")
+      path.join("workspace", "book", "manifest.json")
     );
     expect(host.informationMessages[0]).toBe("Converted book.md.");
   });
@@ -172,7 +175,7 @@ describe("Office Markdown commands", () => {
     await host.commands.get(COMMANDS.convertCurrentFile)?.();
 
     expect(converter.calls[0]?.inputPath).toBe(path.join("workspace", "deck.pptx"));
-    expect(converter.calls[0]?.outputMarkdownPath).toBe(path.join("workspace", "deck.md"));
+    expect(converter.calls[0]?.outputDir).toBe(path.join("workspace", "deck"));
   });
 
   it("accepts PDF resources from Explorer", async () => {
@@ -185,7 +188,7 @@ describe("Office Markdown commands", () => {
 
     expect(converter.calls).toHaveLength(1);
     expect(converter.calls[0]?.inputPath).toBe(inputPath);
-    expect(converter.calls[0]?.outputMarkdownPath).toBe(path.join("workspace", "paper.md"));
+    expect(converter.calls[0]?.outputDir).toBe(path.join("workspace", "paper"));
   });
 
   it("rejects unsupported resources before invoking the converter", async () => {
@@ -205,7 +208,7 @@ describe("Office Markdown commands", () => {
   it("opens the last manifest when workspace state points to an existing manifest", async () => {
     const host = new TestHost();
     const converter = new TestConverter();
-    const manifestPath = path.join("workspace", "book.assets", "manifest.json");
+    const manifestPath = path.join("workspace", "book", "manifest.json");
     host.workspaceState.set(LAST_MANIFEST_KEY, manifestPath);
     host.existingPaths.add(manifestPath);
     registerOfficeMarkdownCommands(host, converter);

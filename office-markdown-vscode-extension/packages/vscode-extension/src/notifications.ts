@@ -19,7 +19,14 @@ export async function showConversionResult(
 ): Promise<void> {
   const warningCount = result.warnings.length;
   const errorCount = result.errors.length;
-  const outputName = path.basename(result.markdownPath);
+  const outputName = path.basename(result.outputDir);
+  const markdownCount = result.markdownPaths.length;
+  const successMessage = markdownCount > 1
+    ? `Converted ${outputName} (${markdownCount} Markdown files).`
+    : `Converted ${path.basename(result.markdownPath)}.`;
+  const partialMessage = markdownCount > 1
+    ? `Converted ${outputName} (${markdownCount} Markdown files) with ${warningCount} warning(s) and ${errorCount} error(s).`
+    : `Converted ${path.basename(result.markdownPath)} with ${warningCount} warning(s) and ${errorCount} error(s).`;
   const actions = [OPEN_MARKDOWN_ACTION, OPEN_MANIFEST_ACTION];
 
   if (result.status === "failed") {
@@ -36,10 +43,10 @@ export async function showConversionResult(
   const selected =
     result.status === "partial" || warningCount > 0 || errorCount > 0
       ? await host.showWarningMessage(
-          `Converted ${outputName} with ${warningCount} warning(s) and ${errorCount} error(s).`,
+          partialMessage,
           ...actions
         )
-      : await host.showInformationMessage(`Converted ${outputName}.`, ...actions);
+      : await host.showInformationMessage(successMessage, ...actions);
 
   if (selected === OPEN_MARKDOWN_ACTION) {
     await openDocument(host, result.markdownPath);
