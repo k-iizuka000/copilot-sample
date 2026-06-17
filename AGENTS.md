@@ -20,7 +20,7 @@
 | `.github/instructions/` | path-specific instructions 置き場 | 特定用途や特定パス向けの指示 |
 | `office-markdown-vscode-extension/` | Office Markdown VS Code 拡張の独立ツール | このツールに閉じた実装、SPEC、テスト、VSIX |
 | `README.md` | 人間向けのリポジトリ索引 | 全体の目的、配置ルール、公開時の注意 |
-| `AGENT.md` | AI エージェント向けのリポジトリ地図 | このファイル自身の更新 |
+
 
 ## 新規作成時の判断
 
