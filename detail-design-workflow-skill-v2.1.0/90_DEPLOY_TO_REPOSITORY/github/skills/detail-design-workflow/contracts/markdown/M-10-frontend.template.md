@@ -1,0 +1,54 @@
+---
+contractId: M-10
+schemaVersion: "1.0.0"
+featureId: "{{featureId}}"
+featureName: "{{featureName}}"
+generationRunId: "{{runId}}"
+generationStatus: "{{status}}"
+evaluationStatus: "{{evaluationStatus}}"
+humanReviewStatus: not_reviewed
+sourceRecordCount: {{sourceRecordCount}}
+openIssueCount: {{openIssueCount}}
+---
+
+# フロントエンド詳細設計
+
+## 1. 画面・レイアウト
+
+| 表示モード | アセット | 説明 | Record ID | 出典 |
+|---|---|---|---|---|
+
+## 2. 画面項目
+
+| 項目番号 | 名称 | 属性 | i18n | 最小 | 最大 | フォーマット | Align | 初期表示 | 一覧表示 | 備考 | Record ID | 出典 |
+|---|---|---|---|---:|---:|---|---|---|---|---|---|---|
+
+## 3. 項目制御
+
+| 項目番号 | 表示モード | 条件 | 表示 | 活性 | 読取専用 | 値ルール | Record ID | 出典 |
+|---|---|---|---|---|---|---|---|---|---|
+
+## 4. バリデーション
+
+| 定義番号 | 項目番号 | 名称 | 条件/属性 | 最小 | 最大 | フォーマット | 適用操作 | メッセージ | Record ID | 出典 |
+|---|---|---|---|---:|---:|---|---|---|---|---|
+
+## 5. イベント・遷移
+
+| Event ID | 項目番号 | イベント名 | 処理概要 | 遷移先 | Record ID | 出典 |
+|---|---|---|---|---|---|---|
+
+## 6. メッセージ
+
+| Event ID | メッセージID | 種別 | 表示条件 | Record ID | 出典 |
+|---|---|---|---|---|---|
+
+## 7. URL・パラメータ
+
+| 表示モード | URLフォーマット | パラメータ名 | 使い方 | Record ID | 出典 |
+|---|---|---|---|---|---|
+
+## 8. 共通仕様参照
+
+| 共通Record ID | 内容 | 参照先 |
+|---|---|---|

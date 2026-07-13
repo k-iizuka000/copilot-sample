@@ -33,3 +33,5 @@ windows-keep-awake-tray/artifacts/**
 !windows-keep-awake-tray/artifacts/win-x64/KeepAwakeTray-win-x64.zip
 
 old/
+
+detail-design-workflow-skill-v2.1.0/MANIFEST.sha256

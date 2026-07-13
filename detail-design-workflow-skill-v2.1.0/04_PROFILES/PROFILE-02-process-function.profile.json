@@ -1,0 +1,96 @@
+{
+  "profileId": "PROFILE-02",
+  "version": "1.0.0",
+  "documentType": "process-function",
+  "status": "stable",
+  "documentScope": "feature",
+  "description": "処理機能記述書。D00で5シートを確認。",
+  "sheetRules": [
+    {
+      "ruleId": "P02-S01",
+      "matchType": "exact",
+      "pattern": "改訂履歴",
+      "role": "metadata",
+      "skills": [
+        "E2J-00"
+      ],
+      "outputContracts": [
+        "J-01"
+      ],
+      "priority": 100,
+      "notes": null
+    },
+    {
+      "ruleId": "P02-S02",
+      "matchType": "exact",
+      "pattern": "処理機能記述",
+      "role": "extract",
+      "skills": [
+        "E2J-03"
+      ],
+      "outputContracts": [
+        "J-20",
+        "J-99"
+      ],
+      "priority": 100,
+      "notes": "イベントID/処理節単位に分割。文章と表を混同しない。"
+    },
+    {
+      "ruleId": "P02-S03",
+      "matchType": "exact",
+      "pattern": "検索要領",
+      "role": "extract",
+      "skills": [
+        "E2J-03",
+        "E2J-04"
+      ],
+      "outputContracts": [
+        "J-20",
+        "J-30",
+        "J-99"
+      ],
+      "priority": 100,
+      "notes": "検索要領番号または親イベントIDで複数ブロックを分割。"
+    },
+    {
+      "ruleId": "P02-S04",
+      "matchType": "exact",
+      "pattern": "更新要領",
+      "role": "extract",
+      "skills": [
+        "E2J-03",
+        "E2J-04"
+      ],
+      "outputContracts": [
+        "J-20",
+        "J-30",
+        "J-99"
+      ],
+      "priority": 100,
+      "notes": "対象テーブル+編集要領。"
+    },
+    {
+      "ruleId": "P02-S05",
+      "matchType": "exact",
+      "pattern": "項目DB対応表",
+      "role": "extract",
+      "skills": [
+        "E2J-04"
+      ],
+      "outputContracts": [
+        "J-30",
+        "J-99"
+      ],
+      "priority": 100,
+      "notes": "1行=画面項目とDB項目の対応。"
+    }
+  ],
+  "policies": {
+    "hiddenRows": "include_and_mark",
+    "formula": "display_and_formula",
+    "assets": "separate_manifest",
+    "canonicalSource": "5シートを正本。処理機能記述はイベントIDを親キーにする。",
+    "unknownSheet": "fail",
+    "profileMismatch": "fail"
+  }
+}
