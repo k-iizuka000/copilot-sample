@@ -1,9 +1,0 @@
-node_modules/
-dist/*
-!dist/
-!dist/*.vsix
-coverage/
-.vscode-test/
-
-packages/*/dist/
-packages/*/coverage/
