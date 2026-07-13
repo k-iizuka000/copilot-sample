@@ -1,0 +1,87 @@
+{
+  "contractId": "J-10",
+  "schemaVersion": "1.0.0",
+  "run": {
+    "runId": "RUN-001",
+    "generatedAt": "2026-07-13T00:00:00Z",
+    "skillId": "E2J-01",
+    "promptVersion": "1.0.0",
+    "model": null,
+    "humanReviewStatus": "not_reviewed"
+  },
+  "document": {
+    "documentId": "DOC-SCR-001",
+    "documentType": "screen_design",
+    "sourcePath": "sample-screen.xlsx",
+    "workbookName": "sample-screen.xlsx",
+    "formatVersion": null,
+    "featureId": "SCR001",
+    "featureName": "サンプル画面",
+    "scope": "feature"
+  },
+  "status": "complete",
+  "records": [
+    {
+      "recordId": "SCR001-J10-R0001",
+      "recordType": "screen_item",
+      "scope": "individual",
+      "layers": [
+        "frontend",
+        "backend",
+        "test"
+      ],
+      "executionModes": [
+        "online"
+      ],
+      "evidenceState": "explicit",
+      "sourceRefs": [
+        {
+          "sourceUnitId": "DOC-SCR-001:items:R11",
+          "workbook": "sample-screen.xlsx",
+          "sheet": "項目",
+          "range": "A11:K11",
+          "locator": "sample-screen.xlsx/項目!A11:K11",
+          "displayedValue": "ITEM-001",
+          "formula": null,
+          "hiddenRow": false,
+          "hiddenColumn": false,
+          "evidenceType": "row"
+        }
+      ],
+      "facts": {
+        "itemNumber": "ITEM-001",
+        "name": "サンプル項目",
+        "attribute": "text",
+        "i18n": "sample.item",
+        "minimum": 1,
+        "maximum": 10,
+        "format": null,
+        "align": "left",
+        "note": null,
+        "initialDisplay": "表示",
+        "listDisplay": "表示"
+      },
+      "notes": null
+    }
+  ],
+  "coverage": [
+    {
+      "sourceUnitId": "DOC-SCR-001:items:R11",
+      "disposition": "extracted",
+      "recordIds": [
+        "SCR001-J10-R0001"
+      ],
+      "reason": null
+    }
+  ],
+  "issues": [],
+  "assets": [],
+  "summary": {
+    "sourceUnitCount": 1,
+    "accountedSourceUnitCount": 1,
+    "unaccountedSourceUnitCount": 0,
+    "recordCount": 1,
+    "issueCount": 0,
+    "assetCount": 0
+  }
+}
