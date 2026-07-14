@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "J-01-document-manifest.schema.json",
+  "title": "J-01 Document Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractId",
+    "schemaVersion",
+    "profileId",
+    "run",
+    "document",
+    "status",
+    "coverage",
+    "issues",
+    "assets",
+    "summary",
+    "sheets",
+    "routingPlan"
+  ],
+  "properties": {
+    "contractId": {
+      "const": "J-01"
+    },
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "profileId": {
+      "type": "string",
+      "pattern": "^PROFILE-\\d{2}[A-Z]?$"
+    },
+    "run": {
+      "$ref": "J-00-common-definitions.schema.json#/$defs/runInfo"
+    },
+    "document": {
+      "$ref": "J-00-common-definitions.schema.json#/$defs/documentRef"
+    },
+    "status": {
+      "enum": [
+        "complete",
+        "partial",
+        "failed"
+      ]
+    },
+    "coverage": {
+      "type": "array",
+      "items": {
+        "$ref": "J-00-common-definitions.schema.json#/$defs/coverageItem"
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "$ref": "J-00-common-definitions.schema.json#/$defs/issue"
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "$ref": "J-00-common-definitions.schema.json#/$defs/assetRef"
+      }
+    },
+    "summary": {
+      "$ref": "J-00-common-definitions.schema.json#/$defs/summary"
+    },
+    "sheets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sheetId",
+          "sheetName",
+          "visibility",
+          "role",
+          "status",
+          "matchedProfileRule",
+          "requiredSkills",
+          "reason"
+        ],
+        "properties": {
+          "sheetId": {
+            "type": "string"
+          },
+          "sheetName": {
+            "type": "string"
+          },
+          "visibility": {
+            "enum": [
+              "visible",
+              "hidden",
+              "very_hidden",
+              "unknown"
+            ]
+          },
+          "role": {
+            "enum": [
+              "metadata",
+              "extract",
+              "asset",
+              "ignore_candidate",
+              "reference_only",
+              "unknown"
+            ]
+          },
+          "status": {
+            "enum": [
+              "recognized",
+              "unknown",
+              "conflict"
+            ]
+          },
+          "matchedProfileRule": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requiredSkills": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "E2J-00",
+                "E2J-01",
+                "E2J-02",
+                "E2J-03",
+                "E2J-04",
+                "E2J-05",
+                "E2J-06",
+                "NONE",
+                "UNKNOWN"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "routingPlan": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "order",
+          "skillId",
+          "sheetName",
+          "blockSelector",
+          "outputContract",
+          "required",
+          "reason"
+        ],
+        "properties": {
+          "order": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "skillId": {
+            "enum": [
+              "E2J-01",
+              "E2J-02",
+              "E2J-03",
+              "E2J-04",
+              "E2J-05",
+              "E2J-06"
+            ]
+          },
+          "sheetName": {
+            "type": "string"
+          },
+          "blockSelector": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "outputContract": {
+            "enum": [
+              "J-10",
+              "J-11",
+              "J-20",
+              "J-30",
+              "J-40",
+              "J-60"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "skillId": {
+                "const": "E2J-01"
+              },
+              "outputContract": {
+                "const": "J-10"
+              }
+            }
+          },
+          {
+            "properties": {
+              "skillId": {
+                "const": "E2J-02"
+              },
+              "outputContract": {
+                "const": "J-11"
+              }
+            }
+          },
+          {
+            "properties": {
+              "skillId": {
+                "const": "E2J-03"
+              },
+              "outputContract": {
+                "const": "J-20"
+              }
+            }
+          },
+          {
+            "properties": {
+              "skillId": {
+                "const": "E2J-04"
+              },
+              "outputContract": {
+                "const": "J-30"
+              }
+            }
+          },
+          {
+            "properties": {
+              "skillId": {
+                "const": "E2J-05"
+              },
+              "outputContract": {
+                "const": "J-40"
+              }
+            }
+          },
+          {
+            "properties": {
+              "skillId": {
+                "const": "E2J-06"
+              },
+              "outputContract": {
+                "const": "J-60"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

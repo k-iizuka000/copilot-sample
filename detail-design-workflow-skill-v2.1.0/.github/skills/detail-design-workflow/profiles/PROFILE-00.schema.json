@@ -1,0 +1,461 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "PROFILE-00.schema.json",
+  "title": "Design Document Profile",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profileId",
+    "version",
+    "documentType",
+    "status",
+    "documentScope",
+    "description",
+    "sheetRules",
+    "policies"
+  ],
+  "properties": {
+    "profileId": {
+      "type": "string",
+      "pattern": "^PROFILE-\\d{2}[A-Z]?$"
+    },
+    "version": {
+      "type": "string"
+    },
+    "documentType": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "stable",
+        "provisional"
+      ]
+    },
+    "documentScope": {
+      "enum": [
+        "feature",
+        "shared_master",
+        "common",
+        "unknown"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "sheetRules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ruleId",
+          "matchType",
+          "pattern",
+          "role",
+          "skills",
+          "outputContracts",
+          "priority",
+          "notes"
+        ],
+        "properties": {
+          "ruleId": {
+            "type": "string"
+          },
+          "matchType": {
+            "enum": [
+              "exact",
+              "regex"
+            ]
+          },
+          "pattern": {
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "metadata",
+              "extract",
+              "asset",
+              "ignore_candidate",
+              "reference_only",
+              "unknown"
+            ]
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "E2J-00",
+                "E2J-01",
+                "E2J-02",
+                "E2J-03",
+                "E2J-04",
+                "E2J-05",
+                "E2J-06",
+                "NONE",
+                "UNKNOWN"
+              ]
+            }
+          },
+          "outputContracts": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "J-01",
+                "J-10",
+                "J-11",
+                "J-20",
+                "J-30",
+                "J-40",
+                "J-60"
+              ]
+            }
+          },
+          "priority": {
+            "type": "integer"
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-00"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-01"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-01"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-00"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-01"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-10"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-10"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-01"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-02"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-11"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-11"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-02"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-03"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-20"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-20"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-03"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-04"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-30"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-30"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-04"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-05"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-40"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-40"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-05"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-06"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-60"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "outputContracts": {
+                  "contains": {
+                    "const": "J-60"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "skills": {
+                  "contains": {
+                    "const": "E2J-06"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "policies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hiddenRows",
+        "formula",
+        "assets",
+        "canonicalSource",
+        "unknownSheet",
+        "profileMismatch"
+      ],
+      "properties": {
+        "hiddenRows": {
+          "enum": [
+            "include_and_mark",
+            "exclude",
+            "ask"
+          ]
+        },
+        "formula": {
+          "enum": [
+            "display_and_formula",
+            "display_only",
+            "formula_only",
+            "ask"
+          ]
+        },
+        "assets": {
+          "enum": [
+            "separate_manifest",
+            "inline",
+            "ignore",
+            "ask"
+          ]
+        },
+        "canonicalSource": {
+          "type": "string"
+        },
+        "unknownSheet": {
+          "enum": [
+            "fail",
+            "warning",
+            "ignore"
+          ]
+        },
+        "profileMismatch": {
+          "enum": [
+            "fail",
+            "warning"
+          ]
+        }
+      }
+    }
+  }
+}

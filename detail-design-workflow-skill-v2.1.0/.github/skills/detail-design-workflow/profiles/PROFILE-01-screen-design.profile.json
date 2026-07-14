@@ -1,0 +1,136 @@
+{
+  "profileId": "PROFILE-01",
+  "version": "1.0.0",
+  "documentType": "screen-design",
+  "status": "stable",
+  "documentScope": "feature",
+  "description": "画面帳票設計書。D00で8シートを確認。",
+  "sheetRules": [
+    {
+      "ruleId": "P01-S01",
+      "matchType": "exact",
+      "pattern": "改訂履歴",
+      "role": "metadata",
+      "skills": [
+        "E2J-00"
+      ],
+      "outputContracts": [
+        "J-01"
+      ],
+      "priority": 100,
+      "notes": "最新版情報のみmanifestへ。"
+    },
+    {
+      "ruleId": "P01-S02",
+      "matchType": "exact",
+      "pattern": "レイアウト",
+      "role": "asset",
+      "skills": [
+        "E2J-00",
+        "E2J-01",
+        "E2J-06"
+      ],
+      "outputContracts": [
+        "J-01",
+        "J-10",
+        "J-60"
+      ],
+      "priority": 100,
+      "notes": "画像を正とし、表示モード等の明示メタデータだけ抽出。"
+    },
+    {
+      "ruleId": "P01-S03",
+      "matchType": "exact",
+      "pattern": "項目",
+      "role": "extract",
+      "skills": [
+        "E2J-01"
+      ],
+      "outputContracts": [
+        "J-10"
+      ],
+      "priority": 100,
+      "notes": "1行=画面項目。"
+    },
+    {
+      "ruleId": "P01-S04",
+      "matchType": "exact",
+      "pattern": "項目制御",
+      "role": "extract",
+      "skills": [
+        "E2J-02"
+      ],
+      "outputContracts": [
+        "J-11"
+      ],
+      "priority": 100,
+      "notes": "表示モード・活性等。"
+    },
+    {
+      "ruleId": "P01-S05",
+      "matchType": "exact",
+      "pattern": "バリデーション",
+      "role": "extract",
+      "skills": [
+        "E2J-02"
+      ],
+      "outputContracts": [
+        "J-11"
+      ],
+      "priority": 100,
+      "notes": "数式は表示値+数式。相関チェック別ブロック。"
+    },
+    {
+      "ruleId": "P01-S06",
+      "matchType": "exact",
+      "pattern": "イベント",
+      "role": "extract",
+      "skills": [
+        "E2J-02"
+      ],
+      "outputContracts": [
+        "J-11"
+      ],
+      "priority": 100,
+      "notes": "1行=イベント。"
+    },
+    {
+      "ruleId": "P01-S07",
+      "matchType": "exact",
+      "pattern": "メッセージ",
+      "role": "extract",
+      "skills": [
+        "E2J-02"
+      ],
+      "outputContracts": [
+        "J-11"
+      ],
+      "priority": 100,
+      "notes": "1行=メッセージ条件。"
+    },
+    {
+      "ruleId": "P01-S08",
+      "matchType": "exact",
+      "pattern": "パラメータ",
+      "role": "extract",
+      "skills": [
+        "E2J-01",
+        "E2J-02"
+      ],
+      "outputContracts": [
+        "J-10",
+        "J-11"
+      ],
+      "priority": 100,
+      "notes": "表示モード・URL・パラメータ。"
+    }
+  ],
+  "policies": {
+    "hiddenRows": "include_and_mark",
+    "formula": "display_and_formula",
+    "assets": "separate_manifest",
+    "canonicalSource": "正確な8シート名を優先。レイアウトはassetと明示メタデータに分離。",
+    "unknownSheet": "fail",
+    "profileMismatch": "fail"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "contractId": "I-00",
+  "featureId": "FEATURE-ID",
+  "featureName": null,
+  "runId": "FEATURE-ID-RUN-001",
+  "designDocuments": [
+    {
+      "documentType": "screen_design",
+      "profileId": "PROFILE-01",
+      "sourcePath": "path/to/design.xlsx",
+      "version": null
+    }
+  ],
+  "outputRoot": "work/detail-design/FEATURE-ID/RUN-001",
+  "operator": null,
+  "humanGate": {
+    "G0": "not_approved"
+  }
+}
