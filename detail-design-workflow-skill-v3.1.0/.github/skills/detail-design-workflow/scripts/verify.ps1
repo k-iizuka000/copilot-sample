@@ -19,6 +19,7 @@
   FAIL / WARN の区別（BRIEF §9・決定#7）:
     FAIL = 機械的に壊れている   → JSON パース不能・必須キー欠落・recordId 重複・enum 逸脱・トレース欠落
     WARN = 人間の判断に委ねる   → ルーティング未生成・リンク切れ・lint 指摘・矛盾検出
+  warnings.md への追記種別: FAIL=「機械FAIL」/ WARN=「機械WARN」（矛盾検出チェック由来のみ「矛盾検出」）。
   終了コード: 0 = OK（WARN のみ含む） / 1 = FAIL あり。
 
 .PARAMETER RunDir
@@ -58,16 +59,14 @@ $ErrorActionPreference = 'Continue'
 #
 #   Kind の意味:
 #     front / back / batch : spec/<Area>/<ID>/<File> （<ID> は recordId の接頭辞）
-#     db                   : spec/db/<テーブル物理名>.md （テーブル名はレコード内フィールドから解決）
+#     db                   : spec/db/<テーブル物理名>.md （テーブル名は facts 内フィールドから解決）
 #     er                   : spec/db/_er-overview.md（全体定義書がある場合のみ存在）
 #     perm                 : spec/common/permissions/ 配下のいずれか
 #     common               : spec/common/naming.md または spec/common/codes/*.md
-#     rules                : spec/rules/BR-*.md
-#     asset                : runs/<ID>/00-input/assets/（spec 外）
+#     meta                 : 非ルーティング（spec 出力を要求しない。routing-table.md §2 の非ルーティング行を参照）
 #
-#   ※ business_rule / asset は BRIEF §6 が日本語ラベル（業務ルール / アセット）で示す行に対応する
-#     推定トークン。実データの recordType 値が異なる場合は本表と routing-table.md を更新すること
-#     （成果物末尾「BRIEF疑義」参照）。
+#   ※ 業務ルール・アセットは独立した recordType ではない（正本: routing-table.md §3 注記。
+#     業務ルールは process_section / common_rule の運用分類、アセットは J-60 で recordId を持たない）。
 # =====================================================================================
 $Routing = @{
     'screen_item'              = @{ Kind = 'front'; File = 'items.md' }
@@ -97,8 +96,11 @@ $Routing = @{
     'case_reference_permission'= @{ Kind = 'perm'; File = '' }
     'role_hierarchy'           = @{ Kind = 'perm'; File = '' }
     'common_rule'              = @{ Kind = 'common'; File = '' }
-    'business_rule'            = @{ Kind = 'rules'; File = '' }   # 推定トークン（BRIEF疑義）
-    'asset'                    = @{ Kind = 'asset'; File = '' }   # 推定トークン（BRIEF疑義）
+    # 論理名/物理名の対応辞書 -> common/naming.md
+    'attribute_dictionary_entry' = @{ Kind = 'common'; File = '' }
+    # 設計書ヘッダのメタ情報。spec へルーティングしない（routing-table.md §2 の非ルーティング行を参照）
+    'document_header_metadata' = @{ Kind = 'meta'; File = '' }
+    # 'business_rule' / 'asset' は定義しない: 業務ルール・アセットは新しい recordType 値ではない（routing-table.md §3 注記）
 }
 
 # layers の enum（BRIEF §5）。正本は copilot-instructions.md の説明だが、機械照合用にミラーする。
@@ -147,6 +149,21 @@ function Get-FirstProp {
             if ($null -ne $v -and ("" + $v).Trim() -ne "") { return ("" + $v).Trim() }
         }
     }
+    return $null
+}
+
+# db 系レコードからテーブル物理名を解決する。実スキーマ（J-30）ではテーブル名は facts 子オブジェクト内:
+#   entity_field -> facts.entityPhysicalName / view_definition・view_query_block -> facts.viewPhysicalName /
+#   item_db_mapping -> facts.tableName。トップレベルも防御的に探索する。
+# 注意: 'physicalName' は候補にしない（attribute_definition の facts.physicalName は項目レベルの物理名で
+#       あり、テーブル名として誤ヒットするため）。attribute_definition はテーブル名を持たない前提で、
+#       解決不能時は呼び出し側のフォールバック（db/ 配下の *.md 存在確認）に委ねる。
+function Get-TableName {
+    param($Obj)
+    $names = @('entityPhysicalName', 'viewPhysicalName', 'tableName', 'tablePhysicalName', 'objectName', 'table')
+    $v = Get-FirstProp $Obj $names
+    if ($v) { return $v }
+    if (Test-Prop $Obj 'facts') { return (Get-FirstProp $Obj.facts $names) }
     return $null
 }
 
@@ -396,8 +413,8 @@ foreach ($r in $allRecords) {
             $ok = (Test-Path -LiteralPath $c -PathType Leaf)
         }
         'db' {
-            # テーブル物理名は recordId 接頭辞では解決できないため、レコード内フィールドから緩やかに解決する。
-            $tbl = Get-FirstProp $r.Obj @('table', 'tableName', 'tablePhysicalName', 'physicalName', 'physicalTable', 'entity', 'entityName')
+            # テーブル物理名は recordId 接頭辞では解決できないため、facts 内フィールドから解決する（Get-TableName 参照）。
+            $tbl = Get-TableName $r.Obj
             if ($tbl) {
                 $c = Join-Path (Join-Path $SpecDirFull 'db') ($tbl + '.md')
                 $expectDesc = Get-SpecRelPath $c $SpecDirFull
@@ -423,16 +440,11 @@ foreach ($r in $allRecords) {
             $expectDesc = 'spec/common/naming.md または spec/common/codes/*.md'
             $ok = (Test-Path -LiteralPath $naming -PathType Leaf) -or (Test-AnyFileInDir $codes)
         }
-        'rules' {
-            $expectDesc = 'spec/rules/BR-*.md'
-            $ok = Test-AnyFileInDir (Join-Path $SpecDirFull 'rules') 'BR-*.md'
+        'meta' {
+            # document_header_metadata: 非ルーティング。spec 出力を要求しない（routing-table.md §2 の非ルーティング行を参照）
+            $ok = $true
         }
-        'asset' {
-            # アセットは spec 外（runs/<ID>/00-input/assets/）。RunDir 側を確認する。
-            $adir = Join-Path (Join-Path $RunDirFull '00-input') 'assets'
-            $expectDesc = 'runs/' + $RunId + '/00-input/assets/'
-            $ok = (Test-Path -LiteralPath $adir -PathType Container)
-        }
+        # 'rules' / 'asset' ケースは存在しない: 業務ルール・アセットは独立 recordType ではない（routing-table.md §3 注記）
     }
 
     if ($ok) {
@@ -470,14 +482,18 @@ foreach ($sf in $specFiles) {
 }
 
 $traceMissing = 0
+$traceSkipped = 0
 foreach ($r in $allRecords) {
+    # document_header_metadata は非ルーティング（spec に recordId が出現しなくてよい。routing-table.md §2 の非ルーティング行を参照）
+    if ($r.Type -eq 'document_header_metadata') { $traceSkipped++; continue }
     if ($recordIdToFiles[$r.Id].Count -eq 0) {
         Add-Finding '3.TRACE' 'FAIL' ("トレース欠落: recordId '" + $r.Id + "'（" + $r.SourceFile + "）が spec/ のどこにも出現しません。")
         $traceMissing++
     }
 }
 if ($allRecords.Count -gt 0 -and $traceMissing -eq 0) {
-    Add-Finding '3.TRACE' 'OK' ("全 " + $allRecords.Count + " 件の recordId が spec/ 配下に出現します。")
+    $traceChecked = $allRecords.Count - $traceSkipped
+    Add-Finding '3.TRACE' 'OK' ("対象 " + $traceChecked + " 件の recordId すべてが spec/ 配下に出現します（非ルーティング " + $traceSkipped + " 件は対象外）。")
 } elseif ($allRecords.Count -eq 0) {
     Add-Finding '3.TRACE' 'OK' "対象レコードがないためスキップします。"
 }
@@ -664,7 +680,7 @@ foreach ($r in $allRecords) {
     if (-not $Routing.ContainsKey($r.Type)) { continue }
     $kind = $Routing[$r.Type].Kind
     if ($kind -eq 'db') {
-        $tbl = Get-FirstProp $r.Obj @('table', 'tableName', 'tablePhysicalName', 'physicalName', 'physicalTable', 'entity', 'entityName')
+        $tbl = Get-TableName $r.Obj
         if ($tbl) { Add-TableFeature $tbl $r.Prefix }
     } elseif ($r.Type -eq 'entity_relation') {
         $lt = Get-FirstProp $r.Obj @('leftTable')
@@ -801,8 +817,11 @@ if ($toAppend.Count -gt 0) {
     $appended = 0
     $newRows = New-Object System.Collections.Generic.List[string]
     foreach ($f in $toAppend) {
-        # 種別: FAIL・矛盾検出以外の機械 WARN は近い enum が無いため「機械FAIL」を用いる（BRIEF疑義参照）
-        $kubun = if ($f.Check -eq '6.CONFLICT') { '矛盾検出' } else { '機械FAIL' }
+        # 種別: 矛盾検出（Check6）/ 機械FAIL（Severity=FAIL）/ 機械WARN（それ以外の WARN）。
+        # enum の正本は T-warnings.template.md（機械FAIL|機械WARN|EV指摘|未レビュー|矛盾検出）
+        $kubun = '機械WARN'
+        if ($f.Check -eq '6.CONFLICT') { $kubun = '矛盾検出' }
+        elseif ($f.Severity -eq 'FAIL') { $kubun = '機械FAIL' }
         $content = ($f.Check + ': ' + $f.Message) -replace '\|', '\|' -replace '\r?\n', ' '
         # 同一内容が未解消で既存にあれば重複追記しない（再実行時のノイズ抑止）
         if ($existing.Contains($content)) { continue }
