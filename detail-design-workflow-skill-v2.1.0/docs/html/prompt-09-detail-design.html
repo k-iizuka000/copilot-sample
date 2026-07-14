@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/09 Markdown生成（J2M） | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .out-cond { border-radius: 8px; padding: 10px 14px; border: 1px solid var(--line); }
+  .out-cond-always { border-left: 4px solid var(--c-output); background: var(--c-output-bg); }
+  .out-cond-record { border-left: 4px solid var(--c-input);  background: var(--c-input-bg); }
+  .out-cond-issue  { border-left: 4px solid var(--c-human);  background: var(--c-human-bg); }
+  .out-cond h4 { margin: 0 0 6px; font-size: 13px; }
+  .out-cond .out-file { display: block; font-size: 12px; color: var(--muted); margin: 2px 0 6px; }
+</style>
+</head>
+<body>
+<main>
+
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">/09 Markdown生成（J2M）</span>
+  <span class="nav-spacer"></span>
+  <a class="nav-link" href="prompt-08-source-fidelity.html">← /08</a>
+  <a class="nav-link" href="prompt-10-markdown-integrity.html">/10 →</a>
+</nav>
+
+<header class="page-head">
+  <h1>/09 Markdown生成（J2M） <span class="badge badge-j2m">生成</span></h1>
+  <span class="src-file">原本: <code>09-j2m-detail-design.prompt.md</code></span>
+</header>
+
+<div class="purpose">
+  このプロンプトは、G1承認済みのJ-* JSONを詳細設計Markdown（M-*）へ変換する工程。
+  「前提」を満たさない限り出力を一切変更せず停止するため、まず下の前提条件を確認してから処理フローを読む。
+</div>
+
+<section id="summary" class="card">
+  <h2>サマリー</h2>
+  <div class="fact-grid">
+    <div class="fact">
+      <span class="fact-label">実行条件・回数（RUNBOOKより）</span>
+      G1承認後、1 runにつき1回。
+      <a href="group-skill-runbook.html#exec-counts">実行回数表 →</a>
+    </div>
+    <div class="fact">
+      <span class="fact-label">標準モデルと条件（RUNBOOKより）</span>
+      GPT-5.4 mini — G1承認済みJSONの表現変換だけを行う。
+      <a href="group-skill-runbook.html#models">モデル表 →</a>
+    </div>
+    <div class="fact">
+      <span class="fact-label">前工程 → この工程 → 後工程</span>
+      <a href="prompt-08-source-fidelity.html">/08 原本忠実性評価（EV-01）</a>
+      → <strong>/09 Markdown生成</strong> →
+      <a href="prompt-10-markdown-integrity.html">/10 Markdown整合性評価（EV-02）</a>
+    </div>
+  </div>
+</section>
+
+<section id="inputs" class="card">
+  <h2>入力</h2>
+
+  <h3>実行パラメータ</h3>
+  <table class="params-table">
+    <thead><tr><th>パラメータ</th><th>渡すもの（原本の説明文）</th><th>必須</th></tr></thead>
+    <tbody>
+      <tr><td><code>featureId</code></td><td>機能ID</td><td>必須</td></tr>
+      <tr><td><code>jsonDirectory</code></td><td>J-* JSON格納先</td><td>必須</td></tr>
+      <tr><td><code>evaluationDirectory</code></td><td>EV-01結果格納先</td><td>必須</td></tr>
+      <tr><td><code>statusPath</code></td><td>runフォルダのstatus.md</td><td>必須</td></tr>
+      <tr><td><code>outputDirectory</code></td><td>Markdown出力先</td><td>必須</td></tr>
+      <tr><td><code>allowWarnings</code></td><td>trueまたはfalse</td><td>必須</td></tr>
+    </tbody>
+  </table>
+
+  <h3>参照ファイル</h3>
+  <p class="hint">以下はプロンプト実行時に暗黙に読み込まれるコンテキスト＝入力である。</p>
+  <div class="cards cols-3">
+    <div class="fact">
+      <a href="group-instructions.html">共通Instructions</a>
+      <span class="fact-label">原本: <code>../copilot-instructions.md</code></span>
+    </div>
+    <div class="fact">
+      <a href="group-markdown-templates.html">Markdownテンプレート一覧</a>
+      <span class="fact-label">原本: <code>../skills/detail-design-workflow/contracts/CONTRACT-INDEX.md</code></span>
+    </div>
+    <div class="fact">
+      <a href="group-markdown-templates.html">Markdownテンプレート本体</a>
+      <span class="fact-label">原本: <code>../skills/detail-design-workflow/contracts/markdown/</code></span>
+    </div>
+  </div>
+
+  <h3>前提（この工程で最重要）</h3>
+  <p class="hint">G1承認・EV-01結果・allowWarnings の組合せで、実行するか停止するかが決まる。</p>
+
+  <div class="gate-box">
+    <strong>G1ゲートとの関係</strong>
+    <ul>
+      <li><code>statusPath</code>のG1 JSON承認が「承認済み」であることが実行の前提。人間確認状態の正本は<code>statusPath</code>（<a href="group-run-template.html#status">status.mdの構造 →</a>）とする。</li>
+      <li>J-90の<code>humanReviewStatus</code>は評価時点の情報であり、<code>not_reviewed</code>／<code>in_review</code>は<code>statusPath</code>のG1承認を上書きしない（<a href="group-contracts-json.html#j-90">J-90 →</a>）。</li>
+    </ul>
+  </div>
+
+  <div class="stop-box">
+    <strong>前提を満たさず停止する条件（全部）</strong>
+    <ul>
+      <li><code>statusPath</code>のG1 JSON承認が「承認済み」でない（未承認、空欄、判定不能）なら停止する。</li>
+      <li>EV-01が<span class="verdict-fail">FAIL</span>、またはblocking findingを含むJSONが1件でもあれば、G1の記載にかかわらず停止する。</li>
+      <li>EV-01が<span class="verdict-warn">PASS_WITH_WARNINGS</span>のJSONがある場合、<code>allowWarnings=false</code>なら停止する。</li>
+      <li>全件が<span class="verdict-pass">PASS</span>の場合も、G1が「承認済み」でなければ停止する。</li>
+      <li>J-90の<code>humanReviewStatus</code>が<code>rejected</code>なら停止する。</li>
+    </ul>
+  </div>
+
+  <div class="note-box">
+    <strong>警告があっても続行できる唯一の条件</strong>
+    EV-01が<span class="verdict-warn">PASS_WITH_WARNINGS</span>のJSONがある場合、<code>allowWarnings=true</code>かつG1が「承認済み」のときだけ続行し、全警告を<code>90-open-issues.md</code>へ引き継ぐ。
+    （評価3値の定義: <a href="group-instructions.html#evaluation">group-instructions.html#evaluation →</a>）
+  </div>
+
+  <p class="hint">前提: 使用するJ-* JSONごとにEV-01結果があること自体も前提であり、欠けていれば上と同様に前提未充足として停止する。</p>
+</section>
+
+<section id="flow" class="card">
+  <h2>処理フロー</h2>
+  <p class="how-to-read">見方: 中央の手順を上から順に読む。手順をクリックすると、その手順が使う入力と書く出力だけが点灯する。</p>
+  <div class="legend">
+    <span class="chip chip-input">入力</span><span class="chip chip-step">手順</span>
+    <span class="chip chip-output">出力</span><span class="chip chip-stop">停止あり</span>
+  </div>
+  <p class="hint">👆 手順カード・入出力カードをクリック（もう一度クリックで解除）。<button class="reset-flow" type="button">全体表示に戻す</button></p>
+
+  <div class="flow">
+    <div class="flow-col col-input">
+      <h3>入力</h3>
+      <div class="io-item" data-io-id="p-featureId"><span class="io-name">featureId（機能ID）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="p-jsonDirectory"><span class="io-name">jsonDirectory（J-* JSON格納先）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="p-evaluationDirectory"><span class="io-name">evaluationDirectory（EV-01結果格納先）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="p-statusPath"><span class="io-name">statusPath（status.md）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="p-outputDirectory"><span class="io-name">outputDirectory（Markdown出力先）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="p-allowWarnings"><span class="io-name">allowWarnings（true/false）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="ref-instructions"><span class="io-name">共通Instructions</span><span class="io-sub">参照ファイル</span></div>
+      <div class="io-item" data-io-id="ref-md-index"><span class="io-name">Markdownテンプレート一覧</span><span class="io-sub">参照ファイル</span></div>
+      <div class="io-item" data-io-id="ref-md-templates"><span class="io-name">Markdownテンプレート本体</span><span class="io-sub">参照ファイル</span></div>
+    </div>
+
+    <div class="flow-col col-steps">
+      <h3>手順（原本の順序のまま）</h3>
+      <div class="step has-stop" data-num="1" data-reads="p-statusPath,p-allowWarnings,p-evaluationDirectory" data-writes="" data-stop="前提（statusPathのG1状態・allowWarnings・全EV-01のresultとblocking finding）を満たさなければ出力を変更せず停止する">
+        <span class="step-num">1</span>
+        <span class="step-name">statusPathのG1状態・allowWarnings・全EV-01のresultとblocking findingを照合する</span>
+        <span class="step-cap">前提を満たさなければ出力を変更せず停止する。</span>
+      </div>
+      <div class="step" data-num="2" data-reads="p-jsonDirectory,p-evaluationDirectory" data-writes="">
+        <span class="step-num">2</span>
+        <span class="step-name">入力JSONとEV-01結果を対応付ける</span>
+        <span class="step-cap">JSONと評価結果を1件ずつ紐づける。</span>
+      </div>
+      <div class="step" data-num="3" data-reads="p-jsonDirectory" data-writes="">
+        <span class="step-num">3</span>
+        <span class="step-name">recordをlayersとscopeでルーティングする</span>
+        <span class="step-cap">後段のテンプレート選択の元になる分類。</span>
+      </div>
+      <div class="step" data-num="4" data-reads="ref-md-templates" data-writes="out-m10,out-m20,out-m30,out-m40,out-m50,out-m60">
+        <span class="step-num">4</span>
+        <span class="step-name">対応recordがあるテンプレートだけを使用する</span>
+        <span class="step-cap">対応recordのない分野別Markdownは使わない。</span>
+      </div>
+      <div class="step" data-num="5" data-reads="p-jsonDirectory" data-writes="">
+        <span class="step-num">5</span>
+        <span class="step-name">各仕様行へRecord IDと出典を付ける</span>
+        <span class="step-cap">仕様行ごとに出典を追跡可能にする。</span>
+      </div>
+      <div class="step" data-num="6" data-reads="" data-writes="">
+        <span class="step-num">6</span>
+        <span class="step-name">共通recordを複製せず、Record IDまたはリンクで参照する</span>
+        <span class="step-cap">同じ内容を複数ファイルへ複製しない。</span>
+      </div>
+      <div class="step" data-num="7" data-reads="p-jsonDirectory,p-evaluationDirectory" data-writes="out-m90,out-m60,out-m99">
+        <span class="step-num">7</span>
+        <span class="step-name">issueと警告をM-90へ、assetをM-60へ、全recordをM-99へ反映する</span>
+        <span class="step-cap">3種の内容をそれぞれ対応するMarkdownへ書く。</span>
+      </div>
+      <div class="step" data-num="8" data-reads="" data-writes="out-m01">
+        <span class="step-num">8</span>
+        <span class="step-name">作成しない分野と理由をM-01の出力一覧へ記録する</span>
+        <span class="step-cap">省略した分野を「該当なし」として明示する。</span>
+      </div>
+      <div class="step" data-num="9" data-reads="p-outputDirectory" data-writes="p-outputDirectory">
+        <span class="step-num">9</span>
+        <span class="step-name">出力先の空Markdown・空表だけのMarkdown・不要な旧分野別Markdownを削除する</span>
+        <span class="step-cap">前回実行の残骸を出力先に残さない。</span>
+      </div>
+    </div>
+
+    <div class="flow-col col-output">
+      <h3>出力</h3>
+      <div class="io-item io-out" data-io-id="out-m01"><span class="io-name">M-01 概要</span><span class="io-sub">00-overview.md（常に作成）</span></div>
+      <div class="io-item io-out" data-io-id="out-m10"><span class="io-name">M-10 フロントエンド</span><span class="io-sub">10-frontend.md（対応recordあり）</span></div>
+      <div class="io-item io-out" data-io-id="out-m20"><span class="io-name">M-20 バックエンド</span><span class="io-sub">20-backend.md（対応recordあり）</span></div>
+      <div class="io-item io-out" data-io-id="out-m30"><span class="io-name">M-30 DB</span><span class="io-sub">30-database.md（対応recordあり）</span></div>
+      <div class="io-item io-out" data-io-id="out-m40"><span class="io-name">M-40 バッチ・外部IF</span><span class="io-sub">40-batch-interface.md（対応recordあり）</span></div>
+      <div class="io-item io-out" data-io-id="out-m50"><span class="io-name">M-50 権限・共通</span><span class="io-sub">50-common-permission.md（対応recordあり）</span></div>
+      <div class="io-item io-out" data-io-id="out-m60"><span class="io-name">M-60 アセット</span><span class="io-sub">60-assets.md（対応recordあり）</span></div>
+      <div class="io-item io-out" data-io-id="out-m90"><span class="io-name">M-90 未確定事項</span><span class="io-sub">90-open-issues.md（issue・警告あり）</span></div>
+      <div class="io-item io-out" data-io-id="out-m99"><span class="io-name">M-99 トレーサビリティ</span><span class="io-sub">99-traceability.md（常に作成）</span></div>
+    </div>
+  </div>
+
+  <div class="step-detail" id="step-detail" hidden>
+    <div class="sd-title" data-f="title"></div>
+    <div class="sd-note" data-f="note"></div>
+    <div class="sd-grid">
+      <div><span class="sd-label">使う入力</span><span data-f="reads"></span></div>
+      <div><span class="sd-label">出す出力</span><span data-f="writes"></span></div>
+      <div><span class="sd-label">停止・分岐</span><span data-f="stop"></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="outputs" class="card">
+  <h2>出力</h2>
+  <p class="hint">役割: 検証済みJSONを分類・並べ替え・表現変換し、必要な詳細設計Markdownだけを作る。新しい仕様は作らない。</p>
+
+  <div class="cards cols-3">
+    <div class="out-cond out-cond-always">
+      <h4>常に作成</h4>
+      <span class="out-file">00-overview.md（M-01）／ 99-traceability.md（M-99）</span>
+      <a href="group-markdown-templates.html#m-01">M-01 →</a> ／ <a href="group-markdown-templates.html#m-99">M-99 →</a>
+    </div>
+    <div class="out-cond out-cond-record">
+      <h4>対応recordがある場合だけ作成</h4>
+      <span class="out-file">10-frontend.md／20-backend.md／30-database.md／40-batch-interface.md／50-common-permission.md／60-assets.md</span>
+      <a href="group-markdown-templates.html#m-10">M-10</a>・<a href="group-markdown-templates.html#m-20">M-20</a>・<a href="group-markdown-templates.html#m-30">M-30</a>・<a href="group-markdown-templates.html#m-40">M-40</a>・<a href="group-markdown-templates.html#m-50">M-50</a>・<a href="group-markdown-templates.html#m-60">M-60</a>
+    </div>
+    <div class="out-cond out-cond-issue">
+      <h4>issueまたは引継ぎ警告がある場合だけ作成</h4>
+      <span class="out-file">90-open-issues.md（M-90）</span>
+      <a href="group-markdown-templates.html#m-90">M-90 →</a>
+    </div>
+  </div>
+
+  <p class="hint">出力先は実行パラメータ <code>outputDirectory</code>。形式は各テンプレート（<a href="group-markdown-templates.html">group-markdown-templates.html →</a>）に準拠する。</p>
+
+  <div class="ok-box">
+    <strong>完了条件</strong>
+    <ul>
+      <li>JSON record数とM-99の追跡record数が一致する。</li>
+      <li>Markdownだけに存在する事実が0件である。</li>
+      <li>未反映recordが0件、またはissueとして記録されている。</li>
+      <li>作成した各Markdownに実データが1件以上ある。ただしM-01とM-99を除く。</li>
+    </ul>
+  </div>
+</section>
+
+<section id="stops" class="card">
+  <h2>停止条件・やらないこと</h2>
+
+  <div class="stop-box">
+    <strong>停止条件（前提・手順1）</strong>
+    <ul>
+      <li>statusPathのG1 JSON承認が「承認済み」でない（未承認、空欄、判定不能）なら停止する。</li>
+      <li>EV-01が<span class="verdict-fail">FAIL</span>、またはblocking findingを含むJSONが1件でもあれば、G1の記載にかかわらず停止する。</li>
+      <li>EV-01が<span class="verdict-warn">PASS_WITH_WARNINGS</span>のJSONがある場合、allowWarnings=falseなら停止する。</li>
+      <li>全件が<span class="verdict-pass">PASS</span>の場合も、G1が「承認済み」でなければ停止する。</li>
+      <li>J-90のhumanReviewStatusがrejectedなら停止する。</li>
+      <li>（手順1）前提を満たさなければ出力を変更せず停止する。</li>
+    </ul>
+  </div>
+
+  <div class="note-box">
+    <strong>禁止事項</strong>
+    <ul>
+      <li>新しい仕様を作らない。</li>
+      <li>共通recordを複製せず、Record IDまたはリンクで参照する。</li>
+    </ul>
+  </div>
+
+  <div class="gate-box">
+    <strong>人間ゲートとの関係</strong>
+    /09はG1（statusPathのJSON承認）が「承認済み」でなければ実行しない。人間確認状態の正本はstatusPathであり、J-90のhumanReviewStatus（評価時点の情報）はG1承認を上書きしない。
+    G0/G1/G2の全体像: <a href="group-skill-runbook.html#gates">group-skill-runbook.html#gates →</a>
+  </div>
+</section>
+
+<footer class="src-note">正本: <code>.github/prompts/09-j2m-detail-design.prompt.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

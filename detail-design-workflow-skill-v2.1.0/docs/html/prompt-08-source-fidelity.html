@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/08 原本忠実性評価 | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">/08 原本忠実性評価</span>
+  <span class="nav-spacer"></span>
+  <a class="nav-link" href="prompt-07-assets.html">← /07</a>
+  <a class="nav-link" href="prompt-09-detail-design.html">/09 →</a>
+</nav>
+<main>
+
+<header class="page-head">
+  <h1>/08 原本忠実性評価 <span class="badge badge-ev">評価</span></h1>
+  <div class="src-file">原本: <code>.github/prompts/08-ev-source-fidelity.prompt.md</code></div>
+</header>
+
+<div class="purpose">
+  <strong>目的:</strong> 抽出済みのJ-* JSON 1件が元の設計書と一致しているかだけを評価する（対象JSONを修正せず、仕様や設計案を追加しない）。<br>
+  <strong>見方:</strong> 下の「処理フロー」で検査順序（手順1〜8）をクリックすると、その手順が使う入力だけが点灯する。
+</div>
+
+<section id="summary" class="card">
+  <h2>サマリー</h2>
+  <div class="fact-grid">
+    <div class="fact">
+      <span class="fact-label">実行条件・回数（RUNBOOKより）</span>
+      作成したJ-* JSON 1ファイルにつき1回
+    </div>
+    <div class="fact">
+      <span class="fact-label">標準モデルと条件（RUNBOOKより）</span>
+      GPT-5.4 Medium／抽出に使ったチャットとは別会話で実行する
+    </div>
+    <div class="fact">
+      <span class="fact-label">前工程 → この工程 → 後工程</span>
+      <a href="index.html">/02〜/07</a>（該当E2J工程） → <strong>/08</strong> → G1人間確認 → <a href="prompt-09-detail-design.html">/09</a>
+    </div>
+  </div>
+</section>
+
+<section id="inputs" class="card">
+  <h2>入力</h2>
+  <p class="how-to-read">対象はsourcePathとjsonPathの2つだけで、他の設計書やJSONを根拠にしない（原本「役割」より）。</p>
+  <table class="params-table">
+    <thead><tr><th>パラメータ</th><th>渡すもの</th><th>必須</th></tr></thead>
+    <tbody>
+      <tr><td><code>sourcePath</code></td><td>抽出時と同じ設計書またはスナップショット</td><td>必須</td></tr>
+      <tr><td><code>jsonPath</code></td><td>評価対象J-* JSON 1件</td><td>必須</td></tr>
+      <tr><td><code>outputPath</code></td><td>J-90評価出力先</td><td>必須</td></tr>
+    </tbody>
+  </table>
+
+  <h3>参照ファイル</h3>
+  <p class="how-to-read">これらはプロンプト実行時に暗黙に読み込まれるコンテキスト＝入力である。</p>
+  <div class="cards cols-2">
+    <div class="card">
+      <strong>共通Instructions</strong><br>
+      <span class="src-file">原本: <code>.github/copilot-instructions.md</code></span><br>
+      <a href="group-instructions.html">→ group-instructions.html で解説</a>
+    </div>
+    <div class="card">
+      <strong>入力ソース契約（I-00）</strong><br>
+      <span class="src-file">原本: <code>.github/skills/detail-design-workflow/contracts/input/I-00-source-input-contract.md</code></span><br>
+      <a href="group-contracts-json.html#i-00">→ group-contracts-json.html#i-00 で解説</a>
+    </div>
+    <div class="card">
+      <strong>J-90 Schema</strong><br>
+      <span class="src-file">原本: <code>.github/skills/detail-design-workflow/contracts/json/J-90-evaluation-report.schema.json</code></span><br>
+      <a href="group-contracts-json.html#j-90">→ group-contracts-json.html#j-90 で解説</a>
+    </div>
+    <div class="card">
+      <strong>評価対象JSONのcontractIdに対応するJSON Schema</strong><br>
+      <span class="src-file">原本: <code>.github/skills/detail-design-workflow/contracts/json/</code> 配下（対象JSONのcontractIdに一致するSchema）</span><br>
+      候補:
+      <a href="group-contracts-json.html#j-01">J-01</a> /
+      <a href="group-contracts-json.html#j-10">J-10</a> /
+      <a href="group-contracts-json.html#j-11">J-11</a> /
+      <a href="group-contracts-json.html#j-20">J-20</a> /
+      <a href="group-contracts-json.html#j-30">J-30</a> /
+      <a href="group-contracts-json.html#j-40">J-40</a> /
+      <a href="group-contracts-json.html#j-60">J-60</a>
+    </div>
+  </div>
+</section>
+
+<section id="flow" class="card">
+  <h2>処理フロー</h2>
+  <p class="how-to-read">見方: 中央の手順を上から順に読む。手順をクリックすると、その手順が使う入力と書く出力だけが点灯する。</p>
+  <div class="legend">
+    <span class="chip chip-input">入力</span><span class="chip chip-step">手順</span>
+    <span class="chip chip-output">出力</span><span class="chip chip-stop">停止あり</span>
+  </div>
+  <p class="hint">👆 手順カード・入出力カードをクリック（もう一度クリックで解除）。<button class="reset-flow" type="button">全体表示に戻す</button></p>
+  <div class="flow">
+    <div class="flow-col col-input">
+      <h3>入力</h3>
+      <div class="io-item" data-io-id="p-source"><span class="io-name">sourcePath（対象設計書）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="p-json"><span class="io-name">jsonPath（評価対象JSON）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="ref-instructions"><span class="io-name">共通Instructions</span><span class="io-sub">参照ファイル</span></div>
+      <div class="io-item" data-io-id="ref-i00"><span class="io-name">I-00 入力ソース契約</span><span class="io-sub">参照ファイル</span></div>
+      <div class="io-item" data-io-id="ref-target-schema"><span class="io-name">評価対象JSONのSchema</span><span class="io-sub">参照ファイル</span></div>
+      <div class="io-item" data-io-id="ref-j90schema"><span class="io-name">J-90 Schema</span><span class="io-sub">参照ファイル</span></div>
+    </div>
+    <div class="flow-col col-steps">
+      <h3>検査順序（原本の順序のまま）</h3>
+      <div class="step" data-num="1" data-reads="p-json,ref-target-schema" data-writes="" data-stop="">
+        <span class="step-num">1</span>
+        <span class="step-name">JSON構造、必須キー、Enum、定義外キーを確認する。</span>
+        <span class="step-cap">対象JSONがSchemaに適合するか</span>
+      </div>
+      <div class="step" data-num="2" data-reads="p-json,p-source" data-writes="" data-stop="">
+        <span class="step-num">2</span>
+        <span class="step-name">各recordの事実が原本に存在するか確認する。</span>
+        <span class="step-cap">原本との突合</span>
+      </div>
+      <div class="step" data-num="3" data-reads="p-json,p-source" data-writes="" data-stop="">
+        <span class="step-num">3</span>
+        <span class="step-name">原本にない事実が追加されていないか確認する。</span>
+        <span class="step-cap">追加仕様の混入がないか</span>
+      </div>
+      <div class="step" data-num="4" data-reads="p-json,p-source" data-writes="" data-stop="">
+        <span class="step-num">4</span>
+        <span class="step-name">重要な行、節、表、ブロックの欠落を確認する。</span>
+        <span class="step-cap">欠落の有無</span>
+      </div>
+      <div class="step" data-num="5" data-reads="p-json,p-source" data-writes="" data-stop="">
+        <span class="step-num">5</span>
+        <span class="step-name">sourceRefsのファイル、シート、位置、引用が正しいか確認する。</span>
+        <span class="step-cap">出典参照の正確性</span>
+      </div>
+      <div class="step" data-num="6" data-reads="p-json,ref-i00" data-writes="" data-stop="">
+        <span class="step-num">6</span>
+        <span class="step-name">全sourceUnitがcoverageで説明されているか確認する。</span>
+        <span class="step-cap">sourceUnitの網羅性</span>
+      </div>
+      <div class="step" data-num="7" data-reads="p-json,ref-i00" data-writes="" data-stop="">
+        <span class="step-num">7</span>
+        <span class="step-name">非表示行、数式、旧版、派生物、読取不能アセットの扱いを確認する。</span>
+        <span class="step-cap">特殊要素の扱い</span>
+      </div>
+      <div class="step" data-num="8" data-reads="p-json" data-writes="" data-stop="">
+        <span class="step-num">8</span>
+        <span class="step-name">不明点が確定事項になっていないか確認する。</span>
+        <span class="step-cap">未確認事項の断定がないか</span>
+      </div>
+    </div>
+    <div class="flow-col col-output">
+      <h3>出力</h3>
+      <div class="io-item io-out" data-io-id="out-j90"><span class="io-name">J-90評価結果（EV-01）</span><span class="io-sub">outputPathへ</span></div>
+    </div>
+  </div>
+  <div class="step-detail" id="step-detail" hidden>
+    <div class="sd-title" data-f="title"></div>
+    <div class="sd-note" data-f="note"></div>
+    <div class="sd-grid">
+      <div><span class="sd-label">使う入力</span><span data-f="reads"></span></div>
+      <div><span class="sd-label">出す出力</span><span data-f="writes"></span></div>
+      <div><span class="sd-label">停止・分岐</span><span data-f="stop"></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="outputs" class="card">
+  <h2>出力</h2>
+  <div class="cards cols-2">
+    <div class="card">
+      <strong>J-90評価結果（EV-01）</strong><br>
+      どこへ: <code>outputPath</code><br>
+      形式: <a href="group-contracts-json.html#j-90">J-90 Schema</a><br>
+      「J-90形式のEV-01評価結果<u>だけ</u>をoutputPathへ書き込む」（原本のまま）
+    </div>
+  </div>
+  <p class="how-to-read">
+    判定3値:
+    <span class="verdict-pass">PASS</span> /
+    <span class="verdict-warn">PASS_WITH_WARNINGS</span> /
+    <span class="verdict-fail">FAIL</span>
+    （定義は <a href="group-instructions.html#evaluation">group-instructions.html#evaluation</a> が正本）
+  </p>
+</section>
+
+<section id="stops" class="card">
+  <h2>停止条件・やらないこと</h2>
+  <div class="stop-box">
+    禁止事項（原本「役割」より）:
+    <ul>
+      <li>対象JSONを修正しない。</li>
+      <li>仕様や設計案を追加しない。</li>
+    </ul>
+    <p class="how-to-read">共通規則: 評価Promptは対象成果物を修正せず、AIの評価だけで人間確認を完了扱いにしない（詳細: <a href="group-instructions.html#evaluation">group-instructions.html#evaluation</a>）。</p>
+  </div>
+  <div class="gate-box">
+    G1（人間確認・RUNBOOKより）: 使用する全JSONが<span class="verdict-pass">PASS</span>、または人間が受容した<span class="verdict-warn">PASS_WITH_WARNINGS</span>であることを確認してから <a href="prompt-09-detail-design.html">/09</a> へ進む。<span class="verdict-fail">FAIL</span>は元のE2J工程（/02〜/07）へ差し戻す。
+  </div>
+</section>
+
+<footer class="src-note">正本: <code>.github/prompts/08-ev-source-fidelity.prompt.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

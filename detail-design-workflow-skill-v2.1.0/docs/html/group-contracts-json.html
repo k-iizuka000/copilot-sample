@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>入力契約I-00とJSONスキーマ9本 | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">入力契約とJSONスキーマ</span>
+  <span class="nav-spacer"></span>
+</nav>
+
+<main>
+  <header class="page-head">
+    <h1>入力契約I-00とJSONスキーマ9本</h1>
+  </header>
+  <p class="src-file">原本: contracts/CONTRACT-INDEX.md ・ contracts/input/I-00-source-input-contract.md ・ contracts/json/J-00〜J-90-*.schema.json</p>
+
+  <div class="purpose">
+    このページは各プロンプトが読み書きする入力契約（I-00）とJSON中間契約（J-00〜J-90）9本の一覧です。各カードは役割・主要トップレベルキー・主な recordType/enum だけを要約したもので、全フィールドの詳細は原本スキーマを参照してください。
+  </div>
+
+  <p>どのプロンプトから参照されるか（詳細は <a href="#rw-matrix">読み書きマトリクス</a> を参照）:</p>
+  <div class="used-by">
+    <a class="chip" href="prompt-00-format-survey.html">/00</a>
+    <a class="chip" href="prompt-01-inventory-route.html">/01</a>
+    <a class="chip" href="prompt-02-ui-structure.html">/02</a>
+    <a class="chip" href="prompt-03-ui-behavior.html">/03</a>
+    <a class="chip" href="prompt-04-process-batch.html">/04</a>
+    <a class="chip" href="prompt-05-data-query-interface.html">/05</a>
+    <a class="chip" href="prompt-06-common-permission.html">/06</a>
+    <a class="chip" href="prompt-07-assets.html">/07</a>
+    <a class="chip" href="prompt-08-source-fidelity.html">/08</a>
+    <a class="chip" href="prompt-09-detail-design.html">/09</a>
+    <a class="chip" href="prompt-10-markdown-integrity.html">/10</a>
+  </div>
+
+  <section id="i-00" class="card">
+    <h2>I-00 <span class="src-file">入力ソース契約</span></h2>
+    <p><strong>役割:</strong> Excelまたは入力スナップショットの形式と処理単位を定義する、JSON以外の唯一の入力契約。</p>
+    <ul>
+      <li>入力形態の優先順位: ①対象Excelを直接読み取り ②TSV/CSV/Markdown表スナップショット ③行・節ID付きテキスト ④レイアウト・図形の画像</li>
+      <li>1回の処理単位: <code>E2J-00</code>は原則1ブック、<code>E2J-01</code>〜<code>E2J-06</code>は原則1シートまたは1論理ブロック</li>
+      <li>必須識別情報: <code>sourcePath</code> <code>profileId</code> <code>sheetName</code> <code>blockSelector</code> <code>outputPath</code></li>
+      <li>数式は <code>displayedValue</code>（表示値）と <code>formula</code>（数式文字列）を両方保存し、Markdownへは <code>displayedValue</code> を使用</li>
+      <li>非表示行・列は対象に含め <code>hiddenRow</code>/<code>hiddenColumn</code> に記録。画像・図形等は J-60 へ登録し、読めない内容を本文へ推測転記しない</li>
+    </ul>
+  </section>
+
+  <section id="j-00" class="card">
+    <h2>J-00 <span class="src-file">共通定義</span></h2>
+    <p><strong>役割:</strong> Record ID・出典・issue・coverage等の共通型を定義するライブラリ。単体では出力されず、J-01〜J-90 の全スキーマが <code>$ref</code> で参照する（run/document/coverage/issues/assets/summary 等は以下の各カードで再掲しない）。</p>
+    <p><strong>主な定義:</strong> <code>runInfo</code>・<code>documentRef</code>・<code>sheetRef</code>・<code>sourceRef</code>・<code>issue</code>・<code>coverageItem</code>・<code>assetRef</code>・<code>summary</code>・<code>recordBase</code></p>
+    <p><strong>代表的な enum:</strong> humanReviewStatus（not_reviewed/in_review/approved/rejected）・severity（blocking/warning/info）・evidenceState（explicit/derived/ambiguous）</p>
+  </section>
+
+  <section id="j-01" class="card">
+    <h2>J-01 <span class="src-file">文書マニフェスト</span></h2>
+    <p><strong>役割:</strong> 文書・シートの棚卸しと、後続 /02〜/07 へのルーティング計画。</p>
+    <p><strong>主要トップレベルキー:</strong> <code>contractId</code> <code>schemaVersion</code> <code>profileId</code> <code>run</code> <code>document</code> <code>status</code> <code>coverage</code> <code>issues</code> <code>assets</code> <code>summary</code> <code>sheets</code> <code>routingPlan</code></p>
+    <p><strong>主な enum:</strong> <code>routingPlan[].skillId</code>（E2J-01〜E2J-06）と <code>outputContract</code>（J-10/J-11/J-20/J-30/J-40/J-60）は1対1で対応（例: E2J-01→J-10 … E2J-06→J-60）。<code>sheets[].status</code> は recognized/unknown/conflict。</p>
+  </section>
+
+  <section id="j-10" class="card">
+    <h2>J-10 <span class="src-file">画面構造</span></h2>
+    <p><strong>役割:</strong> 画面項目・表示モード・パラメータを格納。</p>
+    <p><strong>主要トップレベルキー:</strong> <code>contractId</code> <code>schemaVersion</code> <code>run</code> <code>document</code> <code>status</code> <code>coverage</code> <code>issues</code> <code>assets</code> <code>summary</code> <code>records</code></p>
+    <p><strong>主な recordType:</strong> <code>screen_item</code>・<code>display_mode</code>・<code>parameter_definition</code>・<code>layout_reference</code></p>
+  </section>
+
+  <section id="j-11" class="card">
+    <h2>J-11 <span class="src-file">画面動作</span></h2>
+    <p><strong>役割:</strong> 制御・バリデーション・イベント・メッセージを格納。</p>
+    <p><strong>主要トップレベルキー:</strong> J-10と同形（<code>records</code> まで共通の8キー）</p>
+    <p><strong>主な recordType:</strong> <code>item_control</code>・<code>validation_rule</code>・<code>correlation_validation</code>・<code>ui_event</code>・<code>message_rule</code></p>
+  </section>
+
+  <section id="j-20" class="card">
+    <h2>J-20 <span class="src-file">処理・バッチ</span></h2>
+    <p><strong>役割:</strong> 処理・検索要件・更新要件・バッチ制御を格納。</p>
+    <p><strong>主要トップレベルキー:</strong> J-10と同形（<code>records</code> まで共通の8キー）</p>
+    <p><strong>主な recordType:</strong> <code>process_section</code>・<code>search_requirement</code>・<code>update_requirement</code>・<code>batch_control</code></p>
+  </section>
+
+  <section id="j-30" class="card">
+    <h2>J-30 <span class="src-file">データ・検索・連携</span></h2>
+    <p><strong>役割:</strong> DB対応・データモデル・VIEW定義・外部IFを格納。</p>
+    <p><strong>主要トップレベルキー:</strong> J-10と同形（<code>records</code> まで共通の8キー）</p>
+    <p><strong>主な recordType:</strong> <code>item_db_mapping</code>・<code>entity_field</code>・<code>attribute_definition</code>・<code>attribute_dictionary_entry</code>・<code>select_constraint</code>・<code>view_definition</code>・<code>view_query_block</code>・<code>external_interface</code></p>
+  </section>
+
+  <section id="j-40" class="card">
+    <h2>J-40 <span class="src-file">権限・共通</span></h2>
+    <p><strong>役割:</strong> 権限・ロール階層・共通規約を格納。</p>
+    <p><strong>主要トップレベルキー:</strong> J-10と同形（<code>records</code> まで共通の8キー）</p>
+    <p><strong>主な recordType:</strong> <code>screen_action_permission</code>・<code>role_hierarchy</code>・<code>case_reference_permission</code>・<code>document_header_metadata</code>・<code>common_rule</code></p>
+  </section>
+
+  <section id="j-60" class="card">
+    <h2>J-60 <span class="src-file">アセット</span></h2>
+    <p><strong>役割:</strong> 画像・図形・コメント・読取状態を格納。他のJ-*と異なり <code>records</code> 配列を持たず、J-00 の <code>assetRef</code>（<code>assets</code> 配列）だけで構成される。</p>
+    <p><strong>主要トップレベルキー:</strong> <code>contractId</code> <code>schemaVersion</code> <code>run</code> <code>document</code> <code>status</code> <code>coverage</code> <code>issues</code> <code>assets</code> <code>summary</code></p>
+    <p><strong>主な enum:</strong> <code>assets[].assetType</code>（screen_layout/image/drawing/chart/comment/vml/template/sample/unknown）・<code>assets[].status</code>（referenced/exported/missing/unreadable/not_required）</p>
+  </section>
+
+  <section id="j-90" class="card">
+    <h2>J-90 <span class="src-file">評価結果</span></h2>
+    <p><strong>役割:</strong> EV-01（/08）と EV-02（/10）の評価結果を格納。</p>
+    <p><strong>主要トップレベルキー:</strong> <code>contractId</code> <code>schemaVersion</code> <code>evaluatorId</code> <code>runId</code> <code>generatedAt</code> <code>target</code> <code>result</code> <code>checks</code> <code>findings</code> <code>metrics</code> <code>humanReviewStatus</code></p>
+    <p><strong>主な enum:</strong> <code>evaluatorId</code>（EV-01/EV-02）・<code>result</code>（<span class="verdict-pass">PASS</span>/<span class="verdict-warn">PASS_WITH_WARNINGS</span>/<span class="verdict-fail">FAIL</span>）・<code>checks[].result</code>（PASS/WARNING/FAIL/NOT_APPLICABLE）・<code>findings[].severity</code>（blocking/warning/info）</p>
+    <p class="how-to-read">判定3値の意味は <a href="group-instructions.html#evaluation">group-instructions.html#evaluation</a> を参照（複写しない）。</p>
+  </section>
+
+  <section id="rw-matrix" class="card">
+    <h2>読み書きマトリクス</h2>
+    <p class="how-to-read">見方: 1行が1契約。「書く」列はその契約を生成するプロンプト、「読む」列は参照ファイル・入力としてその契約を読むプロンプトを示す。内容はBRIEF §8の正本をそのまま転記したもの。</p>
+    <table>
+      <thead>
+        <tr><th>契約</th><th>書く</th><th>読む（参照ファイル・入力として）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>I-00 入力ソース契約</td><td>—（人間が用意する入力の形式定義）</td><td>/00 /01 /02 /03 /04 /05 /06 /07 /08</td></tr>
+        <tr><td>J-01</td><td>/01</td><td>/02〜/07（profileId・routingPlan の前提として）、/09（jsonDirectory 内）、/10</td></tr>
+        <tr><td>J-10</td><td>/02</td><td>/08 /09 /10</td></tr>
+        <tr><td>J-11</td><td>/03</td><td>/08 /09 /10</td></tr>
+        <tr><td>J-20</td><td>/04</td><td>/08 /09 /10</td></tr>
+        <tr><td>J-30</td><td>/05</td><td>/08 /09 /10</td></tr>
+        <tr><td>J-40</td><td>/06</td><td>/08 /09 /10</td></tr>
+        <tr><td>J-60</td><td>/07</td><td>/08 /09 /10</td></tr>
+        <tr><td>J-90</td><td>/08（EV-01）と /10（EV-02）</td><td>/09（evaluationDirectory として EV-01 を読む）</td></tr>
+        <tr><td>M-01〜M-99</td><td>/09</td><td>/10（markdownDirectory として）</td></tr>
+        <tr><td>候補Profile JSON</td><td>/00（provisional）</td><td>人間承認→登録後に /01〜 が profileId で使用</td></tr>
+        <tr><td>copilot-instructions.md</td><td>—</td><td>全プロンプト（/00〜/10）</td></tr>
+        <tr><td>PROFILE-INDEX / PROFILE-*</td><td>—（/00 は自動登録しない）</td><td>/00 /01 /02 /03 /04 /05 /06 /07</td></tr>
+        <tr><td>status.md（runフォルダ）</td><td>人間（G1/G2 記録）</td><td>/09（statusPath・G1承認の正本）</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer class="src-note">正本: <code>.github/skills/detail-design-workflow/contracts/CONTRACT-INDEX.md</code> ・ <code>contracts/input/I-00-source-input-contract.md</code> ・ <code>contracts/json/J-00〜J-90-*.schema.json</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

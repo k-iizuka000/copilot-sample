@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/03 画面動作抽出 | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">/03 画面動作抽出</span>
+  <span class="nav-spacer"></span>
+  <a class="nav-link" href="prompt-02-ui-structure.html">← /02</a>
+  <a class="nav-link" href="prompt-04-process-batch.html">/04 →</a>
+</nav>
+<main>
+
+<header class="page-head">
+  <h1>/03 画面動作抽出</h1>
+  <span class="badge badge-e2j">抽出</span>
+  <span class="src-file">原本: <code>.github/prompts/03-e2j-ui-behavior.prompt.md</code></span>
+</header>
+
+<div class="purpose">
+  このプロンプトは、指定した1シートまたは1論理ブロックから項目制御・バリデーション・相関チェック・イベント・メッセージ規則を J-11 JSON へ抽出する工程。図は入力→手順→出力の対応をクリックで確認できる。
+</div>
+
+<section id="summary" class="card">
+  <h2>サマリー</h2>
+  <div class="fact-grid">
+    <div class="fact">
+      <span class="fact-label">実行条件・回数（RUNBOOKより）</span>
+      <code>/02</code>〜<code>/07</code>: J-01の<code>routingPlan</code>に載ったものだけ。1シートまたは1論理ブロックにつき1回
+    </div>
+    <div class="fact">
+      <span class="fact-label">標準モデルと条件（RUNBOOKより）</span>
+      GPT-5.4 mini／1シートまたは1論理ブロックに限定。曖昧なら停止して上げる
+    </div>
+    <div class="fact">
+      <span class="fact-label">前工程 → この工程 → 後工程</span>
+      /01 棚卸し・ルーティング → <strong>/03 画面動作抽出</strong> → /08 原本忠実性評価（EV-01）
+    </div>
+  </div>
+</section>
+
+<section id="inputs" class="card">
+  <h2>入力</h2>
+
+  <h3>実行パラメータ</h3>
+  <table class="params-table">
+    <thead><tr><th>パラメータ</th><th>渡すもの（原本の説明文）</th><th>必須</th></tr></thead>
+    <tbody>
+      <tr><td><code>featureId</code></td><td>機能ID</td><td>必須</td></tr>
+      <tr><td><code>sourcePath</code></td><td>対象設計書</td><td>必須</td></tr>
+      <tr><td><code>profileId</code></td><td>J-01に記録されたProfile ID</td><td>必須</td></tr>
+      <tr><td><code>sheetName</code></td><td>項目制御、バリデーション、イベント、メッセージ</td><td>必須</td></tr>
+      <tr><td><code>blockSelector</code></td><td>allまたは親キー</td><td>必須</td></tr>
+      <tr><td><code>outputPath</code></td><td>J-11出力先</td><td>必須</td></tr>
+    </tbody>
+  </table>
+
+  <h3>参照ファイル（暗黙の入力）</h3>
+  <p class="hint">これらはプロンプト実行時に暗黙に読み込まれるコンテキスト＝入力です。</p>
+  <div class="cards cols-2">
+    <div class="card">
+      <strong>共通Instructions</strong>
+      <p><a href="group-instructions.html">解説ページへ</a>／原本: <code>.github/copilot-instructions.md</code></p>
+    </div>
+    <div class="card">
+      <strong>入力ソース契約（I-00）</strong>
+      <p><a href="group-contracts-json.html#i-00">解説ページへ</a>／原本: <code>.github/skills/detail-design-workflow/contracts/input/I-00-source-input-contract.md</code></p>
+    </div>
+    <div class="card">
+      <strong>J-11 Schema</strong>
+      <p><a href="group-contracts-json.html#j-11">解説ページへ</a>／原本: <code>.github/skills/detail-design-workflow/contracts/json/J-11-ui-behavior.schema.json</code></p>
+    </div>
+    <div class="card">
+      <strong>設計書プロファイル一覧</strong>
+      <p><a href="group-profiles.html">解説ページへ</a>／原本: <code>.github/skills/detail-design-workflow/profiles/PROFILE-INDEX.md</code></p>
+    </div>
+  </div>
+
+  <div class="note-box">
+    前提: <code>profileId</code>のProfileで対象ブロックがE2J-02/J-11へルーティングされていることと、見出し・繰り返し単位が一致していること（手順2）。不一致なら停止する。
+  </div>
+</section>
+
+<section id="flow" class="card">
+  <h2>処理フロー</h2>
+  <p class="how-to-read">見方: 中央の手順を上から順に読む。手順をクリックすると、その手順が使う入力と書く出力だけが点灯する。</p>
+  <div class="legend">
+    <span class="chip chip-input">入力</span><span class="chip chip-step">手順</span>
+    <span class="chip chip-output">出力</span><span class="chip chip-stop">停止あり</span>
+  </div>
+  <p class="hint">👆 手順カード・入出力カードをクリック（もう一度クリックで解除）。<button class="reset-flow" type="button">全体表示に戻す</button></p>
+  <div class="flow">
+    <div class="flow-col col-input">
+      <h3>入力</h3>
+      <div class="io-item" data-io-id="p-featureId"><span class="io-name">featureId（機能ID）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="p-sourcePath"><span class="io-name">sourcePath（対象設計書）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="p-profileId"><span class="io-name">profileId（Profile ID）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="p-sheetName"><span class="io-name">sheetName（項目制御・バリデーション・イベント・メッセージ）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="p-blockSelector"><span class="io-name">blockSelector（allまたは親キー）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="p-outputPath"><span class="io-name">outputPath（J-11出力先）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="ref-instructions"><span class="io-name">共通Instructions</span><span class="io-sub">参照ファイル</span></div>
+      <div class="io-item" data-io-id="ref-i00"><span class="io-name">I-00 入力ソース契約</span><span class="io-sub">参照ファイル</span></div>
+      <div class="io-item" data-io-id="ref-j11schema"><span class="io-name">J-11 Schema</span><span class="io-sub">参照ファイル</span></div>
+      <div class="io-item" data-io-id="ref-profileindex"><span class="io-name">設計書プロファイル一覧</span><span class="io-sub">参照ファイル</span></div>
+    </div>
+    <div class="flow-col col-steps">
+      <h3>手順（原本の順序のまま）</h3>
+      <div class="step" data-num="1" data-reads="p-sourcePath,p-sheetName,p-blockSelector,ref-i00" data-writes="" data-stop="">
+        <span class="step-num">1</span>
+        <span class="step-name">指定された1シートまたは1論理ブロックだけを読む</span>
+        <span class="step-cap">複数シート・複数ブロックをまとめて読まない</span>
+      </div>
+      <div class="step has-stop" data-num="2" data-reads="p-profileId,ref-profileindex" data-writes="" data-stop="対象ブロックがE2J-02/J-11へルーティングされていること・見出し・繰り返し単位が一致することを確認。不一致なら停止する">
+        <span class="step-num">2</span>
+        <span class="step-name">profileIdのProfileでルーティングと見出し・繰り返し単位の一致を確認する</span>
+        <span class="step-cap">不一致なら停止する</span>
+      </div>
+      <div class="step" data-num="3" data-reads="p-sourcePath" data-writes="" data-stop="">
+        <span class="step-num">3</span>
+        <span class="step-name">項目制御を抽出する</span>
+        <span class="step-cap">画面項目番号・表示条件・活性条件・モード別制御</span>
+      </div>
+      <div class="step" data-num="4" data-reads="p-sourcePath" data-writes="" data-stop="">
+        <span class="step-num">4</span>
+        <span class="step-name">バリデーションを抽出する</span>
+        <span class="step-cap">対象項目・種別・最小・最大・形式・適用操作・メッセージID</span>
+      </div>
+      <div class="step" data-num="5" data-reads="p-sourcePath" data-writes="" data-stop="">
+        <span class="step-num">5</span>
+        <span class="step-name">相関チェックを別recordとして抽出する</span>
+        <span class="step-cap">関係する画面項目番号を保持する</span>
+      </div>
+      <div class="step" data-num="6" data-reads="p-sourcePath,ref-j11schema" data-writes="" data-stop="">
+        <span class="step-num">6</span>
+        <span class="step-name">イベントとメッセージ規則を明記された条件と順序のまま抽出する</span>
+        <span class="step-cap">画面遷移はui_eventの遷移先としてSchemaに定義された範囲だけ保持する</span>
+      </div>
+      <div class="step" data-num="7" data-reads="p-outputPath" data-writes="out-j11" data-stop="">
+        <span class="step-num">7</span>
+        <span class="step-name">J-11 JSONだけをoutputPathへ書き込む</span>
+        <span class="step-cap">指定出力先以外は書き込まない</span>
+      </div>
+    </div>
+    <div class="flow-col col-output">
+      <h3>出力</h3>
+      <div class="io-item io-out" data-io-id="out-j11"><span class="io-name">J-11 JSON（画面動作）</span><span class="io-sub">outputPath へ</span></div>
+    </div>
+  </div>
+  <div class="step-detail" id="step-detail" hidden>
+    <div class="sd-title" data-f="title"></div>
+    <div class="sd-note" data-f="note"></div>
+    <div class="sd-grid">
+      <div><span class="sd-label">使う入力</span><span data-f="reads"></span></div>
+      <div><span class="sd-label">出す出力</span><span data-f="writes"></span></div>
+      <div><span class="sd-label">停止・分岐</span><span data-f="stop"></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="outputs" class="card">
+  <h2>出力</h2>
+  <div class="card">
+    <h3>J-11 JSON（画面動作）</h3>
+    <p>何が: 項目制御・バリデーション・相関チェック・イベント・メッセージ規則。対象recordType: <code>item_control</code>、<code>validation_rule</code>、<code>correlation_validation</code>、<code>ui_event</code>、<code>message_rule</code></p>
+    <p>どこへ: 実行パラメータ <code>outputPath</code> が指す場所</p>
+    <p>形式: JSON。<a href="group-contracts-json.html#j-11">J-11 Schema</a> 準拠</p>
+    <p>限定: 「J-11 JSONだけを<code>outputPath</code>へ書き込む」（手順7）</p>
+  </div>
+</section>
+
+<section id="stops" class="card">
+  <h2>停止条件・やらないこと</h2>
+
+  <div class="stop-box">
+    <strong>停止条件</strong>
+    <ul>
+      <li>手順2: <code>profileId</code>のProfileで対象ブロックがE2J-02/J-11へルーティングされていることと見出し・繰り返し単位が一致することを確認し、不一致なら停止する。</li>
+    </ul>
+  </div>
+
+  <div class="note-box">
+    <strong>禁止事項</strong>
+    <ul>
+      <li>Controller、Service、Validator、DB更新、一般的なエラー処理は割り当てまたは推測しない。</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="src-note">正本: <code>.github/prompts/03-e2j-ui-behavior.prompt.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>
