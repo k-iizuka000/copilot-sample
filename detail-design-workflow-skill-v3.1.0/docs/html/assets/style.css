@@ -1,0 +1,289 @@
+/* 詳細設計ワークフロー解説HTML 共通スタイル（正本）
+   ライトテーマ固定。色はここで定義したトークンのみ使用する。 */
+
+:root {
+  --bg: #f6f8fa;
+  --card: #ffffff;
+  --line: #e2e8f0;
+  --text: #1e293b;
+  --muted: #64748b;
+
+  /* 意味色 */
+  --c-input: #2563eb;   --c-input-bg: #eff6ff;   /* 入力 = 青 */
+  --c-step: #7c3aed;    --c-step-bg: #f5f3ff;    /* 手順 = 紫 */
+  --c-output: #059669;  --c-output-bg: #ecfdf5;  /* 出力 = 緑 */
+  --c-stop: #dc2626;    --c-stop-bg: #fef2f2;    /* 停止・禁止 = 赤 */
+  --c-human: #d97706;   --c-human-bg: #fffbeb;   /* 人間ゲート = 琥珀 */
+
+  /* ステージ色 */
+  --st-d00: #64748b;  /* 調査 */
+  --st-e2j: #2563eb;  /* 抽出 */
+  --st-ev:  #d97706;  /* 評価 */
+  --st-j2m: #059669;  /* 生成 */
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+}
+main { max-width: 1080px; margin: 0 auto; padding: 20px 24px 60px; }
+h1 { font-size: 26px; margin: 18px 0 6px; }
+h2 { font-size: 19px; margin: 0 0 10px; border-left: 4px solid var(--c-step); padding-left: 10px; }
+h3 { font-size: 15px; margin: 0 0 8px; color: var(--muted); }
+a { color: var(--c-input); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  background: #f1f5f9;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+table { border-collapse: collapse; width: 100%; background: var(--card); }
+th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+th { background: #f1f5f9; font-size: 13px; }
+
+/* ナビ */
+.site-nav {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 14px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 24px;
+  font-size: 14px;
+}
+.nav-title { font-weight: 700; }
+.nav-spacer { flex: 1; }
+.nav-home, .nav-link { white-space: nowrap; }
+
+/* 汎用カード・ボックス */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin: 16px 0;
+}
+.page-head { margin-bottom: 4px; }
+.src-file { color: var(--muted); font-size: 13px; }
+
+.purpose {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--c-input);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 14px;
+}
+.how-to-read { font-size: 13px; color: var(--muted); margin: 4px 0 8px; }
+.hint { font-size: 13px; color: var(--muted); margin: 4px 0 10px; }
+
+.stop-box, .gate-box, .ok-box, .note-box {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 10px 0;
+  font-size: 14px;
+}
+.stop-box { border-left: 4px solid var(--c-stop); background: var(--c-stop-bg); }
+.gate-box { border-left: 4px solid var(--c-human); background: var(--c-human-bg); }
+.ok-box   { border-left: 4px solid var(--c-output); background: var(--c-output-bg); }
+.note-box { border-left: 4px solid var(--muted); background: #f8fafc; }
+.stop-box ul, .gate-box ul, .ok-box ul { margin: 6px 0 0; padding-left: 20px; }
+
+/* バッジ・チップ */
+.badge {
+  display: inline-block;
+  font-size: 12px; font-weight: 700;
+  color: #fff;
+  border-radius: 999px;
+  padding: 2px 10px;
+  vertical-align: middle;
+}
+.badge-d00 { background: var(--st-d00); }
+.badge-e2j { background: var(--st-e2j); }
+.badge-ev  { background: var(--st-ev); }
+.badge-j2m { background: var(--st-j2m); }
+.badge-human { background: var(--c-human); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; font-size: 12px; }
+.chip {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  background: #f8fafc;
+}
+.chip-input  { border-color: var(--c-input);  background: var(--c-input-bg);  color: var(--c-input); }
+.chip-step   { border-color: var(--c-step);   background: var(--c-step-bg);   color: var(--c-step); }
+.chip-output { border-color: var(--c-output); background: var(--c-output-bg); color: var(--c-output); }
+.chip-stop   { border-color: var(--c-stop);   background: var(--c-stop-bg);   color: var(--c-stop); }
+.chip-human  { border-color: var(--c-human);  background: var(--c-human-bg);  color: var(--c-human); }
+
+.used-by { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+
+/* サマリー・カード格子 */
+.fact-grid, .cards { display: grid; gap: 12px; margin: 12px 0; }
+.fact-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.cards.cols-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.cards.cols-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.fact {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+.fact .fact-label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+
+/* 入力テーブル */
+.params-table td:first-child { white-space: nowrap; }
+
+/* フロー（3カラム + クリックハイライト） */
+.flow {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.flow-col h3 { text-align: center; }
+.col-input  h3 { color: var(--c-input); }
+.col-steps  h3 { color: var(--c-step); }
+.col-output h3 { color: var(--c-output); }
+
+.io-item {
+  border: 1.5px solid var(--c-input);
+  background: var(--c-input-bg);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin: 8px 0;
+  cursor: pointer;
+  transition: opacity .15s, box-shadow .15s, transform .15s;
+  font-size: 13px;
+}
+.io-item .io-name { display: block; font-weight: 700; }
+.io-item .io-sub { display: block; font-size: 11px; color: var(--muted); }
+.io-item.io-out { border-color: var(--c-output); background: var(--c-output-bg); }
+
+.step {
+  position: relative;
+  border: 1.5px solid var(--c-step);
+  background: var(--c-step-bg);
+  border-radius: 8px;
+  padding: 8px 10px 8px 38px;
+  margin: 8px 0;
+  cursor: pointer;
+  transition: opacity .15s, box-shadow .15s, transform .15s;
+  font-size: 13px;
+}
+.step .step-num {
+  position: absolute; left: 10px; top: 9px;
+  width: 20px; height: 20px; line-height: 20px;
+  border-radius: 50%;
+  background: var(--c-step); color: #fff;
+  text-align: center; font-size: 12px; font-weight: 700;
+}
+.step .step-name { display: block; font-weight: 700; }
+.step .step-cap { display: block; font-size: 12px; color: var(--muted); }
+.step.has-stop { border-right: 4px solid var(--c-stop); }
+
+/* ハイライト状態（app.js が付け外しする） */
+.io-item.lit, .io-item.selected {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .25);
+  transform: translateY(-1px);
+}
+.io-item.io-out.lit { box-shadow: 0 0 0 3px rgba(5, 150, 105, .3); }
+.step.active {
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, .25);
+  transform: translateY(-1px);
+}
+.io-item.dim, .step.dim { opacity: .3; }
+
+.reset-flow {
+  font: inherit; font-size: 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 6px;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+.reset-flow:hover { background: #f1f5f9; }
+
+/* ステップ詳細カード */
+.step-detail {
+  margin-top: 12px;
+  border: 1px solid var(--c-step);
+  background: var(--card);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
+.step-detail .sd-title { font-weight: 700; margin-bottom: 4px; }
+.step-detail .sd-note { color: var(--muted); }
+.step-detail .sd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 6px 16px; }
+.step-detail .sd-label {
+  display: inline-block; margin-right: 6px;
+  font-size: 11px; font-weight: 700; color: var(--muted);
+}
+.step-detail.io-mode .sd-grid { display: none; }
+
+/* 評価3値 */
+.verdict-pass { color: var(--c-output); font-weight: 700; }
+.verdict-warn { color: var(--c-human); font-weight: 700; }
+.verdict-fail { color: var(--c-stop); font-weight: 700; }
+
+/* index 用パイプライン（エッジ束を描かない縦ブロック） */
+.pipe { max-width: 720px; margin: 0 auto; }
+.pipe-node {
+  display: block;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 6px 0;
+  color: inherit;
+  font-size: 14px;
+}
+.pipe-node:hover { text-decoration: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, .15); }
+.pipe-node .pipe-name { font-weight: 700; }
+.pipe-node .pipe-sub { display: block; font-size: 12px; color: var(--muted); }
+.pipe-node.stage-d00 { border-left: 5px solid var(--st-d00); }
+.pipe-node.stage-e2j { border-left: 5px solid var(--st-e2j); }
+.pipe-node.stage-ev  { border-left: 5px solid var(--st-ev); }
+.pipe-node.stage-j2m { border-left: 5px solid var(--st-j2m); }
+.pipe-gate {
+  border: 1.5px dashed var(--c-human);
+  background: var(--c-human-bg);
+  border-radius: 10px;
+  padding: 8px 14px;
+  margin: 6px 0;
+  font-size: 13px;
+}
+.pipe-arrow { text-align: center; color: var(--muted); font-size: 14px; line-height: 1.2; }
+.pipe-fan { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 6px 0; }
+.pipe-fan .pipe-node { margin: 0; }
+.pipe-branch { font-size: 12px; color: var(--muted); text-align: center; }
+
+/* フッター */
+.src-note {
+  margin-top: 36px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* 狭い画面 */
+@media (max-width: 800px) {
+  .flow { grid-template-columns: 1fr; }
+  .pipe-fan { grid-template-columns: 1fr; }
+  main { padding: 14px 14px 48px; }
+}

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>J-* JSONスキーマ契約 | 詳細設計ワークフロー v3.1.0 解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">J-* JSONスキーマ契約</span>
+  <span class="nav-spacer"></span>
+</nav>
+<main>
+
+<h1>J-* JSONスキーマ契約</h1>
+<p class="purpose">中間層 JSON（J-00〜J-90）9本の役割・主要キー・recordType と、どの工程が書き・どの工程が読むかを一覧します。フィールドの全量は各スキーマファイルを直接参照してください。</p>
+
+<div class="used-by">
+  <a class="chip" href="prompt-01-setup.html">/01-setup</a>
+  <a class="chip" href="prompt-02-run.html">/02-run</a>
+  <a class="chip" href="verify-ps1.html">verify.ps1</a>
+  <a class="chip" href="prompt-03-check.html">/03-check</a>
+</div>
+<p class="how-to-read">全工程がこの契約群を入出力の形式として参照します。詳細な書く/読むの対応は各カード下部を参照してください。</p>
+
+<section id="j-00" class="card">
+  <h2>J-00 <span class="src-file">contracts/json/J-00.schema.json</span></h2>
+  <p>役割: 共通定義（Record ID・出典・issue・アセット・recordBase）。他の J-* スキーマが <code>$ref</code> で参照する共有型で、単体では JSON として出力されない。</p>
+  <p>主要キー（<code>$defs</code>）: recordId / scope / layers / evidenceState / evidenceType / sourceRef / sourceRefs / runInfo / documentRef / issue / assetRef / recordBase</p>
+  <p>主な enum: scope = individual / common / shared_master、evidenceState = explicit / derived / ambiguous</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: なし（共通型のみ）</span>
+    <span class="chip chip-input">読む: J-01〜J-90 全スキーマが参照</span>
+  </div>
+</section>
+
+<section id="j-01" class="card">
+  <h2>J-01 <span class="src-file">contracts/json/J-01.schema.json</span></h2>
+  <p>役割: 文書マニフェスト（シート分類＋抽出計画 routingPlan）。</p>
+  <p>主要トップレベルキー: contractId / schemaVersion / profileId / run / document / issues / assets / sheets / routingPlan（必須: contractId, schemaVersion, profileId, document, sheets, routingPlan）</p>
+  <p>補足: routingPlan の1エントリ = 1抽出単位 = <code>10-json/</code> 内の出力ファイル1個と1対1対応。/02-run はそのファイルの実在で未処理判定する（ステートレス）。</p>
+  <p>主な enum: sheets[].role = metadata / extract / asset / ignore_candidate / reference_only / unknown、matchSource = role_tag / sheet_name_match / inferred / manual / unknown（role_tag が最優先）、routingPlan[].outputContract = J-10 / J-11 / J-20 / J-30 / J-40 / J-60</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-01-setup.html">/01-setup</a></span>
+    <span class="chip chip-input">読む: <a href="prompt-02-run.html">/02-run</a>（タスク選択・抽出計画）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a></span>
+    <span class="chip chip-input">読む: <a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="j-10" class="card">
+  <h2>J-10 <span class="src-file">contracts/json/J-10.schema.json</span></h2>
+  <p>役割: 画面構造。</p>
+  <p>主要トップレベルキー: contractId / schemaVersion / run / document / issues / assets / records（必須: contractId, schemaVersion, records）</p>
+  <p>主な recordType: screen_item / display_mode / parameter_definition / layout_reference</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（抽出タスク）</span>
+    <span class="chip chip-input">読む: <a href="prompt-02-run.html">/02-run</a>（spec・trace生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a></span>
+    <span class="chip chip-input">読む: <a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="j-11" class="card">
+  <h2>J-11 <span class="src-file">contracts/json/J-11.schema.json</span></h2>
+  <p>役割: 画面動作。</p>
+  <p>主要トップレベルキー: contractId / schemaVersion / run / document / issues / assets / records（必須: contractId, schemaVersion, records）</p>
+  <p>主な recordType: item_control / validation_rule / correlation_validation / ui_event / message_rule</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（抽出タスク）</span>
+    <span class="chip chip-input">読む: <a href="prompt-02-run.html">/02-run</a>（spec・trace生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a></span>
+    <span class="chip chip-input">読む: <a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="j-20" class="card">
+  <h2>J-20 <span class="src-file">contracts/json/J-20.schema.json</span></h2>
+  <p>役割: 処理・バッチ。</p>
+  <p>主要トップレベルキー: contractId / schemaVersion / run / document / issues / assets / records（必須: contractId, schemaVersion, records）</p>
+  <p>主な recordType: process_section / search_requirement / update_requirement / batch_control</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（抽出タスク）</span>
+    <span class="chip chip-input">読む: <a href="prompt-02-run.html">/02-run</a>（spec・trace生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a></span>
+    <span class="chip chip-input">読む: <a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="j-30" class="card">
+  <h2>J-30 <span class="src-file">contracts/json/J-30.schema.json</span></h2>
+  <p>役割: データモデル・連携。</p>
+  <p>主要トップレベルキー: contractId / schemaVersion / run / document / issues / assets / records（必須: contractId, schemaVersion, records）</p>
+  <p>主な recordType: item_db_mapping / entity_field / attribute_definition / attribute_dictionary_entry / select_constraint / view_definition / view_query_block / external_interface / <strong>entity_relation</strong>（v3.1.0新設。詳細は <a href="#v2-diff">v2.1.0からの軽量化点</a>）</p>
+  <p>entity_relation の主な enum: cardinality = 1:1 / 1:N / N:1 / N:M / unknown、basis = explicit（設計書明記） / derived_join（VIEW定義・検索要領のJOIN由来）。AI推測による関連生成は禁止。</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（抽出タスク）</span>
+    <span class="chip chip-input">読む: <a href="prompt-02-run.html">/02-run</a>（spec・trace生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a></span>
+    <span class="chip chip-input">読む: <a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="j-40" class="card">
+  <h2>J-40 <span class="src-file">contracts/json/J-40.schema.json</span></h2>
+  <p>役割: 権限・共通。</p>
+  <p>主要トップレベルキー: contractId / schemaVersion / run / document / issues / assets / records（必須: contractId, schemaVersion, records）</p>
+  <p>主な recordType: screen_action_permission / role_hierarchy / case_reference_permission / document_header_metadata / common_rule</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（抽出タスク）</span>
+    <span class="chip chip-input">読む: <a href="prompt-02-run.html">/02-run</a>（spec・trace生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a></span>
+    <span class="chip chip-input">読む: <a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="j-60" class="card">
+  <h2>J-60 <span class="src-file">contracts/json/J-60.schema.json</span></h2>
+  <p>役割: アセットマニフェスト（画像・図形・コメント等）。実体は <code>runs/{ID}/00-input/assets/</code> に書き出す。</p>
+  <p>主要トップレベルキー: contractId / schemaVersion / run / document / issues / assets（必須: contractId, schemaVersion, assets）</p>
+  <p>主な recordType: —（assets のみ）</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（抽出タスク）</span>
+    <span class="chip chip-input">読む: <a href="prompt-02-run.html">/02-run</a>（spec・trace生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a></span>
+    <span class="chip chip-input">読む: <a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="j-90" class="card">
+  <h2>J-90 <span class="src-file">contracts/json/J-90.schema.json</span></h2>
+  <p>役割: 評価結果（/03-check の意味照合）。<strong>check-result.md に書く判定（PASS / PASS_WITH_WARNINGS / FAIL）と findings 表の構造契約であり、JSON ファイルとしての出力は必須ではない。</strong></p>
+  <p>主要トップレベルキー: contractId / schemaVersion / evaluator / generatedAt / target / result / checks / findings（必須: contractId, schemaVersion, target, result, findings）</p>
+  <p>主な enum: result = PASS / PASS_WITH_WARNINGS / FAIL、findings[].severity = blocking / warning / info</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: —（判定・findings の構造契約）</span>
+    <span class="chip chip-input">読む: <a href="prompt-03-check.html">/03-check</a>（構造契約として従う）</span>
+  </div>
+</section>
+
+<section id="v2-diff" class="card">
+  <h2>v2.1.0 からの軽量化点</h2>
+  <p class="how-to-read">見方: CONTRACT-INDEX.md に記載された5項目をそのまま列挙しています。</p>
+  <ul>
+    <li>recordBase から hiddenRow / hiddenColumn / locator / sourceUnitId と coverage / summary の数え上げフィールドを削除（網羅性検査は verify.ps1 に委譲）。</li>
+    <li><code>additionalProperties:false</code> はトップレベルと各レコード（recordBase）にのみ残し、facts など深い階層では外す（mini のスキーマ逸脱で全停止させない）。</li>
+    <li>J-90 の result 別 allOf 強制（PASS 時カウント0強制等）と metrics 数え上げを撤去し、result + findings の単純なリストにした。</li>
+    <li>J-30 に entity_relation（leftTable / rightTable / cardinality / basis / description）を新設。設計書に明記された関連または JOIN 由来のみ（AI 推測禁止）。</li>
+    <li>出典 sourceRef は { workbook, sheet, range, displayedValue, formula, evidenceType } に軽量化。</li>
+  </ul>
+</section>
+
+<section id="rw-matrix" class="card">
+  <h2>読み書きマトリクス（正本表）</h2>
+  <p class="how-to-read">見方: 1行が1つの正本ファイル・契約です。「書く」がその内容を生成する工程、「読む」がその内容を利用する工程です。矢印線ではなく表で対応関係を示しています。</p>
+  <div style="overflow-x:auto;">
+  <table>
+    <thead><tr><th>ファイル / 契約</th><th>書く</th><th>読む</th></tr></thead>
+    <tbody>
+      <tr><td><a href="group-run-template.html#run-request">run-request.json</a></td><td>人間（作業フォルダ準備）</td><td><a href="prompt-01-setup.html">/01-setup</a></td></tr>
+      <tr><td><a href="group-run-template.html#dir-00-input">00-input/ スナップショット（CSV/TSV 等）</a></td><td>人間（前処理・Prompt の工程ではない）</td><td><a href="prompt-01-setup.html">/01-setup</a>、<a href="prompt-02-run.html">/02-run</a>（抽出）</td></tr>
+      <tr><td><a href="#j-01">J-01</a>（routingPlan 込み）</td><td><a href="prompt-01-setup.html">/01-setup</a></td><td><a href="prompt-02-run.html">/02-run</a>（タスク選択・抽出計画）、<a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></td></tr>
+      <tr><td><a href="#j-10">J-10</a> / <a href="#j-11">J-11</a> / <a href="#j-20">J-20</a> / <a href="#j-30">J-30</a> / <a href="#j-40">J-40</a> / <a href="#j-60">J-60</a></td><td><a href="prompt-02-run.html">/02-run</a>（抽出タスク）</td><td><a href="prompt-02-run.html">/02-run</a>（spec・trace 生成タスク）、<a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></td></tr>
+      <tr><td><a href="#j-90">J-90</a></td><td>—（check-result.md の判定・findings の構造契約。JSON ファイル出力は必須ではない）</td><td><a href="prompt-03-check.html">/03-check</a>（構造契約として従う）</td></tr>
+      <tr><td><a href="group-templates-markdown.html">spec/ 責務ファイル（front/back/batch/db/common/rules）</a></td><td><a href="prompt-02-run.html">/02-run</a>（spec 生成タスク）</td><td><a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></td></tr>
+      <tr><td><a href="group-templates-markdown.html#t-trace">spec/trace/{機能ID}.md</a></td><td><a href="prompt-02-run.html">/02-run</a>（trace 生成タスク）</td><td><a href="verify-ps1.html">verify.ps1</a>（トレース照合）</td></tr>
+      <tr><td><a href="group-templates-markdown.html#t-warnings">runs/{ID}/20-check/warnings.md</a></td><td><a href="prompt-01-setup.html">/01-setup</a>（未レビュー・未知フォーマット）、<a href="prompt-02-run.html">/02-run</a>（機械FAIL・矛盾検出）、<a href="verify-ps1.html">verify.ps1</a>（機械FAIL・機械WARN・矛盾検出）、<a href="prompt-03-check.html">/03-check</a>（EV指摘）</td><td><a href="prompt-02-run.html">/02-run</a>（冒頭確認・毎回要約表示）、人間</td></tr>
+      <tr><td>runs/{ID}/20-check/verify-result.md</td><td><a href="verify-ps1.html">verify.ps1</a></td><td><a href="prompt-03-check.html">/03-check</a>（前提ゲート: OK でなければ評価しない）、人間</td></tr>
+      <tr><td>runs/{ID}/20-check/reverse-map.md</td><td><a href="verify-ps1.html">verify.ps1</a>（逆引きマップ）</td><td>人間</td></tr>
+      <tr><td>runs/{ID}/20-check/check-result.md</td><td><a href="prompt-03-check.html">/03-check</a>（PASS / PASS_WITH_WARNINGS / FAIL + findings）</td><td>人間</td></tr>
+      <tr><td><a href="group-rules.html">copilot-instructions.md（共通ルール）</a></td><td>—</td><td><a href="prompt-01-setup.html">/01-setup</a>、<a href="prompt-02-run.html">/02-run</a>、<a href="prompt-03-check.html">/03-check</a>（全工程の暗黙コンテキスト）</td></tr>
+      <tr><td><a href="group-profiles.html">PROFILE-INDEX.md / PROFILE-*.profile.json</a></td><td>—</td><td><a href="prompt-01-setup.html">/01-setup</a>（シート役割の推定）</td></tr>
+      <tr><td><a href="group-spec-format.html#routing-table">spec-format/routing-table.md</a></td><td>—</td><td><a href="prompt-01-setup.html">/01-setup</a>（想定 recordType）、<a href="prompt-02-run.html">/02-run</a>（振り分け）、<a href="prompt-03-check.html">/03-check</a>、<a href="verify-ps1.html">verify.ps1</a>（enum・ルーティング照合。値はスクリプト内に同期実装、正本は routing-table.md）</td></tr>
+      <tr><td><a href="group-spec-format.html#output-structure">spec-format/output-structure.md</a></td><td>—</td><td><a href="prompt-02-run.html">/02-run</a>（標準ファイルセット）</td></tr>
+      <tr><td><a href="group-spec-format.html#consumption-matrix">spec-format/consumption-matrix.md</a></td><td>—</td><td><a href="prompt-02-run.html">/02-run</a>（trace の消費マトリクス抜粋の元）</td></tr>
+      <tr><td><a href="group-spec-format.html#src-mapping">spec-format/src-mapping.template.md</a></td><td>—</td><td><a href="prompt-02-run.html">/02-run</a>（spec/common/src-mapping.md の初期雛形）</td></tr>
+      <tr><td><a href="group-templates-markdown.html">contracts/markdown/ T-* テンプレート</a></td><td>—</td><td><a href="prompt-02-run.html">/02-run</a>（spec・trace の書式）</td></tr>
+      <tr><td>contracts/json/ J-* スキーマ（本ページ）</td><td>—</td><td><a href="prompt-01-setup.html">/01-setup</a>（J-01 の契約）、<a href="prompt-02-run.html">/02-run</a>（抽出出力の契約）、<code>.vscode/settings.json</code>（json.schemas 検証）</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<footer class="src-note">正本: <code>.github/skills/detail-design-workflow/contracts/CONTRACT-INDEX.md</code>、<code>.github/skills/detail-design-workflow/contracts/json/J-00.schema.json</code>〜<code>J-90.schema.json</code>（J-00 / J-01 / J-10 / J-11 / J-20 / J-30 / J-40 / J-60 / J-90 の9本） — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

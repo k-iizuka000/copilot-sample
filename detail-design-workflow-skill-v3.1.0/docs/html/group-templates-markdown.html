@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T-* Markdownテンプレート | 詳細設計ワークフロー v3.1.0 解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">T-* Markdownテンプレート</span>
+  <span class="nav-spacer"></span>
+</nav>
+<main>
+
+<h1>T-* Markdownテンプレート</h1>
+<p class="purpose">spec 生成用の Markdown テンプレート12本（T-items〜T-warnings）が、どの spec ファイルを・どんな節構成で・どの生成条件のときに作るかを一覧します。振り分け規則の正本は <a href="group-spec-format.html#routing-table">spec-format/routing-table.md</a> で複製しません。</p>
+
+<div class="used-by">
+  <a class="chip" href="prompt-02-run.html">/02-run</a>
+  <a class="chip" href="prompt-01-setup.html">/01-setup</a>
+  <a class="chip" href="verify-ps1.html">verify.ps1</a>
+  <a class="chip" href="prompt-03-check.html">/03-check</a>
+</div>
+<p class="how-to-read">大半のテンプレートは /02-run が spec・trace 生成タスクで使います。T-warnings のみ4工程すべてが書き込みます（各カード下部の「書く/読む」参照）。</p>
+
+<section id="t-items" class="card">
+  <h2>T-items <span class="src-file">contracts/markdown/T-items.template.md</span></h2>
+  <p>作る spec ファイル: <code>spec/front/{画面ID}/items.md</code></p>
+  <p>生成条件（output-structure.md §2）: 画面項目レコードがある</p>
+  <p>節構成: 1. 画面項目（screen_item） 2. 表示モード（display_mode） 3. URL・パラメータ（parameter_definition） 4. 共通仕様参照</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（spec生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="t-layout" class="card">
+  <h2>T-layout <span class="src-file">contracts/markdown/T-layout.template.md</span></h2>
+  <p>作る spec ファイル: <code>spec/front/{画面ID}/layout.md</code></p>
+  <p>生成条件（output-structure.md §2）: layout_reference レコードがある</p>
+  <p>節構成: 1. レイアウト・表示モード 2. レイアウト明記事項・Thymeleaf仕様 3. アセット参照</p>
+  <p>補足: AI がレイアウトを推測して補完しない（設計書に明記された内容のみ）。</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（spec生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="t-validation" class="card">
+  <h2>T-validation <span class="src-file">contracts/markdown/T-validation.template.md</span></h2>
+  <p>作る spec ファイル: <code>spec/front/{画面ID}/validation.md</code></p>
+  <p>生成条件（output-structure.md §2）: バリデーション系レコードがある</p>
+  <p>節構成: 1. バリデーション（validation_rule） 2. 項目制御（item_control） 3. 相関バリデーション（correlation_validation） 4. メッセージ（message_rule） 5. 共通仕様参照</p>
+  <p>補足: 条件・否定・例外・数値・順序を JSON から欠落させない（意味照合 /03-check の対象）。</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（spec生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="t-methods" class="card">
+  <h2>T-methods <span class="src-file">contracts/markdown/T-methods.template.md</span></h2>
+  <p>作る spec ファイル: <code>spec/back/{機能ID}/methods.md</code></p>
+  <p>生成条件（output-structure.md §2）: ui_event / process_section 概要 / 画面文脈 external_interface がある</p>
+  <p>節構成: 1. イベント・遷移（ui_event） 2. 処理概要（process_section／概要） 3. 外部連携（external_interface／画面文脈） 4. 業務ロジック本文参照（logic.md へリンクのみ）</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（spec生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="t-logic" class="card">
+  <h2>T-logic <span class="src-file">contracts/markdown/T-logic.template.md</span></h2>
+  <p>作る spec ファイル: <code>spec/back/{機能ID}/logic.md</code>（バッチは <code>batch/{ジョブID}/logic.md</code> に本テンプレートを流用。id はジョブIDにする）</p>
+  <p>生成条件（output-structure.md §2）: process_section 本文がある（バッチはバッチのロジックがある）</p>
+  <p>節構成: 1. 業務ロジック（process_section） 2. 詳細ロジック記述 3. 業務ルール参照（spec/rules/BR-{番号}.md へリンクのみ）</p>
+  <p>補足: 条件・否定・例外・数値・順序を JSON から一切欠落させない（意味照合 /03-check の第一対象）。</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（spec生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="t-queries" class="card">
+  <h2>T-queries <span class="src-file">contracts/markdown/T-queries.template.md</span></h2>
+  <p>作る spec ファイル: <code>spec/back/{機能ID}/queries.md</code>（バッチは <code>batch/{ジョブID}/queries.md</code> に本テンプレートを流用。id はジョブIDにする）</p>
+  <p>生成条件（output-structure.md §2）: search/update/select_constraint/item_db_mapping がある（バッチはバッチの検索/更新要領がある）</p>
+  <p>節構成: 1. 検索要領（search_requirement） 2. 更新要領（update_requirement） 3. 抽出制約（select_constraint） 4. 画面項目・DB項目対応（item_db_mapping） 5. テーブル定義参照（db/ へリンクのみ）</p>
+  <p>補足: JSON に無い SQL・条件を創作しない。テーブルの物理定義は複製せず db/{テーブル物理名}.md へリンクする。</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（spec生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="t-db-table" class="card">
+  <h2>T-db-table <span class="src-file">contracts/markdown/T-db-table.template.md</span></h2>
+  <p>作る spec ファイル: <code>spec/db/{テーブル物理名}.md</code>（ファイル名はテーブル物理名・ASCII）</p>
+  <p>生成条件（output-structure.md §2）: テーブル/VIEW 定義レコードがある</p>
+  <p>節構成: 1. テーブル概要（attribute_definition） 2. カラム定義（entity_field） 3. VIEW定義（view_definition） 4. VIEW検索ブロック（view_query_block） 5. 関連参照（_er-overview.md へリンクのみ）</p>
+  <p>補足: db/ は共有領域。既存記述と矛盾する定義（型・桁の不一致）を検出したら上書きせず両論併記し warnings.md に記録する。JSON に無い型・桁は推測で埋めない（未確認は null、該当なしは空）。</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（spec生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="t-er-overview" class="card">
+  <h2>T-er-overview <span class="src-file">contracts/markdown/T-er-overview.template.md</span></h2>
+  <p>作る spec ファイル: <code>spec/db/_er-overview.md</code></p>
+  <p>生成条件（output-structure.md §2）: 全体テーブル定義書が取り込まれている場合のみ（機能単位のエンティティ定義書だけの段階では作らない）</p>
+  <p>節構成: 1. テーブル一覧 2. ER図（mermaid erDiagram） 3. 関連一覧（entity_relation）</p>
+  <p>補足: 関連線として描いてよいのは explicit（設計書に明記された関連）と derived_join（VIEW定義・検索要領のJOIN条件由来）の2種のみ。AI の推測による関連生成は禁止（<a href="group-contracts-json.html#j-30">J-30 entity_relation</a>）。</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（spec生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="t-batch-control" class="card">
+  <h2>T-batch-control <span class="src-file">contracts/markdown/T-batch-control.template.md</span></h2>
+  <p>作る spec ファイル: <code>spec/batch/{ジョブID}/control.md</code></p>
+  <p>生成条件（output-structure.md §2）: batch_control レコードがある</p>
+  <p>節構成: 1. バッチ制御（batch_control） 2. 入出力・ロジック参照（io.md / logic.md / queries.md へリンクのみ）</p>
+  <p class="how-to-read">暫定: バッチの標準ファイルセット（control.md / io.md / logic.md / queries.md）は実物のバッチ設計書での検証後に確定する（output-structure.md §3）。</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（spec生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="t-batch-io" class="card">
+  <h2>T-batch-io <span class="src-file">contracts/markdown/T-batch-io.template.md</span></h2>
+  <p>作る spec ファイル: <code>spec/batch/{ジョブID}/io.md</code></p>
+  <p>生成条件（output-structure.md §2）: バッチ文脈の external_interface がある</p>
+  <p>節構成: 1. ファイル・外部連携（external_interface） 2. レイアウト詳細（設計書に明記がある場合のみ）</p>
+  <p class="how-to-read">暫定: バッチの標準ファイルセット（control.md / io.md / logic.md / queries.md）は実物のバッチ設計書での検証後に確定する（output-structure.md §3）。</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（spec生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a>、<a href="prompt-03-check.html">/03-check</a></span>
+  </div>
+</section>
+
+<section id="t-trace" class="card">
+  <h2>T-trace <span class="src-file">contracts/markdown/T-trace.template.md</span></h2>
+  <p>作る spec ファイル: <code>spec/trace/{機能ID}.md</code>（モデルは GPT-5.4 固定。他テンプレートは GPT-5.4 | GPT-5.4 mini）</p>
+  <p>生成条件（output-structure.md §2）: 対象機能の spec ファイルが生成済み</p>
+  <p>節構成: 1. クラス図（mermaid classDiagram） 2. 設計→実装対応表 3. ER断片（_er-overview.md の有無で分岐） 4. 消費マトリクス抜粋</p>
+  <p>補足: クラス名の命名規則・配置パス規則の正本は spec/common/src-mapping.md（本テンプレートは参照のみ）。消費マトリクスの正本は <a href="group-spec-format.html#consumption-matrix">spec-format/consumption-matrix.md</a>（暫定・ここは抜粋のみ）。</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（trace生成タスク）</span>
+    <span class="chip chip-input">読む: <a href="verify-ps1.html">verify.ps1</a>（トレース照合）</span>
+  </div>
+</section>
+
+<section id="t-warnings" class="card">
+  <h2>T-warnings <span class="src-file">contracts/markdown/T-warnings.template.md</span></h2>
+  <p>作る spec ファイル: <code>runs/{ID}/20-check/warnings.md</code>（追記型の台帳。ラン開始時に常設）</p>
+  <p>生成条件（output-structure.md §2）: ラン開始時に常設</p>
+  <p>節構成: 種別（機械FAIL / 機械WARN / EV指摘 / 未レビュー / 矛盾検出） × 内容 × 発生工程 × 状態（未解消 / 解消）の1枚表</p>
+  <p>種別の意味: 機械FAIL=JSON破損・sourceRefs欠落・routingPlanに無いシート等（停止条件。verify.ps1 も出力） / 機械WARN=verify.ps1 の非ブロッキング警告（ルーティング未生成・リンク切れ・lint指摘等） / EV指摘=/03-check（意味照合）の findings / 未レビュー=人間レビュー未実施のまま進行中（非ブロッキング） / 矛盾検出=共有領域（db/ common/ rules/）で既存記述と矛盾する定義を検出（両論併記のうえ人間判断待ち）</p>
+  <p>運用: /01-setup /02-run /03-check・verify.ps1 が検出のたびに1行追記し、解消したら状態を「解消」に更新する。</p>
+  <div class="legend">
+    <span class="chip chip-output">書く: <a href="prompt-01-setup.html">/01-setup</a>（未レビュー・未知フォーマット）</span>
+    <span class="chip chip-output">書く: <a href="prompt-02-run.html">/02-run</a>（機械FAIL・矛盾検出）</span>
+    <span class="chip chip-output">書く: <a href="verify-ps1.html">verify.ps1</a>（機械FAIL・機械WARN・矛盾検出）</span>
+    <span class="chip chip-output">書く: <a href="prompt-03-check.html">/03-check</a>（EV指摘）</span>
+    <span class="chip chip-input">読む: <a href="prompt-02-run.html">/02-run</a>（冒頭確認・毎回要約表示）、人間</span>
+  </div>
+</section>
+
+<section class="card">
+  <h2>バッチの流用テンプレートについて</h2>
+  <p>バッチの業務ロジック（<code>batch/{ジョブID}/logic.md</code>）と検索/更新（<code>batch/{ジョブID}/queries.md</code>）には専用テンプレートが無く、画面/機能用の <a href="#t-logic">T-logic</a> / <a href="#t-queries">T-queries</a> をそのまま流用する（<code>id</code> はジョブIDにする）。専用テンプレートを持つのは制御（<a href="#t-batch-control">T-batch-control</a>）と入出力（<a href="#t-batch-io">T-batch-io</a>）の2つのみ。</p>
+</section>
+
+<footer class="src-note">正本: <code>.github/skills/detail-design-workflow/contracts/markdown/T-items.template.md</code>〜<code>T-warnings.template.md</code>（T-items / T-layout / T-validation / T-methods / T-logic / T-queries / T-db-table / T-er-overview / T-batch-control / T-batch-io / T-trace / T-warnings の12本）、<code>spec-format/output-structure.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>
