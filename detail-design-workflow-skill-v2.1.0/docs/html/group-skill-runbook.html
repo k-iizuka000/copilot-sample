@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>スキル定義と標準作業手順 | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">スキル定義と標準作業手順</span>
+</nav>
+<main>
+
+<header class="page-head">
+  <h1>スキル定義と標準作業手順</h1>
+  <div class="src-file">原本: <code>.github/skills/detail-design-workflow/SKILL.md</code> / <code>.github/skills/detail-design-workflow/RUNBOOK.md</code></div>
+</header>
+
+<div class="purpose">
+  このページの目的と見方: スキル定義（何をするスキルか）と、日々の実行手順の正本であるRUNBOOKの内容（実行回数・モデル・人間ゲート・トラブル対応・再開）をまとめています。
+</div>
+
+<section>
+  <h3>参照元Prompt（実行回数・モデルの参照元として読むPrompt File）</h3>
+  <div class="used-by">
+    <a class="chip" href="prompt-00-format-survey.html">/00</a>
+    <a class="chip" href="prompt-01-inventory-route.html">/01</a>
+    <a class="chip" href="prompt-02-ui-structure.html">/02</a>
+    <a class="chip" href="prompt-03-ui-behavior.html">/03</a>
+    <a class="chip" href="prompt-04-process-batch.html">/04</a>
+    <a class="chip" href="prompt-05-data-query-interface.html">/05</a>
+    <a class="chip" href="prompt-06-common-permission.html">/06</a>
+    <a class="chip" href="prompt-07-assets.html">/07</a>
+    <a class="chip" href="prompt-08-source-fidelity.html">/08</a>
+    <a class="chip" href="prompt-09-detail-design.html">/09</a>
+    <a class="chip" href="prompt-10-markdown-integrity.html">/10</a>
+  </div>
+</section>
+
+<section id="skill" class="card">
+  <h2>スキル定義（SKILL.md）</h2>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">name</span><code>detail-design-workflow</code></div>
+    <div class="fact"><span class="fact-label">argument-hint</span>対象機能、工程番号、入力、出力先を指定</div>
+    <div class="fact"><span class="fact-label">user-invocable / disable-model-invocation</span><code>true</code> / <code>true</code>（人間が明示的に呼び出すスキルで、モデルからの自動起動はしない）</div>
+  </div>
+  <div class="note-box">
+    <span class="fact-label">description（frontmatter原文）</span>
+    “Use when converting Excel design documents into traceable JSON and then into detailed-design Markdown, including source-fidelity and Markdown-integrity evaluation.”
+  </div>
+  <p class="how-to-read">Excel設計書から直接Markdownを作らない。まず出典付きJ-* JSONへ構造化し、原本忠実性を評価してから、検証済みJSONをM-* Markdownへ変換する。</p>
+
+  <h3>必ず先に読むもの</h3>
+  <ul>
+    <li><a href="group-instructions.html">共通Instructions</a></li>
+    <li><a href="#runbook">標準作業手順（RUNBOOK）</a></li>
+    <li><a href="group-contracts-json.html">入出力契約一覧</a></li>
+    <li><a href="group-profiles.html">設計書プロファイル一覧</a></li>
+  </ul>
+
+  <h3>標準順序（7段）</h3>
+  <p class="how-to-read">見方: 上から下へ実行順に読む。矢印は工程の前後関係のみを表す（人間ゲートの詳細は下記「人間ゲート」節を参照）。</p>
+  <div class="pipe">
+    <div class="pipe-node"><span class="pipe-name">設計書棚卸し</span></div>
+    <div class="pipe-arrow">↓</div>
+    <div class="pipe-node"><span class="pipe-name">必要な構造化JSON抽出</span></div>
+    <div class="pipe-arrow">↓</div>
+    <div class="pipe-node"><span class="pipe-name">JSONごとの原本忠実性評価</span></div>
+    <div class="pipe-arrow">↓</div>
+    <div class="pipe-node"><span class="pipe-name">人間によるJSON確認</span></div>
+    <div class="pipe-arrow">↓</div>
+    <div class="pipe-node"><span class="pipe-name">詳細設計Markdown生成</span></div>
+    <div class="pipe-arrow">↓</div>
+    <div class="pipe-node"><span class="pipe-name">Markdown整合性評価</span></div>
+    <div class="pipe-arrow">↓</div>
+    <div class="pipe-node"><span class="pipe-name">人間による詳細設計確認</span></div>
+  </div>
+
+  <div class="stop-box">
+    実行入口は<code>.github/prompts</code>の番号付きPrompt Filesとする。実装計画、コード実装、実装レビュー、テスト生成へは進まない。
+  </div>
+</section>
+
+<section id="runbook" class="card">
+  <h2>標準作業手順（RUNBOOK）</h2>
+  <p class="how-to-read">この文書を日々の実行手順の正本とする。通常は1画面または1機能につき、runフォルダを1つ作る。</p>
+
+  <ol>
+    <li>
+      <strong>入力を確定する</strong>
+      <ul>
+        <li><code>run-template/FEATURE-ID</code>をコピーし機能IDへ改名する。</li>
+        <li><code>run-request.json</code>へ機能ID・機能名・設計書パス・版・出力先を記入する。</li>
+        <li>G0確認へ（→ <a href="#gates">ゲート参照</a>）。未知・改訂済みフォーマットは別手順あり（→ <a href="#gates">G0内の未知フォーマット処理</a>、<a href="prompt-00-format-survey.html">/00ページ</a>）。</li>
+      </ul>
+    </li>
+    <li>
+      <strong>設計書を棚卸しする</strong>
+      <ul>
+        <li>対象設計書1冊ごとに<code>/01-e2j-inventory-route</code>を実行する。1回に複数冊を渡さない。</li>
+        <li>出力されたJ-01の<code>routingPlan</code>で対象シート・処理単位・後続Promptを確認する。</li>
+      </ul>
+    </li>
+    <li>
+      <strong>必要なJSONだけを作る</strong>
+      <ul>
+        <li><code>routingPlan</code>に記載されたPromptだけを、1シートまたは1論理ブロック単位で実行する。</li>
+        <li>各PromptへJ-01の<code>profileId</code>と同じ値を渡す。担当skill/outputContractへルーティングされていない場合は実行しない。</li>
+        <li>大きなシートは項目番号・イベントID・検索要領番号・VIEW名などの親キーを保って分割する。</li>
+      </ul>
+      <table>
+        <thead><tr><th>Prompt</th><th>対象</th><th>主出力</th></tr></thead>
+        <tbody>
+          <tr><td><a href="prompt-02-ui-structure.html">/02-e2j-ui-structure</a></td><td>画面項目、表示構造、パラメータ</td><td><a href="group-contracts-json.html#j-10">J-10</a></td></tr>
+          <tr><td><a href="prompt-03-ui-behavior.html">/03-e2j-ui-behavior</a></td><td>項目制御、バリデーション、イベント、メッセージ</td><td><a href="group-contracts-json.html#j-11">J-11</a></td></tr>
+          <tr><td><a href="prompt-04-process-batch.html">/04-e2j-process-batch</a></td><td>処理、検索、更新、バッチ</td><td><a href="group-contracts-json.html#j-20">J-20</a></td></tr>
+          <tr><td><a href="prompt-05-data-query-interface.html">/05-e2j-data-query-interface</a></td><td>DB対応、エンティティ、VIEW、ファイル、外部連携</td><td><a href="group-contracts-json.html#j-30">J-30</a></td></tr>
+          <tr><td><a href="prompt-06-common-permission.html">/06-e2j-common-permission</a></td><td>権限マトリクス、共通規約</td><td><a href="group-contracts-json.html#j-40">J-40</a></td></tr>
+          <tr><td><a href="prompt-07-assets.html">/07-e2j-assets</a></td><td>画像、図形、コメント、読取不能要素</td><td><a href="group-contracts-json.html#j-60">J-60</a></td></tr>
+        </tbody>
+      </table>
+    </li>
+    <li>
+      <strong>JSONを原本と照合する</strong>
+      <ul>
+        <li>作成したJ-* JSON 1件ごとに<code>/08-ev-source-fidelity</code>を実行する。</li>
+        <li>FAILは元のE2J工程へ戻り、PASS_WITH_WARNINGSは人間が受容または再抽出を判断し、PASSは次工程の入力候補にできる。</li>
+        <li>G1確認へ（→ <a href="#gates">ゲート参照</a>）。</li>
+      </ul>
+    </li>
+    <li>
+      <strong>詳細設計Markdownを作る</strong>
+      <ul>
+        <li><code>/09-j2m-detail-design</code>へ<code>status.md</code>のパスを渡して実行する。停止条件はG1参照（→ <a href="#gates">ゲート参照</a>）。</li>
+        <li>常に作る: <code>00-overview.md</code>、<code>99-traceability.md</code>。</li>
+        <li>対応レコードがある場合だけ作る: <code>10-frontend.md</code>〜<code>60-assets.md</code>。</li>
+        <li>issueまたは警告がある場合だけ作る: <code>90-open-issues.md</code>。</li>
+        <li>空Markdownや空の表だけを持つ分野別Markdownは作らない。出力先に以前の実行で残った不要な空Markdownがあれば削除する。</li>
+      </ul>
+    </li>
+    <li>
+      <strong>Markdownを照合する</strong>
+      <ul>
+        <li><code>/10-ev-markdown-integrity</code>を実行する。評価Promptは修正しない。</li>
+        <li>G2確認へ（→ <a href="#gates">ゲート参照</a>）。EV-02がFAIL、またはblocking issueがある場合は<code>/09</code>へ戻る。</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h3>VS Codeでの実行方法</h3>
+  <ol>
+    <li>対象リポジトリをVS Codeで開く。</li>
+    <li>Copilot Chatで<code>/</code>を入力し、番号付きPrompt Fileを選ぶ。</li>
+    <li>機能ID、入力パス、出力パスなどを入力する。</li>
+    <li>Agentが変更しようとするファイルを確認し、指定出力先以外の変更は許可しない。</li>
+    <li>出力ファイル、件数、判定、blocking issueを確認する。</li>
+  </ol>
+</section>
+
+<section id="exec-counts" class="card">
+  <h2>Promptの実行回数</h2>
+  <p class="how-to-read">RUNBOOKより。番号付きPromptは、/00から/10までのすべてを1回ずつ実行する手順ではない。</p>
+  <table>
+    <thead><tr><th>Prompt</th><th>実行条件と回数</th></tr></thead>
+    <tbody>
+      <tr><td><a href="prompt-00-format-survey.html">/00</a></td><td>未知または改訂済みフォーマットだけ。調査対象1冊につき1回</td></tr>
+      <tr><td><a href="prompt-01-inventory-route.html">/01</a></td><td>対象Excelまたは入力スナップショット1冊につき1回</td></tr>
+      <tr><td>/02〜/07</td><td>J-01の<code>routingPlan</code>に載ったものだけ。1シートまたは1論理ブロックにつき1回</td></tr>
+      <tr><td><a href="prompt-08-source-fidelity.html">/08</a></td><td>作成したJ-* JSON 1ファイルにつき1回</td></tr>
+      <tr><td><a href="prompt-09-detail-design.html">/09</a></td><td>G1承認後、1 runにつき1回</td></tr>
+      <tr><td><a href="prompt-10-markdown-integrity.html">/10</a></td><td>/09の出力一式に対して1 runにつき1回</td></tr>
+    </tbody>
+  </table>
+  <div class="note-box">
+    CSV/TSVへの変換は番号付きPromptの工程ではない。生の<code>.xlsx</code>をモデルが読めない場合に、人間が対象シートをCSV、TSV、Markdown表、または行・節ID付きテキストへ書き出す前処理である。書き出したファイルを入力スナップショットとして<code>/01</code>以降へ渡す。
+  </div>
+  <div class="note-box">
+    TSVからMarkdownへ直接変換しない。通常経路は「Excelまたは入力スナップショット → J-* JSON → EV-01 → M-* Markdown → EV-02」とする。
+  </div>
+</section>
+
+<section id="models" class="card">
+  <h2>モデル利用と評価分離</h2>
+  <p class="how-to-read">RUNBOOKより。軽量モデルが1回に扱う対象を小さく保つ。複数シートや複数論理ブロックを1回のPromptへまとめない。</p>
+  <table>
+    <thead><tr><th>Prompt</th><th>標準モデル</th><th>条件</th></tr></thead>
+    <tbody>
+      <tr><td><a href="prompt-00-format-survey.html">/00</a></td><td>GPT-5.4 Medium</td><td>未知形式の分類と候補Profile作成に使用</td></tr>
+      <tr><td><a href="prompt-01-inventory-route.html">/01</a></td><td>GPT-5.4 mini</td><td>blocking、partial、分類競合があればMediumまたは人間へ上げる</td></tr>
+      <tr><td>/02〜/07</td><td>GPT-5.4 mini</td><td>1シートまたは1論理ブロックに限定。曖昧なら停止して上げる</td></tr>
+      <tr><td><a href="prompt-08-source-fidelity.html">/08</a></td><td>GPT-5.4 Medium</td><td>抽出に使ったチャットとは別会話で実行</td></tr>
+      <tr><td><a href="prompt-09-detail-design.html">/09</a></td><td>GPT-5.4 mini</td><td>G1承認済みJSONの表現変換だけを行う</td></tr>
+      <tr><td><a href="prompt-10-markdown-integrity.html">/10</a></td><td>GPT-5.4 Medium</td><td>/09に使ったチャットとは別会話で実行</td></tr>
+    </tbody>
+  </table>
+  <div class="note-box">
+    生成と評価を同じチャットで続けて実行しない。評価担当には生成時の推論や自己説明を引き継がず、入力ソース、対象成果物、Schema、評価Promptだけを渡す。
+  </div>
+</section>
+
+<section id="gates" class="card">
+  <h2>人間ゲート（G0 / G1 / G2）</h2>
+  <div class="gate-box">
+    <strong>G0（入力確定時）</strong> — 人間が次を確認できない場合は開始しない。
+    <ul>
+      <li>対象設計書の正本と版</li>
+      <li>機能IDと機能名</li>
+      <li>使用するプロファイル</li>
+      <li>JSON、評価、Markdownの出力先</li>
+    </ul>
+    <p class="how-to-read">未知または改訂済みのExcelフォーマットは次の順で処理する（→ <a href="prompt-00-format-survey.html">/00ページ</a>）。</p>
+    <ol>
+      <li><code>/00-d00-format-survey</code>で調査レポートと<code>provisional</code>の候補Profile JSONを別々に出力する。</li>
+      <li>人間がシート名、見出し、ブロック境界、skill、outputContract、停止条件を確認し、候補Profileが<code>PROFILE-00.schema.json</code>に適合することを確認する。</li>
+      <li>未確認の<code>unknown</code>または<code>UNKNOWN</code>が残る場合は、回答または追加調査で具体的なルールへ直す。残したまま通常変換へ進まない。</li>
+      <li>人間が承認した候補Profileだけを<code>profiles/</code>へ配置し、<code>PROFILE-INDEX.md</code>へ登録する。</li>
+      <li>登録した<code>profileId</code>を指定して<code>/01-e2j-inventory-route</code>から再開する。</li>
+    </ol>
+    <p class="how-to-read"><code>/00</code>は既存Profileを自動変更しない。候補Profileを承認・登録できない場合は停止する。</p>
+  </div>
+  <div class="gate-box">
+    <strong>G1（JSON確認時）</strong> — 使用する全JSONが<code>PASS</code>、または人間が受容した<code>PASS_WITH_WARNINGS</code>であることを確認する。blocking issueが残る場合は進まない。
+    <p class="how-to-read">確認後、runフォルダの<code>status.md</code>でG1を「承認済み」にし、確認者、日付、警告受容の理由を記録する。J-90の<code>humanReviewStatus</code>は評価時点のスナップショットであり、人間確認状態の正本は<code>status.md</code>とする（→ <a href="group-instructions.html#evaluation">評価3値</a>）。</p>
+  </div>
+  <div class="gate-box">
+    <strong>G2（詳細設計確認時）</strong> — 人間が次を確認する。
+    <ul>
+      <li>JSONにない仕様が追加されていない。</li>
+      <li>条件、否定、例外、数値、順序が失われていない。</li>
+      <li>全Record IDが<code>99-traceability.md</code>から追跡できる。</li>
+      <li>issueと警告がある場合は<code>90-open-issues.md</code>に整理されている。</li>
+      <li>「該当なし」と「未確認」が混同されていない。</li>
+    </ul>
+  </div>
+</section>
+
+<section id="troubleshooting" class="card">
+  <h2>トラブルシューティング</h2>
+  <table>
+    <thead><tr><th>症状</th><th>対応</th></tr></thead>
+    <tbody>
+      <tr><td>Prompt Fileが候補に出ない</td><td><code>.github/prompts/*.prompt.md</code>と<code>.vscode/settings.json</code>を確認し、VS Codeを再読み込みする</td></tr>
+      <tr><td>Excelを直接読めない</td><td>番号付きPromptを開始する前に、対象シートをTSV、CSV、Markdown表、行・節ID付きテキストのいずれかへ人間が書き出し、入力スナップショットとして同じ版を全工程へ渡す</td></tr>
+      <tr><td>JSON Schemaエラー</td><td>定義外キー、null、Enumを確認し、生成物を手修正せず元のE2J工程を再実行する</td></tr>
+      <tr><td>coverageが一致しない</td><td>sourceUnit境界を見直し、論理ブロックを小さくする</td></tr>
+      <tr><td>EV-01がFAIL</td><td>対応するE2J工程へ戻る</td></tr>
+      <tr><td>EV-02がFAIL</td><td><code>/09-j2m-detail-design</code>へ戻る</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="resume" class="card">
+  <h2>中断と再開</h2>
+  <ul>
+    <li>J-* JSON、EV-01、M-* Markdown、EV-02が再開地点になる。前工程の成果物と評価結果がない場合は、後工程から開始しない。</li>
+    <li>未知形式の再開地点は、人間承認済みの候補Profileである。調査レポートだけ、または未承認の候補Profileだけでは<code>/01</code>へ進まない。</li>
+  </ul>
+</section>
+
+<footer class="src-note">正本: <code>.github/skills/detail-design-workflow/SKILL.md</code> と <code>.github/skills/detail-design-workflow/RUNBOOK.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

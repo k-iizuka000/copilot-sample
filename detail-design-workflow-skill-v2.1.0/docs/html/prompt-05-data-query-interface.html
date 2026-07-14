@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/05 データ・検索・連携抽出 | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">/05 データ・検索・連携抽出</span>
+  <span class="nav-spacer"></span>
+  <a class="nav-link" href="prompt-04-process-batch.html">← /04</a>
+  <a class="nav-link" href="prompt-06-common-permission.html">/06 →</a>
+</nav>
+<main>
+
+  <header class="page-head">
+    <h1>/05 データ・検索・連携抽出</h1>
+    <span class="badge badge-e2j">抽出</span>
+    <span class="src-file">原本: <code>05-e2j-data-query-interface.prompt.md</code></span>
+  </header>
+
+  <div class="purpose">
+    このページの目的と見方: 指定した1シートまたは1論理ブロックから、項目DB対応・エンティティ・属性・VIEW・外部連携をJ-30 JSONへ抽出する工程です。中央の図は手順を上から読み、クリックするとその手順が使う入力と書く出力だけが点灯します。
+  </div>
+
+  <section id="summary" class="card">
+    <h2>サマリー</h2>
+    <div class="fact-grid">
+      <div class="fact">
+        <span class="fact-label">実行条件・回数（RUNBOOKより）</span>
+        J-01の<code>routingPlan</code>に載ったものだけ。1シートまたは1論理ブロックにつき1回。
+      </div>
+      <div class="fact">
+        <span class="fact-label">標準モデルと条件（RUNBOOKより）</span>
+        GPT-5.4 mini。1シートまたは1論理ブロックに限定。曖昧なら停止して上げる。
+      </div>
+      <div class="fact">
+        <span class="fact-label">前工程 → この工程 → 後工程（RUNBOOKより）</span>
+        <a href="prompt-01-inventory-route.html">/01 棚卸し・ルーティング</a> → <strong>/05 データ・検索・連携抽出</strong> → <a href="prompt-08-source-fidelity.html">/08 原本忠実性評価(EV-01)</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="inputs" class="card">
+    <h2>入力</h2>
+
+    <h3>実行パラメータ</h3>
+    <table class="params-table">
+      <thead><tr><th>パラメータ</th><th>渡すもの</th><th>必須</th></tr></thead>
+      <tbody>
+        <tr><td><code>featureId</code></td><td>機能ID</td><td>必須</td></tr>
+        <tr><td><code>sourcePath</code></td><td>対象設計書</td><td>必須</td></tr>
+        <tr><td><code>profileId</code></td><td>J-01に記録されたProfile ID。標準はPROFILE-02、03、04</td><td>必須</td></tr>
+        <tr><td><code>sheetName</code></td><td>項目DB対応表、エンティティ、VIEW等</td><td>必須</td></tr>
+        <tr><td><code>blockSelector</code></td><td>対象テーブル、VIEW、ブロック</td><td>必須</td></tr>
+        <tr><td><code>outputPath</code></td><td>J-30出力先</td><td>必須</td></tr>
+      </tbody>
+    </table>
+
+    <h3>参照ファイル</h3>
+    <p class="hint">参照ファイルは、プロンプト実行時に暗黙に読み込まれるコンテキスト（＝入力）です。</p>
+    <div class="cards cols-2">
+      <div class="fact">
+        <span class="fact-label">参照ファイル</span>
+        <a href="group-instructions.html">共通Instructions</a>
+        <div class="src-file">原本: <code>../copilot-instructions.md</code></div>
+      </div>
+      <div class="fact">
+        <span class="fact-label">参照ファイル</span>
+        <a href="group-contracts-json.html#i-00">入力ソース契約（I-00）</a>
+        <div class="src-file">原本: <code>../skills/detail-design-workflow/contracts/input/I-00-source-input-contract.md</code></div>
+      </div>
+      <div class="fact">
+        <span class="fact-label">参照ファイル</span>
+        <a href="group-contracts-json.html#j-30">J-30 Schema</a>
+        <div class="src-file">原本: <code>../skills/detail-design-workflow/contracts/json/J-30-data-model-interface.schema.json</code></div>
+      </div>
+      <div class="fact">
+        <span class="fact-label">参照ファイル</span>
+        <a href="group-profiles.html">設計書プロファイル一覧</a>
+        <div class="src-file">原本: <code>../skills/detail-design-workflow/profiles/PROFILE-INDEX.md</code></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="flow" class="card">
+    <h2>処理フロー</h2>
+    <p class="how-to-read">見方: 中央の手順を上から順に読む。手順をクリックすると、その手順が使う入力と書く出力だけが点灯する。</p>
+    <div class="legend">
+      <span class="chip chip-input">入力</span><span class="chip chip-step">手順</span>
+      <span class="chip chip-output">出力</span><span class="chip chip-stop">停止あり</span>
+    </div>
+    <p class="hint">👆 手順カード・入出力カードをクリック（もう一度クリックで解除）。<button class="reset-flow" type="button">全体表示に戻す</button></p>
+    <div class="flow">
+      <div class="flow-col col-input">
+        <h3>入力</h3>
+        <div class="io-item" data-io-id="p-featureId"><span class="io-name">featureId（機能ID）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="p-sourcePath"><span class="io-name">sourcePath（対象設計書）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="p-profileId"><span class="io-name">profileId（Profile ID）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="p-sheetName"><span class="io-name">sheetName（項目DB対応表／エンティティ／VIEW等）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="p-blockSelector"><span class="io-name">blockSelector（対象テーブル／VIEW／ブロック）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="p-outputPath"><span class="io-name">outputPath（J-30出力先）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="ref-instructions"><span class="io-name">共通Instructions</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-i00"><span class="io-name">I-00 入力ソース契約</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-j30schema"><span class="io-name">J-30 Schema</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-profileindex"><span class="io-name">設計書プロファイル一覧</span><span class="io-sub">参照ファイル</span></div>
+      </div>
+      <div class="flow-col col-steps">
+        <h3>手順（原本の順序のまま）</h3>
+        <div class="step" data-num="1" data-reads="p-sourcePath,p-sheetName,p-blockSelector" data-writes="">
+          <span class="step-num">1</span>
+          <span class="step-name">指定された1シートまたは1論理ブロックだけを読む</span>
+        </div>
+        <div class="step has-stop" data-num="2" data-reads="p-profileId,ref-profileindex" data-writes="" data-stop="対象ブロックがE2J-04/J-30へルーティングされていることとシート構成が一致しない場合は停止する">
+          <span class="step-num">2</span>
+          <span class="step-name">profileIdのProfileで対象ブロックがE2J-04/J-30へルーティングされていることと、シート構成が一致することを確認する</span>
+          <span class="step-cap">不一致なら停止する</span>
+        </div>
+        <div class="step" data-num="3" data-reads="p-sheetName" data-writes="">
+          <span class="step-num">3</span>
+          <span class="step-name">項目DB対応はitem_db_mappingとして、画面項目番号・テーブルID・テーブル名・カラム名・特記事項を1行1対応で抽出する</span>
+        </div>
+        <div class="step" data-num="4" data-reads="p-sheetName,ref-j30schema" data-writes="">
+          <span class="step-num">4</span>
+          <span class="step-name">エンティティ項目はentity_field、属性標準はattribute_definition、属性辞書はattribute_dictionary_entryとして、Schemaのフィールドへ明記どおり抽出する</span>
+        </div>
+        <div class="step" data-num="5" data-reads="p-sheetName" data-writes="">
+          <span class="step-num">5</span>
+          <span class="step-name">VIEW一覧は1行を1件のview_definitionとして抽出する</span>
+        </div>
+        <div class="step" data-num="6" data-reads="p-blockSelector" data-writes="">
+          <span class="step-num">6</span>
+          <span class="step-name">VIEW検索要領はVIEW物理名を親キーにし、検索ブロックをview_query_block、制約をselect_constraintとして抽出する</span>
+        </div>
+        <div class="step" data-num="7" data-reads="" data-writes="">
+          <span class="step-num">7</span>
+          <span class="step-name">外部連携はexternal_interfaceとして、方向・形式・項目・条件・エラーの明記情報だけを抽出する</span>
+        </div>
+        <div class="step" data-num="8" data-reads="" data-writes="">
+          <span class="step-num">8</span>
+          <span class="step-name">旧版、バックアップ、移行、作業、生成SQLは確定recordへ混ぜず、coverageのreference_only、またはissueとして扱う</span>
+        </div>
+        <div class="step" data-num="9" data-reads="p-outputPath" data-writes="out-j30">
+          <span class="step-num">9</span>
+          <span class="step-name">J-30 JSONだけをoutputPathへ書き込む</span>
+        </div>
+      </div>
+      <div class="flow-col col-output">
+        <h3>出力</h3>
+        <div class="io-item io-out" data-io-id="out-j30"><span class="io-name">J-30 JSON</span><span class="io-sub">outputPath へ</span></div>
+      </div>
+    </div>
+    <div class="step-detail" id="step-detail" hidden>
+      <div class="sd-title" data-f="title"></div>
+      <div class="sd-note" data-f="note"></div>
+      <div class="sd-grid">
+        <div><span class="sd-label">使う入力</span><span data-f="reads"></span></div>
+        <div><span class="sd-label">出す出力</span><span data-f="writes"></span></div>
+        <div><span class="sd-label">停止・分岐</span><span data-f="stop"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="outputs" class="card">
+    <h2>出力</h2>
+    <div class="cards cols-2">
+      <div class="fact">
+        <span class="fact-label">J-30 JSON</span>
+        <div>outputPath が示す場所へ、J-30 JSON<strong>だけ</strong>を書き込む。</div>
+        <div class="src-file">形式: <a href="group-contracts-json.html#j-30">J-30 Schema</a></div>
+        <div class="src-file">対象recordType: <code>item_db_mapping</code> <code>entity_field</code> <code>attribute_definition</code> <code>attribute_dictionary_entry</code> <code>view_definition</code> <code>view_query_block</code> <code>select_constraint</code> <code>external_interface</code></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="stops" class="card">
+    <h2>停止条件・禁止事項</h2>
+    <div class="stop-box">
+      <strong>停止条件</strong>
+      <ul>
+        <li>profileIdのProfileで対象ブロックがE2J-04/J-30へルーティングされていることと、シート構成が一致することを確認できない場合は停止する（手順2）。</li>
+      </ul>
+    </div>
+    <div class="stop-box">
+      <strong>禁止事項</strong>
+      <ul>
+        <li>旧版、バックアップ、移行、作業、生成SQLは確定recordへ混ぜない（coverageのreference_only、またはissueとして扱う。手順8）。</li>
+        <li>DBカラム、索引、SQL、ファイル定義、外部連携方式を設計または推測しない。</li>
+        <li>J-30 Schemaにない種類を独自追加しない。</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="src-note">正本: <code>.github/prompts/05-e2j-data-query-interface.prompt.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

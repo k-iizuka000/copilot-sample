@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>runフォルダ雛形 | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">runフォルダ雛形</span>
+  <span class="nav-spacer"></span>
+</nav>
+
+<main>
+  <header class="page-head">
+    <h1>runフォルダ雛形</h1>
+    <div class="src-file">原本: <code>run-template/FEATURE-ID/</code> 一式</div>
+  </header>
+
+  <div class="purpose">
+    このページの目的と見方: 1 run（原則1画面または1機能）につき<code>run-template/FEATURE-ID</code>をコピーして使う雛形フォルダの構成を見る。まず全体の配置（<a href="#dirs">フォルダ構成</a>）を見てから、入力確定ファイル（<a href="#run-request">run-request.json</a>）と人間確認状態の正本（<a href="#status">status.md</a>）を確認する。
+  </div>
+
+  <p>どこから参照されるか:</p>
+  <div class="used-by">
+    <a class="chip" href="prompt-09-detail-design.html">/09 が status.md を statusPath として読む</a>
+    <a class="chip" href="group-skill-runbook.html#gates">RUNBOOK G0/G1/G2 がこのフォルダの状態を記録</a>
+    <a class="chip" href="group-skill-runbook.html#runbook">RUNBOOK「0. 入力を確定する」でコピーする</a>
+  </div>
+
+  <section id="dirs" class="card">
+    <h2>フォルダ構成</h2>
+    <p class="how-to-read">見方: 上のフォルダをコピーしたものが1 run。↓の6項目は同じ階層に並ぶファイル・フォルダで、実行順序ではない（RUNBOOK・各README.mdより）。</p>
+    <div class="pipe">
+      <div class="pipe-node"><span class="pipe-name">FEATURE-ID/</span><span class="pipe-sub">機能IDに合わせて名前を変更してコピーする雛形フォルダ</span></div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-fan">
+        <div class="pipe-node"><span class="pipe-name">run-request.json</span><span class="pipe-sub">入力確定情報の記入先</span></div>
+        <div class="pipe-node"><span class="pipe-name">status.md</span><span class="pipe-sub">G0/G1/G2 人間確認状態の正本</span></div>
+        <div class="pipe-node"><span class="pipe-name">00-input/</span><span class="pipe-sub">設計書または入力スナップショットを格納する</span></div>
+        <div class="pipe-node"><span class="pipe-name">10-json/</span><span class="pipe-sub">J-* JSONを格納する</span></div>
+        <div class="pipe-node"><span class="pipe-name">20-evaluation/</span><span class="pipe-sub">EV-01とEV-02の評価結果を格納する</span></div>
+        <div class="pipe-node"><span class="pipe-name">30-markdown/</span><span class="pipe-sub">M-* 詳細設計Markdownを格納する</span></div>
+      </div>
+    </div>
+    <p class="hint">各フォルダの役割1行は、それぞれの<code>README.md</code>の記載そのまま。</p>
+  </section>
+
+  <section id="run-request" class="card">
+    <h2>run-request.json</h2>
+    <p>run開始時に<code>run-template/FEATURE-ID</code>をコピーし、機能IDに合わせて名前を変更したうえで記入する入力確定ファイル（RUNBOOK「0. 入力を確定する」より）。</p>
+    <table>
+      <thead><tr><th>フィールド</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td><code>contractId</code></td><td>雛形では固定値 <code>I-00</code></td></tr>
+        <tr><td><code>featureId</code></td><td>機能ID（記入項目）</td></tr>
+        <tr><td><code>featureName</code></td><td>機能名（記入項目。雛形では<code>null</code>）</td></tr>
+        <tr><td><code>runId</code></td><td>実行ID（雛形例: <code>FEATURE-ID-RUN-001</code>）</td></tr>
+        <tr><td><code>designDocuments[].documentType</code></td><td>雛形例: <code>screen_design</code></td></tr>
+        <tr><td><code>designDocuments[].profileId</code></td><td>雛形例: <code>PROFILE-01</code></td></tr>
+        <tr><td><code>designDocuments[].sourcePath</code></td><td>設計書パス（記入項目）</td></tr>
+        <tr><td><code>designDocuments[].version</code></td><td>版（記入項目。雛形では<code>null</code>）</td></tr>
+        <tr><td><code>outputRoot</code></td><td>出力先（記入項目。雛形例: <code>work/detail-design/FEATURE-ID/RUN-001</code>）</td></tr>
+        <tr><td><code>operator</code></td><td>実行者（雛形では<code>null</code>）</td></tr>
+        <tr><td><code>humanGate.G0</code></td><td>G0の状態（雛形では<code>not_approved</code>）</td></tr>
+      </tbody>
+    </table>
+    <div class="gate-box">
+      <strong>G0として人間が確認する項目（RUNBOOKより）</strong>
+      <ul>
+        <li>対象設計書の正本と版</li>
+        <li>機能IDと機能名</li>
+        <li>使用するプロファイル</li>
+        <li>JSON、評価、Markdownの出力先</li>
+      </ul>
+      確認できない場合は開始しない。G0/G1/G2の全体像は <a href="group-skill-runbook.html#gates">group-skill-runbook.html#gates →</a>。
+    </div>
+  </section>
+
+  <section id="status" class="card">
+    <h2>status.md</h2>
+    <div class="gate-box">
+      G0/G1/G2の人間確認状態を記録する表。RUNBOOKは「J-90の<code>humanReviewStatus</code>は評価時点のスナップショットであり、人間確認状態の正本は<code>status.md</code>とする」と明記する。<a href="prompt-09-detail-design.html">/09</a>は<code>statusPath</code>パラメータでこの表のG1状態を読み、「承認済み」でなければ停止する。
+    </div>
+    <table>
+      <thead><tr><th>ゲート</th><th>状態</th><th>確認者</th><th>日付</th><th>備考</th></tr></thead>
+      <tbody>
+        <tr><td>G0 入力確定</td><td>未承認</td><td></td><td></td><td></td></tr>
+        <tr><td>G1 JSON承認</td><td>未承認</td><td></td><td></td><td></td></tr>
+        <tr><td>G2 詳細設計承認</td><td>未承認</td><td></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <p class="hint">状態は「未承認」または「承認済み」を使用する（雛形の注記より）。G1で「PASS_WITH_WARNINGS」を受容する場合は、備考へ対象J-90と受容理由を記録する。</p>
+  </section>
+
+  <footer class="src-note">正本: <code>.github/skills/detail-design-workflow/run-template/FEATURE-ID/</code> 一式 — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Markdownテンプレート | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .out-cond { border-radius: 8px; padding: 10px 14px; border: 1px solid var(--line); }
+  .out-cond-always { border-left: 4px solid var(--c-output); background: var(--c-output-bg); }
+  .out-cond-record { border-left: 4px solid var(--c-input);  background: var(--c-input-bg); }
+  .out-cond-issue  { border-left: 4px solid var(--c-human);  background: var(--c-human-bg); }
+  .out-cond h2 { border-left: none; padding-left: 0; font-size: 15px; margin: 0 0 4px; }
+  .out-cond .out-file { display: block; font-size: 12px; color: var(--muted); margin: 2px 0 6px; }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">Markdownテンプレート</span>
+  <span class="nav-spacer"></span>
+</nav>
+
+<main>
+  <header class="page-head">
+    <h1>Markdownテンプレート</h1>
+    <div class="src-file">原本: <code>contracts/CONTRACT-INDEX.md</code> / <code>contracts/markdown/M-*.template.md</code></div>
+  </header>
+
+  <div class="purpose">
+    このページの目的と見方: /09が生成する詳細設計Markdown9種の雛形を一覧する。色ラベルは出力条件（常に作成／対応レコードあり／issue・警告あり）を示し、各カードには節構成の要約と出力例ファイル名を記載する。
+  </div>
+
+  <p>どのプロンプトから参照されるか:</p>
+  <div class="used-by">
+    <a class="chip" href="prompt-09-detail-design.html">/09 が生成する</a>
+    <a class="chip" href="prompt-10-markdown-integrity.html">/10 が検証する</a>
+  </div>
+
+  <div class="note-box">
+    共通の処理規則・停止条件・評価基準・Markdown出力規則は <a href="group-instructions.html#markdown-output">共通Instructions</a> を正本とする（CONTRACT-INDEXより）。空Markdownは作成せず、分野別ファイルを省略した場合はその理由を <a href="#m-01">M-01</a> の「出力一覧」節へ記録する。全テンプレートは共通のfrontmatter（<code>contractId</code> <code>schemaVersion</code> <code>featureId</code> <code>featureName</code> <code>generationRunId</code> <code>generationStatus</code> <code>sourceRecordCount</code>）を持つ。
+  </div>
+
+  <div class="legend">
+    <span class="chip chip-output">常に作成</span>
+    <span class="chip chip-input">対応レコードあり</span>
+    <span class="chip chip-human">issue・警告あり</span>
+  </div>
+
+  <div class="cards cols-2">
+
+    <section class="card out-cond out-cond-always" id="m-01">
+      <h2>M-01 機能概要</h2>
+      <span class="out-file">出力例: <code>00-overview.md</code></span>
+      <p>対象設計書一覧・機能概要・M-*出力一覧（契約／状態／レコード数）・未確定事項（M-90参照）の4節構成。</p>
+      <p class="src-file">原本: <code>markdown/M-01-overview.template.md</code></p>
+    </section>
+
+    <section class="card out-cond out-cond-record" id="m-10">
+      <h2>M-10 フロントエンド</h2>
+      <span class="out-file">出力例: <code>10-frontend.md</code></span>
+      <p>画面・レイアウト、画面項目、項目制御、バリデーション、イベント・遷移、メッセージ、URL・パラメータ、共通仕様参照の8節構成。</p>
+      <p class="src-file">原本: <code>markdown/M-10-frontend.template.md</code></p>
+    </section>
+
+    <section class="card out-cond out-cond-record" id="m-20">
+      <h2>M-20 バックエンド</h2>
+      <span class="out-file">出力例: <code>20-backend.md</code></span>
+      <p>処理一覧、前提・分岐・トランザクション、検索要領、更新要領、バックエンドバリデーション、権限チェック参照の6節構成。</p>
+      <p class="src-file">原本: <code>markdown/M-20-backend.template.md</code></p>
+    </section>
+
+    <section class="card out-cond out-cond-record" id="m-30">
+      <h2>M-30 DB</h2>
+      <span class="out-file">出力例: <code>30-database.md</code></span>
+      <p>画面項目・DB項目対応、エンティティ・カラム、VIEW一覧、VIEW検索要領、参照専用・派生情報の5節構成。</p>
+      <p class="src-file">原本: <code>markdown/M-30-database.template.md</code></p>
+    </section>
+
+    <section class="card out-cond out-cond-record" id="m-40">
+      <h2>M-40 バッチ・外部IF</h2>
+      <span class="out-file">出力例: <code>40-batch-interface.md</code></span>
+      <p>バッチ制御（起動条件・スケジュール・処理ステップ・終了条件・リトライ・リカバリ）とファイル・外部連携の2節構成。</p>
+      <p class="src-file">原本: <code>markdown/M-40-batch-interface.template.md</code></p>
+    </section>
+
+    <section class="card out-cond out-cond-record" id="m-50">
+      <h2>M-50 権限・共通</h2>
+      <span class="out-file">出力例: <code>50-common-permission.md</code></span>
+      <p>画面・イベント権限、ロール階層、案件参照権限、共通規約、派生SQL（業務権限の正本ではない参考情報）の5節構成。</p>
+      <p class="src-file">原本: <code>markdown/M-50-authorization-common.template.md</code></p>
+    </section>
+
+    <section class="card out-cond out-cond-record" id="m-60">
+      <h2>M-60 アセット</h2>
+      <span class="out-file">出力例: <code>60-assets.md</code></span>
+      <p>アセット一覧表（Asset ID・種別・元シート/位置・状態・保存先・説明）1本のみの構成。未書き出し・読取不能のアセットはM-90にも記載する。</p>
+      <p class="src-file">原本: <code>markdown/M-60-assets.template.md</code></p>
+    </section>
+
+    <section class="card out-cond out-cond-issue" id="m-90">
+      <h2>M-90 未確定事項</h2>
+      <span class="out-file">出力例: <code>90-open-issues.md</code></span>
+      <p>issue・質問票の表（Issue ID・Blocking・種別・要約・確認質問・影響Record・出典・状態）1本のみの構成。issueまたは引継ぎ警告が1件以上あるときだけ作成する。</p>
+      <p class="src-file">原本: <code>markdown/M-90-open-issues.template.md</code></p>
+    </section>
+
+    <section class="card out-cond out-cond-always" id="m-99">
+      <h2>M-99 トレーサビリティ</h2>
+      <span class="out-file">出力例: <code>99-traceability.md</code></span>
+      <p>JSON Record→Markdown対応表と、JSON件数とMarkdownトレース件数の件数照合の2節構成。sourceUnit単位の詳細coverageは各J-*を正本とし重複転記しない。</p>
+      <p class="src-file">原本: <code>markdown/M-99-traceability.template.md</code></p>
+    </section>
+
+  </div>
+
+  <footer class="src-note">正本: <code>.github/skills/detail-design-workflow/contracts/CONTRACT-INDEX.md</code> と <code>contracts/markdown/*.template.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

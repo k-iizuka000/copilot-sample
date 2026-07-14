@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>共通Instructions | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">共通Instructions</span>
+</nav>
+<main>
+
+<header class="page-head">
+  <h1>共通Instructions</h1>
+  <div class="src-file">原本: <code>.github/copilot-instructions.md</code></div>
+</header>
+
+<div class="purpose">
+  このページの目的と見方: ここは全Prompt Fileに共通する規則の一覧です。7節それぞれが独立したカードで、原本の節見出しにそのまま対応します。
+</div>
+
+<section>
+  <h3>参照元Prompt（このページを暗黙に読むPrompt File）</h3>
+  <div class="used-by">
+    <a class="chip" href="prompt-00-format-survey.html">/00</a>
+    <a class="chip" href="prompt-01-inventory-route.html">/01</a>
+    <a class="chip" href="prompt-02-ui-structure.html">/02</a>
+    <a class="chip" href="prompt-03-ui-behavior.html">/03</a>
+    <a class="chip" href="prompt-04-process-batch.html">/04</a>
+    <a class="chip" href="prompt-05-data-query-interface.html">/05</a>
+    <a class="chip" href="prompt-06-common-permission.html">/06</a>
+    <a class="chip" href="prompt-07-assets.html">/07</a>
+    <a class="chip" href="prompt-08-source-fidelity.html">/08</a>
+    <a class="chip" href="prompt-09-detail-design.html">/09</a>
+    <a class="chip" href="prompt-10-markdown-integrity.html">/10</a>
+  </div>
+</section>
+
+<div class="note-box">
+  この7節は全Prompt共通の暗黙コンテキストです。個別のPrompt Fileの本文には書かれていませんが、実行時に前提として適用され、各プロンプトページの「入力」カラムに「共通Instructions」として現れます。
+</div>
+
+<section id="scope" class="card">
+  <h2>対象範囲</h2>
+  <ul>
+    <li>目的は、Excel設計書を出典付きJSONへ変換し、そのJSONから詳細設計Markdownを作ること。</li>
+    <li>実装計画、ソースコード、実装レビュー、テストコードは作成・変更しない。</li>
+    <li>業務仕様の根拠は、指定されたExcel設計書またはその入力スナップショットと、EV-01で検証済みのJ-* JSONだけにする。</li>
+    <li>指定されていない設計書、既存コード、Web、別ブックを根拠として使わない。</li>
+    <li>元の設計書を変更しない。Prompt Fileで指定された出力先以外を変更しない。</li>
+    <li>ターミナルまたはCLIを標準手順として使用しない。</li>
+  </ul>
+</section>
+
+<section id="input-unit" class="card">
+  <h2>入力と処理単位</h2>
+  <ul>
+    <li>棚卸しは1回につきExcel 1冊、抽出は1シートまたは1論理ブロックを原則とする。</li>
+    <li>生の<code>.xlsx</code>を読み取れない場合は、同じシートのTSV、CSV、Markdown表、または行・節ID付きテキストを要求する。推測で続行しない。</li>
+    <li>指定プロファイルとシート構成が一致しない場合は停止し、<code>/00-d00-format-survey</code>または人間確認へ戻す。</li>
+    <li>正本候補の競合、入力切断、ブロック境界不明、出典特定不能はblocking issueにする。</li>
+  </ul>
+</section>
+
+<section id="json-output" class="card">
+  <h2>JSON出力</h2>
+  <ul>
+    <li><code>contracts/json/</code>の対応Schemaへ厳密に適合させる（→ <a href="group-contracts-json.html">入出力契約一覧</a>）。</li>
+    <li>定義外キーを追加せず、<code>additionalProperties: false</code>を守る。</li>
+    <li>不明値は<code>null</code>、0件の配列は<code>[]</code>とする。空文字や「不明」で代用しない。</li>
+    <li>同じ入力ではIDと並び順を安定させる。</li>
+    <li>確定レコードには1件以上の<code>sourceRefs</code>を付ける。</li>
+    <li>全sourceUnitを<code>extracted</code>、<code>metadata</code>、<code>asset</code>、<code>reference_only</code>、<code>ignored</code>、<code>issue</code>のいずれかで説明する。</li>
+    <li><code>sourceUnitCount = accountedSourceUnitCount</code>かつ<code>unaccountedSourceUnitCount = 0</code>を満たせない場合は<code>complete</code>にしない。</li>
+    <li>数式を取得できる場合は表示値と数式文字列を両方保持する。</li>
+    <li>非表示行・列を、非表示であることだけを理由に除外しない。</li>
+    <li>画像、図形、コメント、drawing、media、VMLはJ-60またはissueへ分離し、見た目から仕様を推測しない。</li>
+  </ul>
+</section>
+
+<section id="classification" class="card">
+  <h2>分類と問題管理</h2>
+  <ul>
+    <li><code>layers</code>と<code>scope</code>を分離する。同じ仕様をレイヤーごとに複製せず、同じRecord IDへ必要な分類を付ける。</li>
+    <li><code>common</code>は、複数機能へ適用すると原本に明記されている場合だけ使用する。</li>
+    <li>「該当なし」は対象資料を確認して対象レコードがない状態、「未確認」は資料不足・読取不能・判断不能の状態として区別する。</li>
+    <li>次工程へ安全に進めない問題だけ<code>blocking: true</code>とする。</li>
+    <li>問題には、Issue ID、種別、要約、人間が一つの判断を返せる確認質問、出典、影響Record IDを付ける。</li>
+  </ul>
+</section>
+
+<section id="evaluation" class="card">
+  <h2>評価</h2>
+  <div class="fact-grid">
+    <div class="fact">
+      <span class="fact-label verdict-pass">PASS</span>
+      欠落、追加仕様、出典欠落、未処理、警告がない。
+    </div>
+    <div class="fact">
+      <span class="fact-label verdict-warn">PASS_WITH_WARNINGS</span>
+      確定情報とカバレッジは成立し、非blockingの未確認事項が明示されている。
+    </div>
+    <div class="fact">
+      <span class="fact-label verdict-fail">FAIL</span>
+      欠落、追加仕様、出典欠落、未処理、正本競合、blocking issueがある。
+    </div>
+  </div>
+  <ul>
+    <li>評価Promptは対象成果物を修正しない。修正は生成工程へ戻って行う。</li>
+    <li>AIの評価だけで人間確認を完了扱いにしない。</li>
+  </ul>
+</section>
+
+<section id="markdown-output" class="card">
+  <h2>Markdown出力</h2>
+  <ul>
+    <li><code>contracts/markdown/</code>のテンプレートに従う（→ <a href="group-markdown-templates.html">Markdownテンプレート一覧</a>）。</li>
+    <li><code>00-overview.md</code>と<code>99-traceability.md</code>は常に作成する。</li>
+    <li><code>10</code>〜<code>60</code>の分野別Markdownは、対応する確定レコードが1件以上ある場合だけ作成する。</li>
+    <li><code>90-open-issues.md</code>は、issueまたは引き継ぐ警告が1件以上ある場合だけ作成する。</li>
+    <li>空ファイル、空の表だけを持つファイル、「該当なし」だけの分野別ファイルは作成しない。既存の不要な空Markdownが出力先にあれば削除する。</li>
+    <li>作成しなかった分野は<code>00-overview.md</code>の出力一覧へ「該当なし」として記録する。</li>
+    <li>仕様行にはRecord IDと出典を付ける。JSONに存在しない仕様を追加しない。</li>
+    <li>共通仕様を複数ファイルへ全文複製せず、Record IDまたはリンクで参照する。</li>
+    <li>評価結果はJ-90、人間確認状態はrunフォルダの<code>status.md</code>を正本とし、各Markdownへ重複保持しない。</li>
+  </ul>
+</section>
+
+<section id="chat-response" class="card">
+  <h2>チャット応答</h2>
+  <ul>
+    <li>指定された成果物を作成または更新する。</li>
+    <li>最終応答は、結果、出力先、作成・省略・削除したファイル、件数、判定、blocking issueだけを簡潔に報告する。</li>
+  </ul>
+</section>
+
+<footer class="src-note">正本: <code>.github/copilot-instructions.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

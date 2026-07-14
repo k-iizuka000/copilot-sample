@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>全体マップ | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  .pipe-gate .pipe-name { font-weight: 700; display: block; }
+  .pipe-gate .pipe-sub { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .pipe-branch { margin: 2px 0 6px; }
+</style>
+</head>
+<body>
+<main>
+
+  <h1>詳細設計ワークフロー 解説マップ</h1>
+  <p class="purpose">Excel設計書を出典付きJ-* JSONへ構造化し、原本忠実性を評価してから、検証済みJSONを詳細設計Markdownへ変換する一連のPrompt群です。下のパイプライン図から各工程のページへ進めます。</p>
+
+  <section id="pipeline" class="card">
+    <h2>パイプライン</h2>
+    <p class="how-to-read">見方: 上から下へ標準順序どおりに読む。琥珀の破線枠は人間による確認ゲート。</p>
+    <div class="legend">
+      <span class="badge badge-d00">調査</span>
+      <span class="badge badge-e2j">抽出</span>
+      <span class="badge badge-ev">評価</span>
+      <span class="badge badge-j2m">生成</span>
+      <span class="badge badge-human">人間ゲート（図内は琥珀の破線枠）</span>
+    </div>
+    <p class="hint">👆 各ブロックをクリックすると対応するページへ移動します。</p>
+
+    <div class="pipe">
+      <div class="pipe-gate">
+        <span class="pipe-name">G0 人間: 入力確定</span>
+        <span class="pipe-sub">対象設計書の正本と版・機能ID・使用プロファイル・出力先を確認できるまで開始しない</span>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <p class="pipe-branch">未知・改訂済みフォーマットのときだけ実行（通常の変換ではスキップ）</p>
+      <a class="pipe-node stage-d00" href="prompt-00-format-survey.html">
+        <span class="pipe-name">/00 フォーマット調査</span>
+        <span class="pipe-sub">調査レポート＋候補Profile JSON（人間承認・登録が次工程の条件）</span>
+      </a>
+      <div class="pipe-arrow">↓</div>
+      <p class="pipe-branch">人間が候補Profileを承認・登録した profileId を指定して /01 から再開</p>
+      <a class="pipe-node stage-e2j" href="prompt-01-inventory-route.html">
+        <span class="pipe-name">/01 棚卸し・ルーティング</span>
+        <span class="pipe-sub">J-01（routingPlanで後続Promptと処理単位を決定）</span>
+      </a>
+      <div class="pipe-arrow">↓</div>
+      <p class="pipe-branch">J-01 の routingPlan に載ったものだけ・1シートまたは1論理ブロックにつき1回</p>
+      <div class="pipe-fan">
+        <a class="pipe-node stage-e2j" href="prompt-02-ui-structure.html">
+          <span class="pipe-name">/02 画面構造抽出</span>
+          <span class="pipe-sub">→ J-10</span>
+        </a>
+        <a class="pipe-node stage-e2j" href="prompt-03-ui-behavior.html">
+          <span class="pipe-name">/03 画面動作抽出</span>
+          <span class="pipe-sub">→ J-11</span>
+        </a>
+        <a class="pipe-node stage-e2j" href="prompt-04-process-batch.html">
+          <span class="pipe-name">/04 処理・バッチ抽出</span>
+          <span class="pipe-sub">→ J-20</span>
+        </a>
+        <a class="pipe-node stage-e2j" href="prompt-05-data-query-interface.html">
+          <span class="pipe-name">/05 データ・検索・連携抽出</span>
+          <span class="pipe-sub">→ J-30</span>
+        </a>
+        <a class="pipe-node stage-e2j" href="prompt-06-common-permission.html">
+          <span class="pipe-name">/06 権限・共通規約抽出</span>
+          <span class="pipe-sub">→ J-40</span>
+        </a>
+        <a class="pipe-node stage-e2j" href="prompt-07-assets.html">
+          <span class="pipe-name">/07 アセット登録</span>
+          <span class="pipe-sub">→ J-60</span>
+        </a>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <a class="pipe-node stage-ev" href="prompt-08-source-fidelity.html">
+        <span class="pipe-name">/08 原本忠実性評価（EV-01）</span>
+        <span class="pipe-sub">J-90（PASS ／ PASS_WITH_WARNINGS ／ FAIL）</span>
+      </a>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-gate">
+        <span class="pipe-name">G1 人間: JSON承認</span>
+        <span class="pipe-sub">全JSONがPASS、またはPASS_WITH_WARNINGSを人間が受容 → status.mdへ承認済みと記録</span>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <a class="pipe-node stage-j2m" href="prompt-09-detail-design.html">
+        <span class="pipe-name">/09 Markdown生成（J2M）</span>
+        <span class="pipe-sub">M-01〜M-99（常に作成／対応レコードあり／issue・警告ありの3分類）</span>
+      </a>
+      <div class="pipe-arrow">↓</div>
+      <a class="pipe-node stage-ev" href="prompt-10-markdown-integrity.html">
+        <span class="pipe-name">/10 Markdown整合性評価（EV-02）</span>
+        <span class="pipe-sub">J-90（EV-02）</span>
+      </a>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-gate">
+        <span class="pipe-name">G2 人間: 詳細設計確認</span>
+        <span class="pipe-sub">JSONにない仕様の追加なし・条件/否定/例外/数値/順序の欠落なし・全Record IDが追跡可能</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="toc" class="card">
+    <h2>ページ目次</h2>
+
+    <h3>プロンプト（Prompt Files）</h3>
+    <table>
+      <thead>
+        <tr><th>番号</th><th>名前</th><th>一言</th><th>ステージ</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="prompt-00-format-survey.html">/00</a></td>
+          <td>フォーマット調査</td>
+          <td>未知または改訂済みのExcel設計書フォーマットを調査</td>
+          <td><span class="badge badge-d00">調査</span></td>
+        </tr>
+        <tr>
+          <td><a href="prompt-01-inventory-route.html">/01</a></td>
+          <td>棚卸し・ルーティング</td>
+          <td>設計書1冊を棚卸しして後続Promptを決定</td>
+          <td><span class="badge badge-e2j">抽出</span></td>
+        </tr>
+        <tr>
+          <td><a href="prompt-02-ui-structure.html">/02</a></td>
+          <td>画面構造抽出</td>
+          <td>画面構造・画面項目をJ-10へ抽出</td>
+          <td><span class="badge badge-e2j">抽出</span></td>
+        </tr>
+        <tr>
+          <td><a href="prompt-03-ui-behavior.html">/03</a></td>
+          <td>画面動作抽出</td>
+          <td>画面動作・入力制御をJ-11へ抽出</td>
+          <td><span class="badge badge-e2j">抽出</span></td>
+        </tr>
+        <tr>
+          <td><a href="prompt-04-process-batch.html">/04</a></td>
+          <td>処理・バッチ抽出</td>
+          <td>処理機能・バッチをJ-20へ抽出</td>
+          <td><span class="badge badge-e2j">抽出</span></td>
+        </tr>
+        <tr>
+          <td><a href="prompt-05-data-query-interface.html">/05</a></td>
+          <td>データ・検索・連携抽出</td>
+          <td>データモデル・検索・外部連携をJ-30へ抽出</td>
+          <td><span class="badge badge-e2j">抽出</span></td>
+        </tr>
+        <tr>
+          <td><a href="prompt-06-common-permission.html">/06</a></td>
+          <td>権限・共通規約抽出</td>
+          <td>権限・共通規約をJ-40へ抽出</td>
+          <td><span class="badge badge-e2j">抽出</span></td>
+        </tr>
+        <tr>
+          <td><a href="prompt-07-assets.html">/07</a></td>
+          <td>アセット登録</td>
+          <td>画像・図形・コメント等をJ-60へ登録</td>
+          <td><span class="badge badge-e2j">抽出</span></td>
+        </tr>
+        <tr>
+          <td><a href="prompt-08-source-fidelity.html">/08</a></td>
+          <td>原本忠実性評価（EV-01）</td>
+          <td>元設計書とJ-* JSONの忠実性を評価</td>
+          <td><span class="badge badge-ev">評価</span></td>
+        </tr>
+        <tr>
+          <td><a href="prompt-09-detail-design.html">/09</a></td>
+          <td>Markdown生成（J2M）</td>
+          <td>検証済みJSONから必要な詳細設計Markdownを作成</td>
+          <td><span class="badge badge-j2m">生成</span></td>
+        </tr>
+        <tr>
+          <td><a href="prompt-10-markdown-integrity.html">/10</a></td>
+          <td>Markdown整合性評価（EV-02）</td>
+          <td>J-* JSONと詳細設計Markdownの整合性を評価</td>
+          <td><span class="badge badge-ev">評価</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>共通資料（グループページ）</h3>
+    <div class="cards cols-3">
+      <a class="card" href="group-instructions.html">
+        <strong>共通Instructions</strong>
+        <p class="src-file">全プロンプト共通規則（対象範囲・入出力規則・評価3値など）</p>
+      </a>
+      <a class="card" href="group-skill-runbook.html">
+        <strong>スキル定義と標準作業手順</strong>
+        <p class="src-file">標準順序・実行回数・モデル・G0/G1/G2ゲート</p>
+      </a>
+      <a class="card" href="group-contracts-json.html">
+        <strong>入力契約とJSONスキーマ</strong>
+        <p class="src-file">I-00 + J-00〜J-90（9本）＋ 読み書きマトリクス</p>
+      </a>
+      <a class="card" href="group-markdown-templates.html">
+        <strong>Markdownテンプレート</strong>
+        <p class="src-file">M-01〜M-99（10本）の節構成</p>
+      </a>
+      <a class="card" href="group-profiles.html">
+        <strong>設計書プロファイル</strong>
+        <p class="src-file">対象設計書ごとの抽出ルール7本 ＋ PROFILE-00スキーマ</p>
+      </a>
+      <a class="card" href="group-run-template.html">
+        <strong>runフォルダ雛形</strong>
+        <p class="src-file">FEATURE-IDフォルダの構成とstatus.mdの役割</p>
+      </a>
+    </div>
+  </section>
+
+  <div class="note-box">
+    <strong>実行回数の注意:</strong> 番号付きPromptは、/00から/10までを1回ずつ実行する手順ではない。/00は未知・改訂フォーマットのときだけ、/02〜/07はJ-01のroutingPlanに載ったものだけを実行する。詳細（実行回数表・モデル表）は <a href="group-skill-runbook.html#exec-counts">group-skill-runbook.html#exec-counts</a> を参照。
+  </div>
+
+  <footer class="src-note">正本: <code>.github/skills/detail-design-workflow/SKILL.md</code> ／ <code>.github/skills/detail-design-workflow/RUNBOOK.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

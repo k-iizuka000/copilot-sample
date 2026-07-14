@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>設計書プロファイル | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">設計書プロファイル</span>
+  <span class="nav-spacer"></span>
+</nav>
+<main>
+  <h1>設計書プロファイル</h1>
+  <div class="purpose">
+    このページの目的と見方: プロファイルは対象の設計書（Excel）のシート構成を判定するルール集で、シートごとに担当するE2Jスキルと書き込み先のJ-*契約を決める。設計書プロファイル7本（PROFILE-01〜06、02Bを含む）＋全プロファイルが従う構造定義（PROFILE-00）の計8件をカード化した。
+  </div>
+
+  <div class="used-by">
+    <span>参照元（このプロファイル群を参照ファイルとして読むPrompt）:</span>
+    <a class="chip chip-input" href="prompt-00-format-survey.html">/00</a>
+    <a class="chip chip-input" href="prompt-01-inventory-route.html">/01</a>
+    <a class="chip chip-input" href="prompt-02-ui-structure.html">/02</a>
+    <a class="chip chip-input" href="prompt-03-ui-behavior.html">/03</a>
+    <a class="chip chip-input" href="prompt-04-process-batch.html">/04</a>
+    <a class="chip chip-input" href="prompt-05-data-query-interface.html">/05</a>
+    <a class="chip chip-input" href="prompt-06-common-permission.html">/06</a>
+    <a class="chip chip-input" href="prompt-07-assets.html">/07</a>
+  </div>
+
+  <section class="card">
+    <h2>プロファイル一覧（PROFILE-INDEX.md より）</h2>
+    <p class="how-to-read">見方: 1行=1プロファイル。「ID」は下の詳細カードへ、「主な後続Prompt」は各プロンプトページへリンクする。</p>
+    <table>
+      <thead><tr><th>ID</th><th>対象</th><th>主な後続Prompt</th></tr></thead>
+      <tbody>
+        <tr><td><a href="#profile-01">PROFILE-01</a></td><td>画面帳票設計書</td>
+          <td><a href="prompt-02-ui-structure.html">/02</a>, <a href="prompt-03-ui-behavior.html">/03</a>, <a href="prompt-07-assets.html">/07</a></td></tr>
+        <tr><td><a href="#profile-02">PROFILE-02</a></td><td>処理機能記述書</td>
+          <td><a href="prompt-04-process-batch.html">/04</a>, <a href="prompt-05-data-query-interface.html">/05</a></td></tr>
+        <tr><td><a href="#profile-02b">PROFILE-02B</a></td><td>バッチ設計書（暫定）</td>
+          <td><a href="prompt-04-process-batch.html">/04</a>, <a href="prompt-05-data-query-interface.html">/05</a></td></tr>
+        <tr><td><a href="#profile-03">PROFILE-03</a></td><td>エンティティ・データモデル定義書</td>
+          <td><a href="prompt-05-data-query-interface.html">/05</a>, <a href="prompt-07-assets.html">/07</a></td></tr>
+        <tr><td><a href="#profile-04">PROFILE-04</a></td><td>VIEW定義書</td>
+          <td><a href="prompt-05-data-query-interface.html">/05</a></td></tr>
+        <tr><td><a href="#profile-05">PROFILE-05</a></td><td>権限マトリクス</td>
+          <td><a href="prompt-06-common-permission.html">/06</a>, <a href="prompt-07-assets.html">/07</a></td></tr>
+        <tr><td><a href="#profile-06">PROFILE-06</a></td><td>共通規約・文書（D00調査用の暫定入口）</td>
+          <td><a href="prompt-00-format-survey.html">/00</a>, <a href="prompt-06-common-permission.html">/06</a></td></tr>
+      </tbody>
+    </table>
+    <p class="hint">プロファイル自体の構造は <a href="#profile-00">PROFILE-00（スキーマ）</a> に従う。</p>
+  </section>
+
+  <div class="gate-box">
+    <strong>暫定（provisional）プロファイルの扱い（PROFILE-INDEX.md より）:</strong>
+    provisional のプロファイルは、記載前提と実物が一致する場合だけ使用する。PROFILE-06 はそのまま通常変換に使用せず、<code>/00-d00-format-survey</code> で具体的な候補Profileを作るための入口とする。実際のシート名・見出しと一致しない場合は、推測で既存プロファイルを流用せず、<code>/00-d00-format-survey</code> を実行して人間確認へ戻る。
+  </div>
+
+  <div class="note-box">
+    設計書プロファイル7本（PROFILE-01〜06、02Bを含む）は <code>policies</code> のうち5項目が共通: hiddenRows=<code>include_and_mark</code>（非表示行も含めて明示マーク） ／ formula=<code>display_and_formula</code>（表示値と数式を両方保持） ／ assets=<code>separate_manifest</code>（画像等は別マニフェスト） ／ unknownSheet=<code>fail</code> ／ profileMismatch=<code>fail</code>（想定外シート・プロファイル不一致はともに停止）。差があるのは <code>canonicalSource</code>（正本の判定基準）のみで、各カードに記載する。
+  </div>
+
+  <section class="card">
+    <h2>役割（role）・状態（status）の凡例</h2>
+    <p class="how-to-read">見方: 下の日本語は原本の enum 値の言い換え。以下の各プロファイルの表の「役割」列・見出しの status はこの値のいずれかを取る。</p>
+    <div class="legend">
+      <span class="chip">metadata＝メタ情報</span>
+      <span class="chip">extract＝抽出対象</span>
+      <span class="chip">asset＝素材（画像等）</span>
+      <span class="chip">reference_only＝参照のみ（正本に混ぜない）</span>
+      <span class="chip">ignore_candidate＝除外候補</span>
+      <span class="chip">unknown＝未確定</span>
+    </div>
+    <div class="legend">
+      <span class="chip">status: stable＝安定（確定済み）</span>
+      <span class="chip chip-human">status: provisional＝暫定（実物との一致を要確認）</span>
+    </div>
+  </section>
+
+  <!-- PROFILE-00: スキーマ -->
+  <section class="card" id="profile-00">
+    <h2>PROFILE-00 — プロファイルの構造定義（スキーマ）</h2>
+    <p class="src-file">原本: <code>profiles/PROFILE-00.schema.json</code></p>
+    <p>PROFILE-01〜06 のような設計書プロファイルそのものではなく、それら全てが従う構造定義。<code>profileId</code> / <code>version</code> / <code>documentType</code> / <code>status</code> / <code>documentScope</code> / <code>description</code> / <code>sheetRules</code> / <code>policies</code> の8フィールドを必須とする。</p>
+    <div class="fact-grid">
+      <div class="fact"><span class="fact-label">status enum</span><code>stable</code> / <code>provisional</code></div>
+      <div class="fact"><span class="fact-label">documentScope enum</span><code>feature</code> / <code>shared_master</code> / <code>common</code> / <code>unknown</code></div>
+      <div class="fact"><span class="fact-label">sheetRules[].role enum</span><code>metadata</code> / <code>extract</code> / <code>asset</code> / <code>ignore_candidate</code> / <code>reference_only</code> / <code>unknown</code></div>
+      <div class="fact"><span class="fact-label">sheetRules[].skills enum</span><code>E2J-00</code>〜<code>E2J-06</code> / <code>NONE</code> / <code>UNKNOWN</code></div>
+      <div class="fact"><span class="fact-label">sheetRules[].outputContracts enum</span><code>J-01</code> <code>J-10</code> <code>J-11</code> <code>J-20</code> <code>J-30</code> <code>J-40</code> <code>J-60</code></div>
+      <div class="fact"><span class="fact-label">policies 必須キー</span><code>hiddenRows</code> <code>formula</code> <code>assets</code> <code>canonicalSource</code> <code>unknownSheet</code> <code>profileMismatch</code></div>
+    </div>
+    <p class="hint">スキーマの制約（allOf）: sheetRules の skills に <code>E2J-0X</code> が含まれるなら outputContracts に対応する <code>J-*</code> を含み、その逆も成り立つ（E2J-00↔J-01, E2J-01↔J-10, E2J-02↔J-11, E2J-03↔J-20, E2J-04↔J-30, E2J-05↔J-40, E2J-06↔J-60）。</p>
+  </section>
+
+  <!-- PROFILE-01 -->
+  <section class="card" id="profile-01">
+    <h2>PROFILE-01 — 画面帳票設計書 <span class="chip">status: stable</span></h2>
+    <p class="src-file">原本: <code>profiles/PROFILE-01-screen-design.profile.json</code></p>
+    <p>対象設計書: 画面帳票設計書（documentType: <code>screen-design</code> / documentScope: <code>feature</code>）。D00で8シートを確認。</p>
+    <div class="used-by">主な後続Prompt:
+      <a class="chip chip-input" href="prompt-02-ui-structure.html">/02 画面構造抽出</a>
+      <a class="chip chip-input" href="prompt-03-ui-behavior.html">/03 画面動作抽出</a>
+      <a class="chip chip-input" href="prompt-07-assets.html">/07 アセット登録</a>
+    </div>
+    <p class="how-to-read">見方: 1行=1シート照合ルール。パターンに一致したシートを役割に沿ってスキルが読み、出力の契約へ書く。</p>
+    <table>
+      <thead><tr><th>シート名（パターン）</th><th>役割</th><th>スキル</th><th>出力</th><th>notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>改訂履歴</code></td><td>metadata</td><td>E2J-00</td><td>J-01</td><td>最新版情報のみmanifestへ。</td></tr>
+        <tr><td><code>レイアウト</code></td><td>asset</td><td>E2J-00, E2J-01, E2J-06</td><td>J-01, J-10, J-60</td><td>画像を正とし、表示モード等の明示メタデータだけ抽出。</td></tr>
+        <tr><td><code>項目</code></td><td>extract</td><td>E2J-01</td><td>J-10</td><td>1行=画面項目。</td></tr>
+        <tr><td><code>項目制御</code></td><td>extract</td><td>E2J-02</td><td>J-11</td><td>表示モード・活性等。</td></tr>
+        <tr><td><code>バリデーション</code></td><td>extract</td><td>E2J-02</td><td>J-11</td><td>数式は表示値+数式。相関チェック別ブロック。</td></tr>
+        <tr><td><code>イベント</code></td><td>extract</td><td>E2J-02</td><td>J-11</td><td>1行=イベント。</td></tr>
+        <tr><td><code>メッセージ</code></td><td>extract</td><td>E2J-02</td><td>J-11</td><td>1行=メッセージ条件。</td></tr>
+        <tr><td><code>パラメータ</code></td><td>extract</td><td>E2J-01, E2J-02</td><td>J-10, J-11</td><td>表示モード・URL・パラメータ。</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">判定基準（canonicalSource）: 正確な8シート名を優先。レイアウトはassetと明示メタデータに分離。／ provisionalの扱い: 該当なし（status: stable）。</p>
+  </section>
+
+  <!-- PROFILE-02 -->
+  <section class="card" id="profile-02">
+    <h2>PROFILE-02 — 処理機能記述書 <span class="chip">status: stable</span></h2>
+    <p class="src-file">原本: <code>profiles/PROFILE-02-process-function.profile.json</code></p>
+    <p>対象設計書: 処理機能記述書（documentType: <code>process-function</code> / documentScope: <code>feature</code>）。D00で5シートを確認。</p>
+    <div class="used-by">主な後続Prompt:
+      <a class="chip chip-input" href="prompt-04-process-batch.html">/04 処理・バッチ抽出</a>
+      <a class="chip chip-input" href="prompt-05-data-query-interface.html">/05 データ・検索・連携抽出</a>
+    </div>
+    <p class="how-to-read">見方: 1行=1シート照合ルール。パターンに一致したシートを役割に沿ってスキルが読み、出力の契約へ書く。</p>
+    <table>
+      <thead><tr><th>シート名（パターン）</th><th>役割</th><th>スキル</th><th>出力</th><th>notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>改訂履歴</code></td><td>metadata</td><td>E2J-00</td><td>J-01</td><td>—</td></tr>
+        <tr><td><code>処理機能記述</code></td><td>extract</td><td>E2J-03</td><td>J-20</td><td>イベントID/処理節単位に分割。文章と表を混同しない。</td></tr>
+        <tr><td><code>検索要領</code></td><td>extract</td><td>E2J-03, E2J-04</td><td>J-20, J-30</td><td>検索要領番号または親イベントIDで複数ブロックを分割。</td></tr>
+        <tr><td><code>更新要領</code></td><td>extract</td><td>E2J-03, E2J-04</td><td>J-20, J-30</td><td>対象テーブル+編集要領。</td></tr>
+        <tr><td><code>項目DB対応表</code></td><td>extract</td><td>E2J-04</td><td>J-30</td><td>1行=画面項目とDB項目の対応。</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">判定基準（canonicalSource）: 5シートを正本。処理機能記述はイベントIDを親キーにする。／ provisionalの扱い: 該当なし（status: stable）。</p>
+  </section>
+
+  <!-- PROFILE-02B -->
+  <section class="card" id="profile-02b">
+    <h2>PROFILE-02B — バッチ設計書 <span class="chip chip-human">status: provisional</span></h2>
+    <p class="src-file">原本: <code>profiles/PROFILE-02B-batch-design.profile.json</code></p>
+    <p>対象設計書: バッチ設計書（documentType: <code>batch-design</code> / documentScope: <code>feature</code>）。処理機能記述書と同一フォーマットという前提の暫定バッチプロファイル。実物と一致しない場合は停止する。</p>
+    <div class="stop-box">
+      <strong>PROFILE-02B の「暫定」の位置づけ:</strong> PROFILE-02（処理機能記述書）と同型であることを<u>仮定</u>しただけの未確認プロファイル。シート <code>^(処理機能記述|バッチ機能記述|バッチ設計)$</code> の行は「実物未確認。不一致時停止。」と明記されており、判定基準（canonicalSource）も「PROFILE-02との同型を仮定。バッチ固有ヘッダーを検出したらprofile_mismatchで停止。」としている。実物のシート見出しがこの前提と一致しない限り使用しない。
+    </div>
+    <div class="used-by">主な後続Prompt:
+      <a class="chip chip-input" href="prompt-04-process-batch.html">/04 処理・バッチ抽出</a>
+      <a class="chip chip-input" href="prompt-05-data-query-interface.html">/05 データ・検索・連携抽出</a>
+    </div>
+    <p class="how-to-read">見方: 1行=1シート照合ルール。priority はシートの優先順位（値が大きいほど優先）。</p>
+    <table>
+      <thead><tr><th>シート名（パターン）</th><th>役割</th><th>スキル</th><th>出力</th><th>priority</th><th>notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>改訂履歴</code></td><td>metadata</td><td>E2J-00</td><td>J-01</td><td>100</td><td>—</td></tr>
+        <tr><td><code>^(処理機能記述|バッチ機能記述|バッチ設計)$</code>（regex）</td><td>extract</td><td>E2J-03</td><td>J-20</td><td>100</td><td>実物未確認。不一致時停止。</td></tr>
+        <tr><td><code>検索要領</code></td><td>extract</td><td>E2J-03, E2J-04</td><td>J-20, J-30</td><td>90</td><td>—</td></tr>
+        <tr><td><code>更新要領</code></td><td>extract</td><td>E2J-03, E2J-04</td><td>J-20, J-30</td><td>90</td><td>—</td></tr>
+        <tr><td><code>項目DB対応表</code></td><td>extract</td><td>E2J-04</td><td>J-30</td><td>90</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- PROFILE-03 -->
+  <section class="card" id="profile-03">
+    <h2>PROFILE-03 — エンティティ・データモデル定義書 <span class="chip">status: stable</span></h2>
+    <p class="src-file">原本: <code>profiles/PROFILE-03-entity-definition.profile.json</code></p>
+    <p>対象設計書: エンティティ定義書（documentType: <code>entity-definition</code> / documentScope: <code>shared_master</code>）。正本・旧版・移行・作業シートが混在。</p>
+    <div class="used-by">主な後続Prompt:
+      <a class="chip chip-input" href="prompt-05-data-query-interface.html">/05 データ・検索・連携抽出</a>
+      <a class="chip chip-input" href="prompt-07-assets.html">/07 アセット登録</a>
+    </div>
+    <p class="how-to-read">見方: 1行=1シート照合ルール。priority はシートの優先順位（値が大きいほど優先。ignore_candidate=300 が最優先で除外候補に回す）。</p>
+    <table>
+      <thead><tr><th>シート名（パターン）</th><th>役割</th><th>スキル</th><th>出力</th><th>priority</th><th>notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>エンティティ定義書</code></td><td>extract</td><td>E2J-04</td><td>J-30</td><td>200</td><td>正本。</td></tr>
+        <tr><td><code>アトリビュートリスト</code></td><td>extract</td><td>E2J-04</td><td>J-30</td><td>190</td><td>属性標準。</td></tr>
+        <tr><td><code>アトリビュート辞書</code></td><td>extract</td><td>E2J-04</td><td>J-30</td><td>190</td><td>論理名/物理名対応。</td></tr>
+        <tr><td><code>select</code></td><td>extract</td><td>E2J-04</td><td>J-30</td><td>180</td><td>型・修飾子・NotNull制約。</td></tr>
+        <tr><td><code>エンティティ定義書_移行</code></td><td>reference_only</td><td>E2J-00, E2J-04</td><td>J-01, J-30</td><td>120</td><td>正本へ混ぜず、差分確認用。</td></tr>
+        <tr><td><code>A5SQLワーク</code></td><td>reference_only</td><td>E2J-00, E2J-04</td><td>J-01, J-30</td><td>110</td><td>派生・作業情報。</td></tr>
+        <tr><td><code>(^エンティティ定義書_[0-9]+$|_bk$|^古い|旧版)</code>（regex）</td><td>ignore_candidate</td><td>E2J-00, NONE</td><td>J-01</td><td>300</td><td>旧版・バックアップ。</td></tr>
+        <tr><td><code>^(Format|要望一覧|No152)$</code>（regex）</td><td>metadata</td><td>E2J-00</td><td>J-01</td><td>100</td><td>—</td></tr>
+        <tr><td><code>組織.*権限.*イメージ</code>（regex）</td><td>asset</td><td>E2J-00, E2J-06</td><td>J-01, J-60</td><td>100</td><td>drawing/mediaを含む。</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">判定基準（canonicalSource）: 無印のエンティティ定義書を正本。複数正本候補なら停止。／ provisionalの扱い: 該当なし（status: stable）。</p>
+  </section>
+
+  <!-- PROFILE-04 -->
+  <section class="card" id="profile-04">
+    <h2>PROFILE-04 — VIEW定義書 <span class="chip">status: stable</span></h2>
+    <p class="src-file">原本: <code>profiles/PROFILE-04-view-definition.profile.json</code></p>
+    <p>対象設計書: VIEW定義書（documentType: <code>view-definition</code> / documentScope: <code>shared_master</code>）。検索要領内に複数VIEWブロックが縦積み。</p>
+    <div class="used-by">主な後続Prompt:
+      <a class="chip chip-input" href="prompt-05-data-query-interface.html">/05 データ・検索・連携抽出</a>
+    </div>
+    <p class="how-to-read">見方: 1行=1シート照合ルール。パターンに一致したシートを役割に沿ってスキルが読み、出力の契約へ書く。</p>
+    <table>
+      <thead><tr><th>シート名（パターン）</th><th>役割</th><th>スキル</th><th>出力</th><th>notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>VIEW一覧</code></td><td>extract</td><td>E2J-04</td><td>J-30</td><td>1行=VIEW。</td></tr>
+        <tr><td><code>検索要領</code></td><td>extract</td><td>E2J-04</td><td>J-30</td><td>VIEW物理名/論理名を親キーとしてブロック分割。非表示行も含める。</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">判定基準（canonicalSource）: VIEW一覧の物理名と検索要領ブロック見出しを対応させる。／ provisionalの扱い: 該当なし（status: stable）。</p>
+  </section>
+
+  <!-- PROFILE-05 -->
+  <section class="card" id="profile-05">
+    <h2>PROFILE-05 — 権限マトリクス <span class="chip">status: stable</span></h2>
+    <p class="src-file">原本: <code>profiles/PROFILE-05-authorization-matrix.profile.json</code></p>
+    <p>対象設計書: 権限マトリクス（documentType: <code>authorization-matrix</code> / documentScope: <code>shared_master</code>）。階層ヘッダー、非表示行、コメント、drawing/media/VML、派生SQLを含む。</p>
+    <div class="used-by">主な後続Prompt:
+      <a class="chip chip-input" href="prompt-06-common-permission.html">/06 権限・共通規約抽出</a>
+      <a class="chip chip-input" href="prompt-07-assets.html">/07 アセット登録</a>
+    </div>
+    <p class="how-to-read">見方: 1行=1シート照合ルール。priority はシートの優先順位（値が大きいほど優先）。</p>
+    <table>
+      <thead><tr><th>シート名（パターン）</th><th>役割</th><th>スキル</th><th>出力</th><th>priority</th><th>notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>権限マトリクス</code></td><td>extract</td><td>E2J-05</td><td>J-40</td><td>200</td><td>1行=画面/動作/イベント/ロール権限。</td></tr>
+        <tr><td><code>案件の参照権限</code></td><td>extract</td><td>E2J-05</td><td>J-40</td><td>190</td><td>1行=案件条件×参照先組織×タブ可否。</td></tr>
+        <tr><td><code>[補足]案件の参照権限</code></td><td>extract</td><td>E2J-05</td><td>J-40</td><td>180</td><td>補足シナリオ。正本と競合時はissue。</td></tr>
+        <tr><td><code>ヘッダ設定情報</code></td><td>metadata</td><td>E2J-00, E2J-05</td><td>J-01, J-40</td><td>100</td><td>文書識別情報。</td></tr>
+        <tr><td><code>^(改訂履歴|変更履歴|説明)$</code>（regex）</td><td>metadata</td><td>E2J-00</td><td>J-01</td><td>100</td><td>—</td></tr>
+        <tr><td><code>^(フォーマット|フォーマット\(ヘッダ設定有\)|サンプル)$</code>（regex）</td><td>asset</td><td>E2J-00, E2J-06</td><td>J-01, J-60</td><td>100</td><td>テンプレート/サンプル。業務レコードへ混ぜない。</td></tr>
+        <tr><td><code>(_bk$|_フローで分割$)</code>（regex）</td><td>ignore_candidate</td><td>E2J-00, NONE</td><td>J-01</td><td>300</td><td>旧版・分割作業シート。</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">判定基準（canonicalSource）: マトリクス行を正本。SQL生成列はderived。コメント/画像/VMLはJ-60。／ provisionalの扱い: 該当なし（status: stable）。</p>
+  </section>
+
+  <!-- PROFILE-06 -->
+  <section class="card" id="profile-06">
+    <h2>PROFILE-06 — 共通規約・文書 <span class="chip chip-human">status: provisional</span></h2>
+    <p class="src-file">原本: <code>profiles/PROFILE-06-common-document.profile.json</code></p>
+    <p>対象設計書: 規約・文書系（documentType: <code>common-document</code> / documentScope: <code>common</code>）。規約・文書系向けの暫定プロファイル。D00調査後に具体的な候補Profileへ置き換える。</p>
+    <div class="stop-box">
+      <strong>PROFILE-06 の「D00調査用の暫定入口」という位置づけ:</strong> シートパターンは <code>.*</code>（全シート一致）・役割 <code>unknown</code> のみの1ルールしか持たず、notesに「このまま通常変換に使わない。D00を先に実行し、シート固有ルールを持つ候補Profileを人間承認する。」と明記されている。判定基準（canonicalSource）も「D00調査後に確定。」であり、通常変換の実行プロファイルではなく、<a href="prompt-00-format-survey.html">/00 フォーマット調査</a>で具体的な候補Profileを作るための入口としてのみ使う。
+    </div>
+    <div class="used-by">主な後続Prompt:
+      <a class="chip chip-input" href="prompt-00-format-survey.html">/00 フォーマット調査</a>
+      <a class="chip chip-input" href="prompt-06-common-permission.html">/06 権限・共通規約抽出</a>
+    </div>
+    <p class="how-to-read">見方: このプロファイルはシートルールが1件のみ（全シートに一致する暫定ルール）。</p>
+    <table>
+      <thead><tr><th>シート名（パターン）</th><th>役割</th><th>スキル</th><th>出力</th><th>priority</th><th>notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>.*</code>（regex・全シート一致）</td><td>unknown</td><td>E2J-00, E2J-05, UNKNOWN</td><td>J-01, J-40</td><td>1</td><td>このまま通常変換に使わない。D00を先に実行し、シート固有ルールを持つ候補Profileを人間承認する。</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer class="src-note">正本: <code>.github/skills/detail-design-workflow/profiles/PROFILE-INDEX.md</code> ほか同ディレクトリの <code>PROFILE-00.schema.json</code> / <code>PROFILE-01-screen-design.profile.json</code> / <code>PROFILE-02-process-function.profile.json</code> / <code>PROFILE-02B-batch-design.profile.json</code> / <code>PROFILE-03-entity-definition.profile.json</code> / <code>PROFILE-04-view-definition.profile.json</code> / <code>PROFILE-05-authorization-matrix.profile.json</code> / <code>PROFILE-06-common-document.profile.json</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

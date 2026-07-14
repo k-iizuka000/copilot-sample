@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/10 Markdown整合性評価 | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">/10 Markdown整合性評価</span>
+  <span class="nav-spacer"></span>
+  <a class="nav-link" href="prompt-09-detail-design.html">← /09</a>
+</nav>
+<main>
+
+<header class="page-head">
+  <h1>/10 Markdown整合性評価 <span class="badge badge-ev">評価</span></h1>
+  <div class="src-file">原本: <code>.github/prompts/10-ev-markdown-integrity.prompt.md</code></div>
+</header>
+
+<div class="purpose">
+  <strong>目的:</strong> 作成済みの詳細設計MarkdownがJ-* JSONと整合しているかだけを評価する（Markdownを修正しない）。<br>
+  <strong>見方:</strong> 下の「処理フロー」で検査順序（手順1〜8）をクリックすると、その手順が使う入力だけが点灯する。
+</div>
+
+<section id="summary" class="card">
+  <h2>サマリー</h2>
+  <div class="fact-grid">
+    <div class="fact">
+      <span class="fact-label">実行条件・回数（RUNBOOKより）</span>
+      <code>/09</code>の出力一式に対して1 runにつき1回
+    </div>
+    <div class="fact">
+      <span class="fact-label">標準モデルと条件（RUNBOOKより）</span>
+      GPT-5.4 Medium／<code>/09</code>に使ったチャットとは別会話で実行する
+    </div>
+    <div class="fact">
+      <span class="fact-label">前工程 → この工程 → 後工程</span>
+      <a href="prompt-09-detail-design.html">/09</a> → <strong>/10</strong> → G2人間確認
+    </div>
+  </div>
+</section>
+
+<section id="inputs" class="card">
+  <h2>入力</h2>
+  <p class="how-to-read">対象はjsonDirectoryとmarkdownDirectoryの2つだけで、他の設計書やMarkdownを根拠にしない（原本「役割」より）。</p>
+  <table class="params-table">
+    <thead><tr><th>パラメータ</th><th>渡すもの</th><th>必須</th></tr></thead>
+    <tbody>
+      <tr><td><code>jsonDirectory</code></td><td>使用JSON格納先</td><td>必須</td></tr>
+      <tr><td><code>markdownDirectory</code></td><td>詳細設計Markdown格納先</td><td>必須</td></tr>
+      <tr><td><code>outputPath</code></td><td>J-90評価出力先</td><td>必須</td></tr>
+    </tbody>
+  </table>
+
+  <h3>参照ファイル</h3>
+  <p class="how-to-read">これらはプロンプト実行時に暗黙に読み込まれるコンテキスト＝入力である。</p>
+  <div class="cards cols-2">
+    <div class="card">
+      <strong>共通Instructions</strong><br>
+      <span class="src-file">原本: <code>.github/copilot-instructions.md</code></span><br>
+      <a href="group-instructions.html">→ group-instructions.html で解説</a>
+    </div>
+    <div class="card">
+      <strong>使用したJ-* JSONと対応するEV-01結果</strong><br>
+      <span class="src-file">原本にファイルリンクの指定なし（このrunで使用した実ファイルを指す）</span><br>
+      J-* JSON候補:
+      <a href="group-contracts-json.html#j-01">J-01</a> /
+      <a href="group-contracts-json.html#j-10">J-10</a> /
+      <a href="group-contracts-json.html#j-11">J-11</a> /
+      <a href="group-contracts-json.html#j-20">J-20</a> /
+      <a href="group-contracts-json.html#j-30">J-30</a> /
+      <a href="group-contracts-json.html#j-40">J-40</a> /
+      <a href="group-contracts-json.html#j-60">J-60</a><br>
+      EV-01結果: <a href="prompt-08-source-fidelity.html#outputs">/08の出力（J-90）</a>
+    </div>
+    <div class="card">
+      <strong>Markdownテンプレート一覧</strong><br>
+      <span class="src-file">原本: <code>.github/skills/detail-design-workflow/contracts/CONTRACT-INDEX.md</code></span><br>
+      <a href="group-markdown-templates.html">→ group-markdown-templates.html で解説</a>
+    </div>
+    <div class="card">
+      <strong>J-90 Schema</strong><br>
+      <span class="src-file">原本: <code>.github/skills/detail-design-workflow/contracts/json/J-90-evaluation-report.schema.json</code></span><br>
+      <a href="group-contracts-json.html#j-90">→ group-contracts-json.html#j-90 で解説</a>
+    </div>
+  </div>
+</section>
+
+<section id="flow" class="card">
+  <h2>処理フロー</h2>
+  <p class="how-to-read">見方: 中央の手順を上から順に読む。手順をクリックすると、その手順が使う入力と書く出力だけが点灯する。</p>
+  <div class="legend">
+    <span class="chip chip-input">入力</span><span class="chip chip-step">手順</span>
+    <span class="chip chip-output">出力</span><span class="chip chip-stop">停止あり</span>
+  </div>
+  <p class="hint">👆 手順カード・入出力カードをクリック（もう一度クリックで解除）。<button class="reset-flow" type="button">全体表示に戻す</button></p>
+  <div class="flow">
+    <div class="flow-col col-input">
+      <h3>入力</h3>
+      <div class="io-item" data-io-id="p-jsondir"><span class="io-name">jsonDirectory（使用JSON格納先）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="p-mddir"><span class="io-name">markdownDirectory（Markdown格納先）</span><span class="io-sub">実行パラメータ</span></div>
+      <div class="io-item" data-io-id="ref-instructions"><span class="io-name">共通Instructions</span><span class="io-sub">参照ファイル</span></div>
+      <div class="io-item" data-io-id="ref-json-ev01"><span class="io-name">使用JSON・EV-01結果</span><span class="io-sub">参照ファイル</span></div>
+      <div class="io-item" data-io-id="ref-md-templates"><span class="io-name">Markdownテンプレート一覧</span><span class="io-sub">参照ファイル</span></div>
+      <div class="io-item" data-io-id="ref-j90schema"><span class="io-name">J-90 Schema</span><span class="io-sub">参照ファイル</span></div>
+    </div>
+    <div class="flow-col col-steps">
+      <h3>検査順序（原本の順序のまま）</h3>
+      <div class="step" data-num="1" data-reads="p-mddir" data-writes="" data-stop="">
+        <span class="step-num">1</span>
+        <span class="step-name">00-overview.mdと99-traceability.mdが存在するか確認する。</span>
+        <span class="step-cap">常時作成物の存在確認</span>
+      </div>
+      <div class="step" data-num="2" data-reads="p-jsondir,p-mddir" data-writes="" data-stop="">
+        <span class="step-num">2</span>
+        <span class="step-name">分野別recordがある場合だけ、対応する10〜60のMarkdownが存在するか確認する。</span>
+        <span class="step-cap">分野別Markdownの過不足</span>
+      </div>
+      <div class="step" data-num="3" data-reads="p-jsondir,p-mddir" data-writes="" data-stop="">
+        <span class="step-num">3</span>
+        <span class="step-name">issueまたは引継ぎ警告がある場合だけ、90-open-issues.mdが存在するか確認する。</span>
+        <span class="step-cap">未確定事項Markdownの過不足</span>
+      </div>
+      <div class="step" data-num="4" data-reads="p-mddir" data-writes="" data-stop="">
+        <span class="step-num">4</span>
+        <span class="step-name">空Markdown、空表だけのMarkdown、対象recordがない分野別Markdownが存在しないか確認する。</span>
+        <span class="step-cap">不要な空ファイルの有無</span>
+      </div>
+      <div class="step" data-num="5" data-reads="p-jsondir,p-mddir" data-writes="" data-stop="">
+        <span class="step-num">5</span>
+        <span class="step-name">全Record IDが99-traceability.mdに1回以上現れるか確認する。</span>
+        <span class="step-cap">トレーサビリティの網羅性</span>
+      </div>
+      <div class="step" data-num="6" data-reads="p-jsondir,p-mddir" data-writes="" data-stop="">
+        <span class="step-num">6</span>
+        <span class="step-name">JSONの条件、否定、例外、数値、順序がMarkdownで失われていないか確認する。</span>
+        <span class="step-cap">JSON→Markdownでの欠落有無</span>
+      </div>
+      <div class="step" data-num="7" data-reads="p-jsondir,p-mddir" data-writes="" data-stop="">
+        <span class="step-num">7</span>
+        <span class="step-name">Markdownだけに存在する仕様がないか確認する。</span>
+        <span class="step-cap">Markdown側の追加仕様混入</span>
+      </div>
+      <div class="step" data-num="8" data-reads="p-jsondir,p-mddir" data-writes="" data-stop="">
+        <span class="step-num">8</span>
+        <span class="step-name">分類、issue、asset、件数、参照リンクを確認する。</span>
+        <span class="step-cap">その他属性の確認</span>
+      </div>
+    </div>
+    <div class="flow-col col-output">
+      <h3>出力</h3>
+      <div class="io-item io-out" data-io-id="out-j90"><span class="io-name">J-90評価結果（EV-02）</span><span class="io-sub">outputPathへ</span></div>
+    </div>
+  </div>
+  <div class="step-detail" id="step-detail" hidden>
+    <div class="sd-title" data-f="title"></div>
+    <div class="sd-note" data-f="note"></div>
+    <div class="sd-grid">
+      <div><span class="sd-label">使う入力</span><span data-f="reads"></span></div>
+      <div><span class="sd-label">出す出力</span><span data-f="writes"></span></div>
+      <div><span class="sd-label">停止・分岐</span><span data-f="stop"></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="outputs" class="card">
+  <h2>出力</h2>
+  <div class="cards cols-2">
+    <div class="card">
+      <strong>J-90評価結果（EV-02）</strong><br>
+      どこへ: <code>outputPath</code><br>
+      形式: <a href="group-contracts-json.html#j-90">J-90 Schema</a><br>
+      「J-90形式のEV-02評価結果<u>だけ</u>をoutputPathへ書き込む」（原本のまま）
+    </div>
+  </div>
+  <p class="how-to-read">
+    判定3値:
+    <span class="verdict-pass">PASS</span> /
+    <span class="verdict-warn">PASS_WITH_WARNINGS</span> /
+    <span class="verdict-fail">FAIL</span>
+    （定義は <a href="group-instructions.html#evaluation">group-instructions.html#evaluation</a> が正本）
+  </p>
+</section>
+
+<section id="stops" class="card">
+  <h2>停止条件・やらないこと</h2>
+  <div class="stop-box">
+    禁止事項（原本「役割」より）:
+    <ul>
+      <li>Markdownを修正しない。</li>
+    </ul>
+    <p class="how-to-read">共通規則: 評価Promptは対象成果物を修正せず、AIの評価だけで人間確認を完了扱いにしない（詳細: <a href="group-instructions.html#evaluation">group-instructions.html#evaluation</a>）。</p>
+  </div>
+  <div class="gate-box">
+    G2（人間確認・RUNBOOKより）: JSONにない仕様が追加されていない／条件・否定・例外・数値・順序が失われていない／全Record IDが99-traceability.mdから追跡できる／issueと警告があれば90-open-issues.mdに整理されている／「該当なし」と「未確認」が混同されていない、を人間が確認する。<span class="verdict-fail">FAIL</span>またはblocking issueがあれば<a href="prompt-09-detail-design.html">/09</a>へ戻す。
+  </div>
+</section>
+
+<footer class="src-note">正本: <code>.github/prompts/10-ev-markdown-integrity.prompt.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

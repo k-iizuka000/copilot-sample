@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/04 処理・バッチ抽出 | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">/04 処理・バッチ抽出</span>
+  <span class="nav-spacer"></span>
+  <a class="nav-link" href="prompt-03-ui-behavior.html">← /03</a>
+  <a class="nav-link" href="prompt-05-data-query-interface.html">/05 →</a>
+</nav>
+<main>
+
+  <header class="page-head">
+    <h1>/04 処理・バッチ抽出</h1>
+    <span class="badge badge-e2j">抽出</span>
+    <span class="src-file">原本: <code>04-e2j-process-batch.prompt.md</code></span>
+  </header>
+
+  <div class="purpose">
+    このページの目的と見方: 指定した1シートまたは1論理ブロックから、処理機能記述・検索要領・更新要領・バッチ情報をJ-20 JSONへ抽出する工程です。中央の図は手順を上から読み、クリックするとその手順が使う入力と書く出力だけが点灯します。
+  </div>
+
+  <section id="summary" class="card">
+    <h2>サマリー</h2>
+    <div class="fact-grid">
+      <div class="fact">
+        <span class="fact-label">実行条件・回数（RUNBOOKより）</span>
+        J-01の<code>routingPlan</code>に載ったものだけ。1シートまたは1論理ブロックにつき1回。
+      </div>
+      <div class="fact">
+        <span class="fact-label">標準モデルと条件（RUNBOOKより）</span>
+        GPT-5.4 mini。1シートまたは1論理ブロックに限定。曖昧なら停止して上げる。
+      </div>
+      <div class="fact">
+        <span class="fact-label">前工程 → この工程 → 後工程（RUNBOOKより）</span>
+        <a href="prompt-01-inventory-route.html">/01 棚卸し・ルーティング</a> → <strong>/04 処理・バッチ抽出</strong> → <a href="prompt-08-source-fidelity.html">/08 原本忠実性評価(EV-01)</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="inputs" class="card">
+    <h2>入力</h2>
+
+    <h3>実行パラメータ</h3>
+    <table class="params-table">
+      <thead><tr><th>パラメータ</th><th>渡すもの</th><th>必須</th></tr></thead>
+      <tbody>
+        <tr><td><code>featureId</code></td><td>機能ID</td><td>必須</td></tr>
+        <tr><td><code>sourcePath</code></td><td>対象設計書</td><td>必須</td></tr>
+        <tr><td><code>profileId</code></td><td>J-01に記録されたProfile ID。標準はPROFILE-02またはPROFILE-02B</td><td>必須</td></tr>
+        <tr><td><code>sheetName</code></td><td>処理機能記述、検索要領、更新要領等</td><td>必須</td></tr>
+        <tr><td><code>blockSelector</code></td><td>イベントID、検索要領番号等</td><td>必須</td></tr>
+        <tr><td><code>outputPath</code></td><td>J-20出力先</td><td>必須</td></tr>
+      </tbody>
+    </table>
+
+    <h3>参照ファイル</h3>
+    <p class="hint">参照ファイルは、プロンプト実行時に暗黙に読み込まれるコンテキスト（＝入力）です。</p>
+    <div class="cards cols-2">
+      <div class="fact">
+        <span class="fact-label">参照ファイル</span>
+        <a href="group-instructions.html">共通Instructions</a>
+        <div class="src-file">原本: <code>../copilot-instructions.md</code></div>
+      </div>
+      <div class="fact">
+        <span class="fact-label">参照ファイル</span>
+        <a href="group-contracts-json.html#i-00">入力ソース契約（I-00）</a>
+        <div class="src-file">原本: <code>../skills/detail-design-workflow/contracts/input/I-00-source-input-contract.md</code></div>
+      </div>
+      <div class="fact">
+        <span class="fact-label">参照ファイル</span>
+        <a href="group-contracts-json.html#j-20">J-20 Schema</a>
+        <div class="src-file">原本: <code>../skills/detail-design-workflow/contracts/json/J-20-process-batch.schema.json</code></div>
+      </div>
+      <div class="fact">
+        <span class="fact-label">参照ファイル</span>
+        <a href="group-profiles.html">設計書プロファイル一覧</a>
+        <div class="src-file">原本: <code>../skills/detail-design-workflow/profiles/PROFILE-INDEX.md</code></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="flow" class="card">
+    <h2>処理フロー</h2>
+    <p class="how-to-read">見方: 中央の手順を上から順に読む。手順をクリックすると、その手順が使う入力と書く出力だけが点灯する。</p>
+    <div class="legend">
+      <span class="chip chip-input">入力</span><span class="chip chip-step">手順</span>
+      <span class="chip chip-output">出力</span><span class="chip chip-stop">停止あり</span>
+    </div>
+    <p class="hint">👆 手順カード・入出力カードをクリック（もう一度クリックで解除）。<button class="reset-flow" type="button">全体表示に戻す</button></p>
+    <div class="flow">
+      <div class="flow-col col-input">
+        <h3>入力</h3>
+        <div class="io-item" data-io-id="p-featureId"><span class="io-name">featureId（機能ID）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="p-sourcePath"><span class="io-name">sourcePath（対象設計書）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="p-profileId"><span class="io-name">profileId（Profile ID）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="p-sheetName"><span class="io-name">sheetName（処理機能記述／検索要領／更新要領等）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="p-blockSelector"><span class="io-name">blockSelector（イベントID／検索要領番号等）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="p-outputPath"><span class="io-name">outputPath（J-20出力先）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="ref-instructions"><span class="io-name">共通Instructions</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-i00"><span class="io-name">I-00 入力ソース契約</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-j20schema"><span class="io-name">J-20 Schema</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-profileindex"><span class="io-name">設計書プロファイル一覧</span><span class="io-sub">参照ファイル</span></div>
+      </div>
+      <div class="flow-col col-steps">
+        <h3>手順（原本の順序のまま）</h3>
+        <div class="step" data-num="1" data-reads="p-sourcePath,p-sheetName,p-blockSelector" data-writes="">
+          <span class="step-num">1</span>
+          <span class="step-name">指定された1シートまたは1論理ブロックだけを読む</span>
+        </div>
+        <div class="step has-stop" data-num="2" data-reads="p-profileId,ref-profileindex" data-writes="" data-stop="対象ブロックがE2J-03/J-20へルーティングされていることとシート構成が一致しない場合は停止する">
+          <span class="step-num">2</span>
+          <span class="step-name">profileIdのProfileで対象ブロックがE2J-03/J-20へルーティングされていることと、シート構成が一致することを確認する</span>
+          <span class="step-cap">不一致なら停止する</span>
+        </div>
+        <div class="step" data-num="3" data-reads="p-blockSelector" data-writes="">
+          <span class="step-num">3</span>
+          <span class="step-name">イベントIDまたは処理節をブロック境界として保持する</span>
+        </div>
+        <div class="step" data-num="4" data-reads="p-sheetName,ref-j20schema" data-writes="">
+          <span class="step-num">4</span>
+          <span class="step-name">処理機能記述は節単位のprocess_sectionとして、入力・処理内容・メッセージ・出力をSchemaのフィールドへ分離する</span>
+        </div>
+        <div class="step" data-num="5" data-reads="p-sheetName" data-writes="">
+          <span class="step-num">5</span>
+          <span class="step-name">検索要領は番号ごとのsearch_requirementとして、入力テーブル・絞込・結合・ソート・出力項目を抽出する</span>
+        </div>
+        <div class="step" data-num="6" data-reads="p-sheetName" data-writes="">
+          <span class="step-num">6</span>
+          <span class="step-name">更新要領は番号ごとのupdate_requirementとして、対象テーブル・更新種別・編集条件・更新項目を抽出する</span>
+        </div>
+        <div class="step" data-num="7" data-reads="" data-writes="">
+          <span class="step-num">7</span>
+          <span class="step-name">バッチ情報はbatch_controlとして、起動条件・終了条件・再実行・リトライ・リカバリ・コミット境界が明記された場合だけ抽出する</span>
+        </div>
+        <div class="step" data-num="8" data-reads="p-sourcePath" data-writes="">
+          <span class="step-num">8</span>
+          <span class="step-name">処理順序を原文どおりに保持する</span>
+        </div>
+        <div class="step" data-num="9" data-reads="p-outputPath" data-writes="out-j20">
+          <span class="step-num">9</span>
+          <span class="step-name">J-20 JSONだけをoutputPathへ書き込む</span>
+        </div>
+      </div>
+      <div class="flow-col col-output">
+        <h3>出力</h3>
+        <div class="io-item io-out" data-io-id="out-j20"><span class="io-name">J-20 JSON</span><span class="io-sub">outputPath へ</span></div>
+      </div>
+    </div>
+    <div class="step-detail" id="step-detail" hidden>
+      <div class="sd-title" data-f="title"></div>
+      <div class="sd-note" data-f="note"></div>
+      <div class="sd-grid">
+        <div><span class="sd-label">使う入力</span><span data-f="reads"></span></div>
+        <div><span class="sd-label">出す出力</span><span data-f="writes"></span></div>
+        <div><span class="sd-label">停止・分岐</span><span data-f="stop"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="outputs" class="card">
+    <h2>出力</h2>
+    <div class="cards cols-2">
+      <div class="fact">
+        <span class="fact-label">J-20 JSON</span>
+        <div>outputPath が示す場所へ、J-20 JSON<strong>だけ</strong>を書き込む。</div>
+        <div class="src-file">形式: <a href="group-contracts-json.html#j-20">J-20 Schema</a></div>
+        <div class="src-file">対象recordType: <code>process_section</code> <code>search_requirement</code> <code>update_requirement</code> <code>batch_control</code></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="stops" class="card">
+    <h2>停止条件・禁止事項</h2>
+    <div class="stop-box">
+      <strong>停止条件</strong>
+      <ul>
+        <li>profileIdのProfileで対象ブロックがE2J-03/J-20へルーティングされていることと、シート構成が一致することを確認できない場合は停止する（手順2）。</li>
+      </ul>
+    </div>
+    <div class="stop-box">
+      <strong>禁止事項</strong>
+      <ul>
+        <li>クラス、メソッド、SQL、一般的な例外処理やトランザクションは割り当てまたは補完しない。</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="src-note">正本: <code>.github/prompts/04-e2j-process-batch.prompt.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

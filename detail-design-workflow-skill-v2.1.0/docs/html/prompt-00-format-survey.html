@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/00 フォーマット調査 | 詳細設計ワークフロー解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">/00 フォーマット調査</span>
+  <span class="nav-spacer"></span>
+  <a class="nav-link" href="prompt-01-inventory-route.html">/01 →</a>
+</nav>
+
+<main>
+
+<header class="page-head">
+  <h1>/00 フォーマット調査 <span class="badge badge-d00">調査</span></h1>
+  <div class="src-file">原本: <code>00-d00-format-survey.prompt.md</code></div>
+</header>
+
+<div class="purpose">
+このプロンプトは、未知・改訂済みのExcelフォーマットだけを対象にシートを棚卸しし、調査レポートと候補Profileを作る工程で、通常の変換フローには含まれない。図は入力→手順→出力を左から右に読み、手順をクリックすると使う入力・出す出力だけが光る。
+</div>
+
+<section id="summary" class="card">
+<h2>サマリー</h2>
+<div class="fact-grid">
+  <div class="fact">
+    <span class="fact-label">実行条件・回数（RUNBOOKより）</span>
+    未知または改訂済みフォーマットだけ。調査対象1冊につき1回
+  </div>
+  <div class="fact">
+    <span class="fact-label">標準モデルと条件（RUNBOOKより）</span>
+    GPT-5.4 Medium — 未知形式の分類と候補Profile作成に使用
+  </div>
+  <div class="fact">
+    <span class="fact-label">前工程 → この工程 → 後工程</span>
+    G0 入力確定（人間） → <strong>/00 フォーマット調査</strong> → 人間が候補Profileを承認・登録 → <a href="prompt-01-inventory-route.html">/01 棚卸し・ルーティング</a>
+  </div>
+</div>
+<div class="stop-box">
+使用条件（原本より）: 新しい設計書種類、改訂されたテンプレート、既存プロファイルにないシートを初めて扱うときだけ使用する。<strong>通常の変換では実行しない。</strong>
+</div>
+</section>
+
+<section id="inputs" class="card">
+<h2>入力</h2>
+
+<h3>実行パラメータ</h3>
+<table class="params-table">
+<thead><tr><th>パラメータ</th><th>渡すもの（原本の説明文）</th><th>必須</th></tr></thead>
+<tbody>
+<tr><td><code>sourcePath</code></td><td>対象設計書1冊</td><td>必須</td></tr>
+<tr><td><code>outputPath</code></td><td>調査レポート出力先</td><td>必須</td></tr>
+<tr><td><code>candidateProfileId</code></td><td>未使用のPROFILE-XXまたはPROFILE-XXA</td><td>必須</td></tr>
+<tr><td><code>profileOutputPath</code></td><td>候補Profile JSON出力先</td><td>必須</td></tr>
+</tbody>
+</table>
+
+<h3>参照ファイル</h3>
+<p class="hint">これらはプロンプト実行時に暗黙に読み込まれるコンテキスト＝入力です。</p>
+<div class="cards cols-2">
+  <div class="card">
+    <strong><a href="group-instructions.html">共通Instructions</a></strong>
+    <div class="src-file">原本参照: <code>../copilot-instructions.md</code></div>
+  </div>
+  <div class="card">
+    <strong><a href="group-contracts-json.html#i-00">I-00 入力ソース契約</a></strong>
+    <div class="src-file">原本参照: <code>../skills/detail-design-workflow/contracts/input/I-00-source-input-contract.md</code></div>
+  </div>
+  <div class="card">
+    <strong><a href="group-profiles.html#profile-00">プロファイルSchema（PROFILE-00）</a></strong>
+    <div class="src-file">原本参照: <code>../skills/detail-design-workflow/profiles/PROFILE-00.schema.json</code></div>
+  </div>
+  <div class="card">
+    <strong><a href="group-profiles.html">既存プロファイル一覧（PROFILE-INDEX.md）</a></strong>
+    <div class="src-file">原本参照: <code>../skills/detail-design-workflow/profiles/PROFILE-INDEX.md</code></div>
+  </div>
+</div>
+
+<p class="note-box">前提（使用条件）: このプロンプトを使ってよい条件は本ページ <a href="#summary">#summary</a> の使用条件を参照。</p>
+</section>
+
+<section id="flow" class="card">
+<h2>処理フロー</h2>
+<p class="how-to-read">見方: 中央の手順を上から順に読む。手順をクリックすると、その手順が使う入力と書く出力だけが点灯する。</p>
+<div class="legend">
+  <span class="chip chip-input">入力</span><span class="chip chip-step">手順</span>
+  <span class="chip chip-output">出力</span><span class="chip chip-stop">停止あり</span>
+</div>
+<p class="hint">👆 手順カード・入出力カードをクリック（もう一度クリックで解除）。<button class="reset-flow" type="button">全体表示に戻す</button></p>
+<div class="flow">
+  <div class="flow-col col-input">
+    <h3>入力</h3>
+    <div class="io-item" data-io-id="p-source"><span class="io-name">sourcePath（対象設計書1冊）</span><span class="io-sub">実行パラメータ</span></div>
+    <div class="io-item" data-io-id="p-outputPath"><span class="io-name">outputPath（調査レポート出力先）</span><span class="io-sub">実行パラメータ</span></div>
+    <div class="io-item" data-io-id="p-candidateProfileId"><span class="io-name">candidateProfileId（未使用のPROFILE-XX等）</span><span class="io-sub">実行パラメータ</span></div>
+    <div class="io-item" data-io-id="p-profileOutputPath"><span class="io-name">profileOutputPath（候補Profile JSON出力先）</span><span class="io-sub">実行パラメータ</span></div>
+    <div class="io-item" data-io-id="ref-instructions"><span class="io-name">共通Instructions</span><span class="io-sub">参照ファイル</span></div>
+    <div class="io-item" data-io-id="ref-i00"><span class="io-name">I-00 入力ソース契約</span><span class="io-sub">参照ファイル</span></div>
+    <div class="io-item" data-io-id="ref-profile00-schema"><span class="io-name">PROFILE-00 Schema</span><span class="io-sub">参照ファイル</span></div>
+    <div class="io-item" data-io-id="ref-profile-index"><span class="io-name">PROFILE-INDEX.md（既存プロファイル一覧）</span><span class="io-sub">参照ファイル</span></div>
+  </div>
+  <div class="flow-col col-steps">
+    <h3>手順（原本の順序のまま）</h3>
+    <div class="step" data-num="1" data-reads="p-source" data-writes="out-report" data-stop="">
+      <span class="step-num">1</span>
+      <span class="step-name">正確なシート名、表示・非表示状態、使用範囲を列挙する</span>
+      <span class="step-cap">対象設計書のシート構成を棚卸しする</span>
+    </div>
+    <div class="step" data-num="2" data-reads="p-source" data-writes="out-report" data-stop="">
+      <span class="step-num">2</span>
+      <span class="step-name">各シートを extract / metadata / asset / reference_only / ignore_candidate / unknown へ分類する</span>
+    </div>
+    <div class="step" data-num="3" data-reads="p-source" data-writes="out-report" data-stop="">
+      <span class="step-num">3</span>
+      <span class="step-name">各論理表の見出し、ヘッダ段数、繰り返し単位、主キー候補、ブロック境界を記録する</span>
+    </div>
+    <div class="step" data-num="4" data-reads="p-source" data-writes="out-report" data-stop="">
+      <span class="step-num">4</span>
+      <span class="step-name">結合セル、数式、非表示行・列、コメント、drawing、media、画像、複数表の有無を記録する</span>
+    </div>
+    <div class="step" data-num="5" data-reads="ref-profile-index" data-writes="" data-stop="">
+      <span class="step-num">5</span>
+      <span class="step-name">既存プロファイルで処理可能か判定する</span>
+    </div>
+    <div class="step" data-num="6" data-reads="" data-writes="out-report" data-stop="">
+      <span class="step-num">6</span>
+      <span class="step-name">判断できない項目を、人間が回答可能な確認質問として記録する</span>
+    </div>
+    <div class="step has-stop" data-num="7" data-reads="p-candidateProfileId,ref-profile00-schema" data-writes="out-profile" data-stop="未確認のシートルールを推測で確定しない（unknown / UNKNOWNを使い、理由をnotesへ記録する）">
+      <span class="step-num">7</span>
+      <span class="step-name">調査結果から candidateProfileId を使った provisional 状態の候補Profileを作る</span>
+      <span class="step-cap">未確認のシートルールは推測で確定せず unknown / UNKNOWN とし、理由をnotesへ記録する</span>
+    </div>
+  </div>
+  <div class="flow-col col-output">
+    <h3>出力</h3>
+    <div class="io-item io-out" data-io-id="out-report"><span class="io-name">調査レポートMD</span><span class="io-sub">outputPathへ</span></div>
+    <div class="io-item io-out" data-io-id="out-profile"><span class="io-name">候補Profile JSON（provisional）</span><span class="io-sub">profileOutputPathへ</span></div>
+  </div>
+</div>
+<div class="step-detail" id="step-detail" hidden>
+  <div class="sd-title" data-f="title"></div>
+  <div class="sd-note" data-f="note"></div>
+  <div class="sd-grid">
+    <div><span class="sd-label">使う入力</span><span data-f="reads"></span></div>
+    <div><span class="sd-label">出す出力</span><span data-f="writes"></span></div>
+    <div><span class="sd-label">停止・分岐</span><span data-f="stop"></span></div>
+  </div>
+</div>
+</section>
+
+<section id="outputs" class="card">
+<h2>出力</h2>
+<div class="cards cols-2">
+  <div class="card">
+    <strong>調査レポートMD</strong>
+    <div>出力先: <code>outputPath</code></div>
+    <div>内容: 読取状態、シート棚卸し、論理ブロック、関連キー、変換リスク、確認質問を含む</div>
+  </div>
+  <div class="card">
+    <strong>候補Profile JSON（provisional）</strong>
+    <div>出力先: <code>profileOutputPath</code></div>
+    <div>形式: <a href="group-profiles.html#profile-00">PROFILE-00.schema.json</a> に適合</div>
+  </div>
+</div>
+<div class="gate-box">
+候補Profileは既存の <code>profiles/</code> へ自動登録されない。<code>PROFILE-INDEX.md</code> も変更されない。
+</div>
+</section>
+
+<section id="stops" class="card">
+<h2>停止条件・やらないこと</h2>
+<div class="stop-box">
+<ul>
+  <li>新しい設計書種類、改訂されたテンプレート、既存プロファイルにないシートを初めて扱うとき以外は使用しない（通常の変換では実行しない）。</li>
+  <li>未確認のシートルールを推測で確定しない。unknown / UNKNOWN を使い、人間確認が必要な理由をnotesへ記録する。</li>
+  <li>候補Profileを既存の <code>profiles/</code> へ自動登録しない。</li>
+  <li><code>PROFILE-INDEX.md</code> を変更しない。</li>
+</ul>
+</div>
+<div class="gate-box">
+人間ゲート: 人間が候補Profileの内容とSchema適合（<a href="group-profiles.html#profile-00">PROFILE-00.schema.json</a>）を確認し、承認して登録するまで <a href="prompt-01-inventory-route.html">/01-e2j-inventory-route</a> へ進まない。
+</div>
+</section>
+
+<footer class="src-note">正本: <code>.github/prompts/00-d00-format-survey.prompt.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>
