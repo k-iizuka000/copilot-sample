@@ -24,6 +24,8 @@
 | external_interface | batch/{ジョブID}/io.md（バッチ文脈）/ back/{機能ID}/methods.md（画面文脈） | 連携処理 |
 | entity_field, attribute_definition, view_definition, view_query_block | db/{テーブル物理名}.md | Entity/DTO/Mapper |
 | entity_relation | db/_er-overview.md および trace のER断片 | — |
+| attribute_dictionary_entry（論理名/物理名の対応辞書） | common/naming.md | 全般 |
+| document_header_metadata（改訂履歴等の文書ヘッダ） | spec 出力なし（非ルーティング。verify.ps1 のルーティング整合・トレース照合の対象外） | — |
 | screen_action_permission, case_reference_permission, role_hierarchy | common/permissions/ | 権限チェック |
 | common_rule（命名規約系） | common/naming.md | 全般 |
 | common_rule（コード値・enum系） | common/codes/{分類}.md | enum/定数 |
@@ -43,12 +45,13 @@ recordType（振り分け対象）:
 `ui_event` / `process_section` /
 `search_requirement` / `update_requirement` / `select_constraint` / `item_db_mapping` /
 `batch_control` / `external_interface` /
-`entity_field` / `attribute_definition` / `view_definition` / `view_query_block` /
+`entity_field` / `attribute_definition` / `attribute_dictionary_entry` / `view_definition` / `view_query_block` /
 `entity_relation` /
 `screen_action_permission` / `case_reference_permission` / `role_hierarchy` /
-`common_rule`
+`document_header_metadata` / `common_rule`
 
 - 「業務ルール」「アセット」は上記 recordType の分類・派生（多機能適用の process_section／common_rule、および J-60 アセット）を指す運用上の振り分けであり、新しい recordType 値ではない。
+- `document_header_metadata` は enum としては妥当な値だが spec への出力を持たない（非ルーティング）。verify.ps1 はルーティング整合・トレース照合の対象から除外する。
 
 ## 4. entity_relation（関連線）の採否規則
 

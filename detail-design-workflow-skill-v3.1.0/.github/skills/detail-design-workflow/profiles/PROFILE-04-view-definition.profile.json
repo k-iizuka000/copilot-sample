@@ -1,0 +1,35 @@
+{
+  "profileId": "PROFILE-04",
+  "version": "1.0.0",
+  "documentType": "view-definition",
+  "status": "stable",
+  "documentScope": "shared_master",
+  "description": "VIEW定義書。検索要領内に複数VIEWブロックが縦積み。固定セルA1に役割タグ明記（roleTag）があればシート名マッチングより優先する。",
+  "sheetRules": [
+    {
+      "ruleId": "P04-S01",
+      "matchType": "exact",
+      "pattern": "VIEW一覧",
+      "roleTag": [],
+      "role": "extract",
+      "outputContracts": ["J-30"],
+      "priority": 100,
+      "notes": "1行=VIEW（view_definition）。"
+    },
+    {
+      "ruleId": "P04-S02",
+      "matchType": "exact",
+      "pattern": "検索要領",
+      "roleTag": ["検索要領"],
+      "role": "extract",
+      "outputContracts": ["J-30"],
+      "priority": 100,
+      "notes": "VIEW物理名/論理名を親キーとしてブロック分割（view_query_block）。非表示行も含める。"
+    }
+  ],
+  "policies": {
+    "canonicalSource": "VIEW一覧の物理名と検索要領ブロック見出しを対応させる。",
+    "unknownSheet": "investigate",
+    "profileMismatch": "warning"
+  }
+}

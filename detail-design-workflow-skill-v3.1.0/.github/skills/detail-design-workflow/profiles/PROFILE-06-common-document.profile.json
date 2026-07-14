@@ -1,0 +1,25 @@
+{
+  "profileId": "PROFILE-06",
+  "version": "1.0.0",
+  "documentType": "common-document",
+  "status": "provisional",
+  "documentScope": "common",
+  "description": "暫定: 規約・文書系向けの入口プロファイル。実物の設計書での調査後に具体的な候補Profileへ置き換える。固定セルA1に役割タグ明記（roleTag）があればシート名マッチングより優先する。そのまま通常変換には使わず、まず調査モードでシート固有ルールを作る。",
+  "sheetRules": [
+    {
+      "ruleId": "P06-S01",
+      "matchType": "regex",
+      "pattern": ".*",
+      "roleTag": [],
+      "role": "unknown",
+      "outputContracts": ["J-01", "J-40"],
+      "priority": 1,
+      "notes": "このまま通常変換に使わない。まず調査モードでシート固有ルールを持つ候補Profileを作り、人間承認する。"
+    }
+  ],
+  "policies": {
+    "canonicalSource": "調査モードでの確定後に決める。",
+    "unknownSheet": "investigate",
+    "profileMismatch": "investigate"
+  }
+}
