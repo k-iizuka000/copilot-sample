@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "J-20.schema.json",
+  "title": "J-20 処理・バッチ（軽量版）",
+  "description": "処理節・検索要領・更新要領・バッチ制御。共通フィールドは J-00 を参照。facts と配下オブジェクトは additionalProperties を課さない（緩和）。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractId", "schemaVersion", "records"],
+  "properties": {
+    "contractId": { "const": "J-20" },
+    "schemaVersion": { "const": "1.0.0" },
+    "run": { "$ref": "J-00.schema.json#/$defs/runInfo" },
+    "document": { "$ref": "J-00.schema.json#/$defs/documentRef" },
+    "issues": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/issue" } },
+    "assets": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/assetRef" } },
+    "records": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "process_section" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "処理概要=methods.md / 業務ロジック本文=logic.md へ振り分ける。イベントIDを親キーにする。",
+                "type": "object",
+                "required": ["eventId", "processName", "inputs", "description", "messages", "outputs", "preconditions", "branches", "transactionRule"],
+                "properties": {
+                  "eventId": { "type": ["string", "null"] },
+                  "processName": { "type": ["string", "null"] },
+                  "inputs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "sourceType": { "enum": ["screen", "db", "file", "external", "unknown"] },
+                        "name": { "type": ["string", "null"] },
+                        "description": { "type": ["string", "null"] }
+                      }
+                    }
+                  },
+                  "description": { "type": ["string", "null"] },
+                  "messages": { "type": "array", "items": { "type": "string" } },
+                  "outputs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "sourceType": { "enum": ["screen", "db", "file", "external", "unknown"] },
+                        "name": { "type": ["string", "null"] },
+                        "description": { "type": ["string", "null"] }
+                      }
+                    }
+                  },
+                  "preconditions": { "type": "array", "items": { "type": "string" } },
+                  "branches": { "type": "array", "items": { "type": "string" } },
+                  "transactionRule": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "search_requirement" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "back/{機能ID}/queries.md（Mapper XML / DAO）へ。",
+                "type": "object",
+                "required": ["requirementId", "parentEventId", "inputTables", "conditions", "outputItems", "orderBy", "direction", "specialNotes"],
+                "properties": {
+                  "requirementId": { "type": ["string", "null"] },
+                  "parentEventId": { "type": ["string", "null"] },
+                  "inputTables": { "type": "array", "items": { "type": "string" } },
+                  "conditions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "tableId": { "type": ["string", "null"] },
+                        "columnName": { "type": ["string", "null"] },
+                        "operator": { "type": ["string", "null"] },
+                        "value": { "type": ["string", "null"] },
+                        "condition": { "type": ["string", "null"] }
+                      }
+                    }
+                  },
+                  "outputItems": { "type": "array", "items": { "type": "string" } },
+                  "orderBy": { "type": "array", "items": { "type": "string" } },
+                  "direction": { "type": ["string", "null"] },
+                  "specialNotes": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "update_requirement" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "type": "object",
+                "required": ["requirementId", "parentEventId", "targetTable", "editRequirement"],
+                "properties": {
+                  "requirementId": { "type": ["string", "null"] },
+                  "parentEventId": { "type": ["string", "null"] },
+                  "targetTable": { "type": ["string", "null"] },
+                  "editRequirement": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "batch_control" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "batch/{ID}/control.md（バッチ起動/制御）へ。",
+                "type": "object",
+                "required": ["batchId", "trigger", "schedule", "input", "steps", "completionCondition", "retryRule", "recoveryRule"],
+                "properties": {
+                  "batchId": { "type": ["string", "null"] },
+                  "trigger": { "type": ["string", "null"] },
+                  "schedule": { "type": ["string", "null"] },
+                  "input": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "sourceType": { "enum": ["screen", "db", "file", "external", "unknown"] },
+                        "name": { "type": ["string", "null"] },
+                        "description": { "type": ["string", "null"] }
+                      }
+                    }
+                  },
+                  "steps": { "type": "array", "items": { "type": "string" } },
+                  "completionCondition": { "type": ["string", "null"] },
+                  "retryRule": { "type": ["string", "null"] },
+                  "recoveryRule": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

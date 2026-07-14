@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "J-00.schema.json",
+  "title": "J-00 共通定義（軽量版）",
+  "description": "J-* 契約が共有する型。出典・レコード共通フィールド・issue・アセットを定義する。coverage / summary の数え上げは廃止し、網羅性検査は verify.ps1 の機械照合に委譲する。additionalProperties:false はトップレベルと recordBase にのみ課し、facts など深い階層は緩和する。",
+  "$defs": {
+    "recordId": {
+      "description": "Record ID。形式は {機能ID または 画面ID}-{recordType略号}-{連番3桁}（例 FUNC0123-ITEM-012）。全レコードで一意。",
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9_.-]+-[A-Za-z0-9]+-[0-9]{3}$"
+    },
+    "scope": {
+      "description": "レコードの適用範囲。individual=個別機能, common=共通, shared_master=共有マスタ。",
+      "enum": ["individual", "common", "shared_master"]
+    },
+    "layers": {
+      "description": "レコードが属する実装レイヤ（複数可）。",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": ["frontend", "backend", "db", "batch", "integration", "authorization", "common"]
+      }
+    },
+    "evidenceState": {
+      "description": "レコード自体の証拠状態。explicit=設計書に明記, derived=導出, ambiguous=曖昧。J-30 entity_relation の basis（関連線の根拠種別）とは別概念。",
+      "enum": ["explicit", "derived", "ambiguous"]
+    },
+    "evidenceType": {
+      "description": "出典の単位種別。",
+      "enum": ["cell", "row", "block", "section", "image", "comment", "shape", "formula", "derived"]
+    },
+    "sourceRef": {
+      "description": "1件の出典。短縮表記は sheet!range。formula は数式セルのとき記す（無ければ null）。displayedValue は表示値。",
+      "type": "object",
+      "required": ["workbook", "sheet", "evidenceType"],
+      "properties": {
+        "workbook": { "type": "string", "minLength": 1 },
+        "sheet": { "type": "string", "minLength": 1 },
+        "range": { "type": ["string", "null"] },
+        "displayedValue": { "type": ["string", "number", "boolean", "null"] },
+        "formula": { "type": ["string", "null"] },
+        "evidenceType": { "$ref": "J-00.schema.json#/$defs/evidenceType" }
+      }
+    },
+    "sourceRefs": {
+      "description": "出典の配列。1件以上必須（出典必須の原則）。",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "J-00.schema.json#/$defs/sourceRef" }
+    },
+    "runInfo": {
+      "description": "生成メタ情報（任意）。",
+      "type": "object",
+      "required": ["generatedAt", "model"],
+      "properties": {
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "model": { "type": ["string", "null"] },
+        "prompt": { "type": ["string", "null"] }
+      }
+    },
+    "documentRef": {
+      "description": "元設計書の識別情報（任意）。",
+      "type": "object",
+      "required": ["workbookName"],
+      "properties": {
+        "documentType": {
+          "enum": ["screen_design", "process_function", "batch_design", "entity_definition", "view_definition", "authorization_matrix", "common_document", "unknown"]
+        },
+        "workbookName": { "type": "string", "minLength": 1 },
+        "featureId": { "type": ["string", "null"] },
+        "featureName": { "type": ["string", "null"] },
+        "scope": { "enum": ["feature", "shared_master", "common", "unknown"] }
+      }
+    },
+    "issue": {
+      "description": "抽出中に検出した問題（任意）。網羅集計はせず、追跡は warnings.md 側で行う。",
+      "type": "object",
+      "required": ["issueType", "severity", "summary"],
+      "properties": {
+        "issueType": { "type": "string" },
+        "severity": { "enum": ["blocking", "warning", "info"] },
+        "summary": { "type": "string", "minLength": 1 },
+        "sourceRefs": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/sourceRef" } },
+        "affectedRecordIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "assetRef": {
+      "description": "画像・図形・コメント等のアセット参照。実体は runs/{ID}/00-input/assets/ に書き出す。",
+      "type": "object",
+      "required": ["assetId", "assetType", "status"],
+      "properties": {
+        "assetId": { "type": "string", "minLength": 1 },
+        "assetType": { "enum": ["screen_layout", "image", "drawing", "chart", "comment", "vml", "template", "sample", "unknown"] },
+        "status": { "enum": ["referenced", "exported", "missing", "unreadable", "not_required"] },
+        "sourceRefs": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/sourceRef" } },
+        "targetPath": { "type": ["string", "null"] },
+        "caption": { "type": ["string", "null"] }
+      }
+    },
+    "recordBase": {
+      "description": "全レコード共通の骨格。各 J-* の record はこの共通フィールドに recordType 固有の facts を加える。「該当なし」と「未確認」の区別（null=未確認 / []=該当なし）は copilot-instructions.md を正本とする。",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+      "properties": {
+        "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+        "recordType": { "type": "string", "minLength": 1 },
+        "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+        "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+        "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+        "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+        "facts": { "type": "object" },
+        "notes": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

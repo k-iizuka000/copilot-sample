@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "J-11.schema.json",
+  "title": "J-11 画面動作（軽量版）",
+  "description": "項目制御・バリデーション・相関チェック・イベント・メッセージ。共通フィールドは J-00 を参照。facts は additionalProperties を課さない（緩和）。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractId", "schemaVersion", "records"],
+  "properties": {
+    "contractId": { "const": "J-11" },
+    "schemaVersion": { "const": "1.0.0" },
+    "run": { "$ref": "J-00.schema.json#/$defs/runInfo" },
+    "document": { "$ref": "J-00.schema.json#/$defs/documentRef" },
+    "issues": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/issue" } },
+    "assets": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/assetRef" } },
+    "records": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "item_control" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "表示モードごとの表示/活性/読取専用等。",
+                "type": "object",
+                "required": ["itemNumber", "displayMode", "condition", "visible", "enabled", "readOnly", "valueRule"],
+                "properties": {
+                  "itemNumber": { "type": ["string", "null"] },
+                  "displayMode": { "type": ["string", "null"] },
+                  "condition": { "type": ["string", "null"] },
+                  "visible": { "type": ["boolean", "null"] },
+                  "enabled": { "type": ["boolean", "null"] },
+                  "readOnly": { "type": ["boolean", "null"] },
+                  "valueRule": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "validation_rule" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "数式は表示値+数式の両方を保持する。",
+                "type": "object",
+                "required": ["definitionNumber", "itemNumber", "name", "attribute", "minimum", "maximum", "format", "contexts", "expressionDisplayedValue", "expressionFormula"],
+                "properties": {
+                  "definitionNumber": { "type": ["string", "null"] },
+                  "itemNumber": { "type": ["string", "null"] },
+                  "name": { "type": ["string", "null"] },
+                  "attribute": { "type": ["string", "null"] },
+                  "minimum": { "type": ["integer", "number", "string", "null"] },
+                  "maximum": { "type": ["integer", "number", "string", "null"] },
+                  "format": { "type": ["string", "null"] },
+                  "contexts": {
+                    "type": "array",
+                    "items": { "enum": ["search", "create", "edit", "paging", "initial", "other"] },
+                    "uniqueItems": true
+                  },
+                  "expressionDisplayedValue": { "type": ["string", "number", "boolean", "null"] },
+                  "expressionFormula": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "correlation_validation" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "type": "object",
+                "required": ["definitionNumber", "messageId", "specification"],
+                "properties": {
+                  "definitionNumber": { "type": ["string", "null"] },
+                  "messageId": { "type": ["string", "null"] },
+                  "specification": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "ui_event" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "1行=イベント。back/{機能ID}/methods.md（Controller）へ。",
+                "type": "object",
+                "required": ["eventId", "itemNumber", "eventName", "processingDescription", "transitionTarget"],
+                "properties": {
+                  "eventId": { "type": ["string", "null"] },
+                  "itemNumber": { "type": ["string", "null"] },
+                  "eventName": { "type": ["string", "null"] },
+                  "processingDescription": { "type": ["string", "null"] },
+                  "transitionTarget": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "message_rule" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "type": "object",
+                "required": ["eventId", "eventName", "messageId", "messageType", "displayCondition"],
+                "properties": {
+                  "eventId": { "type": ["string", "null"] },
+                  "eventName": { "type": ["string", "null"] },
+                  "messageId": { "type": ["string", "null"] },
+                  "messageType": { "type": ["string", "null"] },
+                  "displayCondition": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
