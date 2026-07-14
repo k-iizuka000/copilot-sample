@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/02-run 次の1タスクを自動実行 | 詳細設計ワークフロー v3.1.0 解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">/02-run 次の1タスクを自動実行</span>
+  <span class="nav-spacer"></span>
+  <a class="nav-link" href="prompt-01-setup.html">← /01-setup</a>
+  <a class="nav-link" href="verify-ps1.html">verify.ps1 →</a>
+</nav>
+
+<main>
+  <header class="page-head">
+    <h1>/02-run 次の1タスクを自動実行 <span class="badge badge-j2m">生成</span></h1>
+    <p class="src-file">原本: <code>.github/prompts/02-run.prompt.md</code></p>
+  </header>
+
+  <p class="purpose">
+    現在の状態（J-01・抽出済み J-*・生成済み spec/）を見て「次にやるべき1タスク」を自分で選び、1つだけ実行するプロンプト。
+    案内が「完了」に変わるまで、利用者は同じ <code>/02-run</code> を繰り返し呼ぶだけでよい。下の「処理フロー」で優先順1〜5のどれが選ばれるかを確認する。
+  </p>
+
+  <section id="summary" class="card">
+    <h2>サマリー</h2>
+    <div class="fact-grid">
+      <div class="fact">
+        <span class="fact-label">いつ実行するか（frontmatter description より）</span>
+        次の1タスクを自動選択して1つだけ実行する。抽出→spec生成→trace生成まで、同じコマンドを繰り返し呼ぶ。
+        案内が「verify.ps1 の実行と /03-check を案内」に変わるまで繰り返す（RUNBOOK 手順2 より）。
+      </div>
+      <div class="fact">
+        <span class="fact-label">使うモデル（RUNBOOK モデル割当表より）</span>
+        抽出（ステップ2・シート抽出）: GPT-5.4 mini でよい／spec生成・trace生成（ステップ3・4）: GPT-5.4（手戻りが大きいため mini だけで完結させない）。
+      </div>
+      <div class="fact">
+        <span class="fact-label">前工程 → この工程 → 後工程</span>
+        <a href="prompt-01-setup.html">/01-setup</a> → <strong>/02-run</strong>（案内が変わるまで繰り返し） → <a href="verify-ps1.html">verify.ps1</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="inputs" class="card">
+    <h2>入力</h2>
+
+    <h3>実行パラメータ</h3>
+    <table class="params-table">
+      <thead><tr><th>パラメータ</th><th>渡すもの（原本の説明文）</th><th>必須</th></tr></thead>
+      <tbody>
+        <tr><td><code>runDir</code></td><td>作業ディレクトリ（例 runs/FUNC0123）</td><td>必須</td></tr>
+        <tr><td><code>specDir</code></td><td>最終出力ツリー。既定は spec/</td><td>既定値あり（省略可）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>参照ファイル（実行時に読み込まれるコンテキスト＝入力）</h3>
+    <div class="cards cols-3">
+      <div class="card">
+        <strong>共通ルール</strong><br>
+        <span class="src-file"><code>.github/copilot-instructions.md</code></span>
+        <p>出典必須・推測禁止など全工程共通の実行ルール。→ <a href="group-rules.html">共通ルールページ</a></p>
+      </div>
+      <div class="card">
+        <strong>ルーティング表</strong><br>
+        <span class="src-file"><code>spec-format/routing-table.md</code></span>
+        <p>recordType→出力先 spec ファイルの正本。→ <a href="group-spec-format.html#routing-table">group-spec-format.html#routing-table</a></p>
+      </div>
+      <div class="card">
+        <strong>出力ツリー定義</strong><br>
+        <span class="src-file"><code>spec-format/output-structure.md</code></span>
+        <p>spec/ の標準ファイルセット（暫定）。→ <a href="group-spec-format.html#output-structure">group-spec-format.html#output-structure</a></p>
+      </div>
+      <div class="card">
+        <strong>消費マトリクス</strong><br>
+        <span class="src-file"><code>spec-format/consumption-matrix.md</code></span>
+        <p>trace の消費マトリクス抜粋の元。→ <a href="group-spec-format.html#consumption-matrix">group-spec-format.html#consumption-matrix</a></p>
+      </div>
+      <div class="card">
+        <strong>Markdown テンプレート</strong><br>
+        <span class="src-file"><code>.github/skills/detail-design-workflow/contracts/markdown/</code></span>
+        <p>各 spec / trace の書式。→ <a href="group-templates-markdown.html">group-templates-markdown.html</a></p>
+      </div>
+      <div class="card">
+        <strong>J-* スキーマ</strong><br>
+        <span class="src-file"><code>.github/skills/detail-design-workflow/contracts/json/</code></span>
+        <p>抽出出力の契約。→ <a href="group-contracts-json.html">group-contracts-json.html</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="flow" class="card">
+    <h2>処理フロー</h2>
+    <p class="how-to-read">
+      見方: 毎回「次の1タスク選択」1〜5を上から順に評価し、最初に該当した1つだけを実行する（実行前に「今回やること」を1行宣言）。
+      手順カードをクリックすると、その手順が使う入力と書く出力だけが点灯する。
+    </p>
+    <div class="legend">
+      <span class="chip chip-input">入力</span><span class="chip chip-step">手順</span>
+      <span class="chip chip-output">出力</span><span class="chip chip-stop">停止あり</span>
+    </div>
+    <p class="hint">👆 手順カード・入出力カードをクリック（もう一度クリックで解除）。<button class="reset-flow" type="button">全体表示に戻す</button></p>
+
+    <div class="flow">
+      <div class="flow-col col-input">
+        <h3>入力</h3>
+        <div class="io-item" data-io-id="p-rundir"><span class="io-name">runDir（作業ディレクトリ）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="p-specdir"><span class="io-name">specDir（最終出力ツリー）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="ref-rules"><span class="io-name">共通ルール</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-routing"><span class="io-name">ルーティング表</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-output-structure"><span class="io-name">出力ツリー定義</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-consumption-matrix"><span class="io-name">消費マトリクス</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-md-templates"><span class="io-name">Markdown テンプレート</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-json-schemas"><span class="io-name">J-* スキーマ</span><span class="io-sub">参照ファイル</span></div>
+      </div>
+
+      <div class="flow-col col-steps">
+        <h3>次の1タスク選択（原本の優先順のまま）</h3>
+        <div class="step has-stop" data-num="1" data-reads="p-rundir" data-writes="" data-stop="runDir/10-json/ に J-01 が無ければ実行せず「先に /01-setup を実行してください」と案内して終了する">
+          <span class="step-num">1</span>
+          <span class="step-name">J-01 の有無を確認する</span>
+          <span class="step-cap">無ければ実行しない（案内のみ・data-writes 空）。</span>
+        </div>
+        <div class="step" data-num="2" data-reads="p-rundir,ref-json-schemas" data-writes="out-json" data-stop="">
+          <span class="step-num">2</span>
+          <span class="step-name">未処理の抽出単位を最初の1つだけ抽出する</span>
+          <span class="step-cap">1シート／1論理ブロックのみ読み、routingPlan が指定する J-* スキーマに従って書き出す（recordId・recordType・layers・sourceRefs 必須。設計・推測はしない）。</span>
+        </div>
+        <div class="step" data-num="3" data-reads="p-specdir,ref-routing,out-json" data-writes="out-spec" data-stop="">
+          <span class="step-num">3</span>
+          <span class="step-name">未生成の spec/ 責務ファイルを1つだけ生成する</span>
+          <span class="step-cap">全抽出済みが条件。ルーティング表の行順→ID順で最初の1つが対象（詳細は下の「spec 生成の要点」）。</span>
+        </div>
+        <div class="step" data-num="4" data-reads="p-specdir,ref-md-templates,ref-consumption-matrix,out-spec" data-writes="out-trace" data-stop="">
+          <span class="step-num">4</span>
+          <span class="step-name">trace（specDir/trace/{機能ID}.md）を1つ生成する</span>
+          <span class="step-cap">spec/ 生成済みが条件。T-trace.template.md に従い、クラス図・設計→実装対応表・ER断片・消費マトリクス抜粋を作る。</span>
+        </div>
+        <div class="step has-stop" data-num="5" data-reads="out-json,out-spec,out-trace" data-writes="" data-stop="上記すべて完了していれば実行せず「verify.ps1 を実行し、別チャットで /03-check を実行してください」と案内して終了する">
+          <span class="step-num">5</span>
+          <span class="step-name">すべて完了していれば案内して終了する</span>
+          <span class="step-cap">実行しない（次工程への案内のみ・data-writes 空）。</span>
+        </div>
+      </div>
+
+      <div class="flow-col col-output">
+        <h3>出力</h3>
+        <div class="io-item io-out" data-io-id="out-json"><span class="io-name">J-* JSON（抽出）</span><span class="io-sub">runDir/10-json/ へ</span></div>
+        <div class="io-item io-out" data-io-id="out-spec"><span class="io-name">spec/ 責務ファイル</span><span class="io-sub">specDir 配下へ</span></div>
+        <div class="io-item io-out" data-io-id="out-trace"><span class="io-name">spec/trace/{機能ID}.md</span><span class="io-sub">specDir/trace/ へ</span></div>
+        <div class="io-item io-out" data-io-id="out-warnings"><span class="io-name">warnings.md 追記</span><span class="io-sub">runDir/20-check/ へ（機械FAIL・矛盾検出時）</span></div>
+      </div>
+    </div>
+
+    <div class="step-detail" id="step-detail" hidden>
+      <div class="sd-title" data-f="title"></div>
+      <div class="sd-note" data-f="note"></div>
+      <div class="sd-grid">
+        <div><span class="sd-label">使う入力</span><span data-f="reads"></span></div>
+        <div><span class="sd-label">出す出力</span><span data-f="writes"></span></div>
+        <div><span class="sd-label">停止・分岐</span><span data-f="stop"></span></div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:20px;">spec 生成の要点（手順3の詳細）</h3>
+    <div class="cards cols-2">
+      <div class="card"><p>抽出済み J-* の各レコードを、<a href="group-spec-format.html#routing-table">ルーティング表</a>の recordType→出力先で振り分ける。出力先が未生成の責務ファイルのうち、ルーティング表の行順→ID順で最初の1つを対象にする。</p></div>
+      <div class="card"><p>対応する Markdown テンプレート（T-items / T-validation / T-methods / T-queries / T-db-table 等）を使う。→ <a href="group-templates-markdown.html">group-templates-markdown.html</a></p></div>
+      <div class="card"><p>front-matter 必須キー（id / generatedFrom / generatedAt / model / provisional）を埋める。</p></div>
+      <div class="card"><p>仕様行の表には「Record ID」列と「出典」列を必須で置く。JSON に無い仕様を書かない（創作禁止）。</p></div>
+      <div class="card"><p>共通仕様は複製せず、spec/rules/ または spec/common/ へのリンクで参照する。</p></div>
+      <div class="card"><p>共有領域（db/ common/ rules/）で既存記述と矛盾する内容を検出したら、上書きしない。両論併記のうえ warnings.md（種別: 矛盾検出）に記録し、人間の判断に委ねる。</p></div>
+    </div>
+  </section>
+
+  <section id="outputs" class="card">
+    <h2>出力</h2>
+    <div class="cards cols-3">
+      <div class="card">
+        <strong>J-* JSON（抽出出力）</strong>
+        <p>どこへ: runDir/10-json/。routingPlan が指定する J-* スキーマ準拠（→ <a href="group-contracts-json.html">group-contracts-json.html</a>）。recordId・recordType・layers・1件以上の sourceRefs を必須で付ける。</p>
+      </div>
+      <div class="card">
+        <strong>spec/ 責務ファイル</strong>
+        <p>どこへ: specDir 配下（ルーティング表の出力先。→ <a href="group-spec-format.html#routing-table">group-spec-format.html#routing-table</a>）。1回の実行で未生成の1ファイルだけを生成する。</p>
+      </div>
+      <div class="card">
+        <strong>spec/trace/{機能ID}.md</strong>
+        <p>どこへ: specDir/trace/。T-trace.template.md 準拠（→ <a href="group-templates-markdown.html">group-templates-markdown.html</a>）。クラス図・設計→実装対応表・ER断片・消費マトリクス抜粋。</p>
+      </div>
+      <div class="card">
+        <strong>warnings.md 追記</strong>
+        <p>どこへ: runDir/20-check/warnings.md。種別: 機械FAIL（4条件検出時）／矛盾検出（共有領域の既存記述と矛盾時）。</p>
+      </div>
+      <div class="card">
+        <strong>実行結果報告（チャット応答）</strong>
+        <p>生成／更新したファイルと件数を数行で報告する（末尾にやること (a)）。</p>
+      </div>
+      <div class="card">
+        <strong>次にやること案内（チャット応答）</strong>
+        <p>残タスクの種類、または /03-check への誘導を1行で案内する（末尾にやること (b)）。</p>
+      </div>
+      <div class="card">
+        <strong>warnings 要約表示（チャット応答）</strong>
+        <p>未解消警告を要約表示する。例:「未レビューのまま進行中 2件」「EV指摘が未修正 1件」「矛盾検出 1件」（末尾にやること (c)）。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="stops" class="card">
+    <h2>停止条件・やらないこと</h2>
+
+    <div class="stop-box">
+      <strong>停止条件（機械FAILのみ・後続タスクを実行せず warnings.md に記録して終了）</strong>
+      <ul>
+        <li>JSON がパース不能</li>
+        <li>レコードの sourceRefs が空（出典欠落）</li>
+        <li>routingPlan に無いシート／ブロックを参照している</li>
+        <li>recordId が重複している</li>
+      </ul>
+    </div>
+
+    <div class="stop-box">
+      <strong>禁止事項（〜しない）</strong>
+      <ul>
+        <li>各レコードに recordId・recordType・layers・1件以上の sourceRefs を付ける際、設計・推測はしない</li>
+        <li>JSON に無い仕様を書かない（創作禁止）</li>
+        <li>共通仕様は複製せず、spec/rules/ または spec/common/ へのリンクで参照する（複製しない）</li>
+        <li>共有領域（db/ common/ rules/）で既存記述と矛盾する内容を検出しても、上書きしない</li>
+      </ul>
+    </div>
+
+    <div class="gate-box">
+      <strong>人間レビューの有無では止まらない</strong>
+      <p>未レビューは警告として表示するだけで先へ進む（原本のまま）。</p>
+    </div>
+  </section>
+
+  <footer class="src-note">正本: <code>.github/prompts/02-run.prompt.md</code>, <code>.github/skills/detail-design-workflow/RUNBOOK.md</code>, <code>spec-format/routing-table.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

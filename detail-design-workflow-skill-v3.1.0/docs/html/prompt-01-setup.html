@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/01-setup 棚卸しとルーティング計画 | 詳細設計ワークフロー v3.1.0 解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">/01-setup 棚卸しとルーティング計画</span>
+  <span class="nav-spacer"></span>
+  <a class="nav-link" href="prompt-02-run.html">/02-run →</a>
+</nav>
+<main>
+
+  <header class="page-head">
+    <h1>/01-setup 棚卸しとルーティング計画 <span class="badge badge-e2j">計画・棚卸し</span></h1>
+    <div class="src-file">原本: <code>.github/prompts/01-setup.prompt.md</code></div>
+  </header>
+
+  <div class="purpose">
+    Excel設計書のスナップショットを1冊ずつ棚卸しし、後続 /02-run が使う routingPlan込みの J-01 を作る最初の工程。
+    見方: 中央の手順カードをクリックすると、その手順が使う入力・出す出力だけが点灯する。
+  </div>
+
+  <section id="summary" class="card">
+    <h2>サマリー</h2>
+    <div class="fact-grid">
+      <div class="fact">
+        <span class="fact-label">いつ実行するか（frontmatter description）</span>
+        設計書を棚卸しし、ルーティング計画(J-01)を作る。初回・設計書追加時に実行する。
+      </div>
+      <div class="fact">
+        <span class="fact-label">使うモデル</span>
+        GPT-5.4（原本frontmatter指定。RUNBOOKモデル割当表と一致）
+      </div>
+      <div class="fact">
+        <span class="fact-label">前工程 → この工程 → 後工程</span>
+        人間の作業フォルダ準備（run-templateコピー・00-input配置・run-request.json記入） → /01-setup → /02-run
+      </div>
+    </div>
+  </section>
+
+  <section id="inputs" class="card">
+    <h2>入力</h2>
+
+    <table class="params-table">
+      <thead><tr><th>パラメータ</th><th>渡すもの（原本の説明文）</th><th>必須</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>runDir</code></td>
+          <td>作業ディレクトリ（例 runs/FUNC0123）。run-request.json と 00-input/ がある</td>
+          <td>必須</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="hint">以下はすべて実行時に読み込まれるコンテキスト（＝入力）です。</p>
+    <div class="cards cols-2">
+      <div class="card">
+        <strong>共通ルール</strong>
+        <p>出典必須・推測禁止・「該当なし(=[])」と「未確認(=null)」の区別などの正本。</p>
+        <p><a href="group-rules.html">→ group-rules.html</a> ／ 原本: <code>.github/copilot-instructions.md</code></p>
+      </div>
+      <div class="card">
+        <strong>プロファイル一覧</strong>
+        <p>シート役割の推定に使う。</p>
+        <p><a href="group-profiles.html">→ group-profiles.html</a> ／ 原本: <code>.github/skills/detail-design-workflow/profiles/PROFILE-INDEX.md</code></p>
+      </div>
+      <div class="card">
+        <strong>契約一覧の J-01 スキーマ</strong>
+        <p>routingPlan のキーの正本。</p>
+        <p><a href="group-contracts-json.html#j-01">→ group-contracts-json.html#j-01</a> ／ 原本: <code>.github/skills/detail-design-workflow/contracts/CONTRACT-INDEX.md</code></p>
+      </div>
+      <div class="card">
+        <strong>ルーティング表</strong>
+        <p>recordType→出力先の対応。</p>
+        <p><a href="group-spec-format.html#routing-table">→ group-spec-format.html#routing-table</a> ／ 原本: <code>spec-format/routing-table.md</code></p>
+      </div>
+      <div class="card">
+        <strong>手順書（RUNBOOK）</strong>
+        <p>日々の作業手順の正本。</p>
+        <p><a href="group-skill-runbook.html">→ group-skill-runbook.html</a> ／ 原本: <code>.github/skills/detail-design-workflow/RUNBOOK.md</code></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="flow" class="card">
+    <h2>処理フロー</h2>
+    <p class="how-to-read">見方: 中央の手順を上から順に読む。手順をクリックすると、その手順が使う入力と書く出力だけが点灯する。</p>
+    <div class="legend">
+      <span class="chip chip-input">入力</span><span class="chip chip-step">手順</span>
+      <span class="chip chip-output">出力</span><span class="chip chip-stop">停止あり</span>
+    </div>
+    <p class="hint">👆 手順カード・入出力カードをクリック（もう一度クリックで解除）。<button class="reset-flow" type="button">全体表示に戻す</button></p>
+
+    <div class="flow">
+      <div class="flow-col col-input">
+        <h3>入力</h3>
+        <div class="io-item" data-io-id="p-rundir"><span class="io-name">runDir（作業ディレクトリ）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="ref-rules"><span class="io-name">共通ルール</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-profiles"><span class="io-name">プロファイル一覧</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-j01schema"><span class="io-name">J-01 スキーマ</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-routing"><span class="io-name">ルーティング表</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-runbook"><span class="io-name">手順書（RUNBOOK）</span><span class="io-sub">参照ファイル</span></div>
+      </div>
+
+      <div class="flow-col col-steps">
+        <h3>手順（原本の順序のまま）</h3>
+        <div class="step has-stop" data-num="1" data-reads="p-rundir" data-writes="" data-stop="run-request.json が無ければ停止し「run-request.json を用意してから再実行してください」と案内する">
+          <span class="step-num">1</span>
+          <span class="step-name">run-request.json を読む</span>
+          <span class="step-cap">対象機能ID・設計書ファイル一覧・ID種別の宣言を確認する。</span>
+        </div>
+        <div class="step has-stop" data-num="2" data-reads="p-rundir" data-writes="" data-stop="00-input/ の設計書が1冊も読み取れない場合のみ停止する">
+          <span class="step-num">2</span>
+          <span class="step-name">00-input/ の設計書スナップショットを確認する</span>
+          <span class="step-cap">生の .xlsx しか無く読めない場合はCSV/TSVの提出を要求し、推測で続行しない。</span>
+        </div>
+        <div class="step" data-num="3" data-reads="p-rundir,ref-profiles" data-writes="">
+          <span class="step-num">3</span>
+          <span class="step-name">設計書を1冊ずつ棚卸しし、シートの役割を判定する</span>
+          <span class="step-cap">分類優先順位: ①シート内の役割明記（A1セル等）を最優先 → ②profilesのシート名推定 → ③推定は「推定」とJ-01に記録。</span>
+        </div>
+        <div class="step" data-num="4" data-reads="ref-profiles" data-writes="out-warnings">
+          <span class="step-num">4</span>
+          <span class="step-name">未知フォーマットは停止せず調査モードで進む</span>
+          <span class="step-cap">候補プロファイル案を最大2つ提示し、人間確認を促す警告をwarnings.md（種別:未レビュー）とJ-01のissueに記録する。</span>
+        </div>
+        <div class="step" data-num="5" data-reads="ref-routing,ref-j01schema" data-writes="">
+          <span class="step-num">5</span>
+          <span class="step-name">routingPlan エントリを作る</span>
+          <span class="step-cap">抽出単位・想定recordType群（ルーティング表の値のみ）・出力先J-*スキーマ・処理状態の初期値を持つ。</span>
+        </div>
+        <div class="step" data-num="6" data-reads="p-rundir" data-writes="">
+          <span class="step-num">6</span>
+          <span class="step-name">ID種別を確認する</span>
+          <span class="step-cap">設計書から判別できない場合は run-request.json の宣言を正とする。</span>
+        </div>
+        <div class="step" data-num="7" data-reads="" data-writes="out-j01">
+          <span class="step-num">7</span>
+          <span class="step-name">J-01 JSON を書き出す</span>
+          <span class="step-cap">runDir/10-json/J-01-{機能ID}.json を1つだけ書き出す。J-01以外は生成しない。</span>
+        </div>
+      </div>
+
+      <div class="flow-col col-output">
+        <h3>出力</h3>
+        <div class="io-item io-out" data-io-id="out-j01"><span class="io-name">J-01 JSON（routingPlan込み）</span><span class="io-sub">runDir/10-json/ へ</span></div>
+        <div class="io-item io-out" data-io-id="out-warnings"><span class="io-name">warnings.md 追記</span><span class="io-sub">runDir/20-check/ へ（種別: 未レビュー）</span></div>
+      </div>
+    </div>
+
+    <div class="step-detail" id="step-detail" hidden>
+      <div class="sd-title" data-f="title"></div>
+      <div class="sd-note" data-f="note"></div>
+      <div class="sd-grid">
+        <div><span class="sd-label">使う入力</span><span data-f="reads"></span></div>
+        <div><span class="sd-label">出す出力</span><span data-f="writes"></span></div>
+        <div><span class="sd-label">停止・分岐</span><span data-f="stop"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="outputs" class="card">
+    <h2>出力</h2>
+    <div class="cards cols-2">
+      <div class="card">
+        <strong>J-01 JSON（routingPlan込み）</strong>
+        <p>何が: シート分類＋抽出計画（routingPlan）を持つ J-01。</p>
+        <p>どこへ: <code>runDir/10-json/J-01-{機能ID}.json</code></p>
+        <p>形式: <a href="group-contracts-json.html#j-01">J-01 スキーマ</a> 準拠。</p>
+        <p>限定表現: J-01 以外は生成しない。</p>
+      </div>
+      <div class="card">
+        <strong>warnings.md 追記（必要に応じ）</strong>
+        <p>何が: 未レビュー種別の警告（未知フォーマット検出時の候補プロファイル案など）。</p>
+        <p>どこへ: <code>runDir/20-check/warnings.md</code></p>
+      </div>
+      <div class="card">
+        <strong>チャット応答（毎回この形で締める）</strong>
+        <p>1. 棚卸し要約（対象冊数・シート数・分類確定/推定/未知の内訳）を数行で報告。</p>
+        <p>2. 未レビュー・未知フォーマットの警告があれば件数を要約。</p>
+        <p>3. 「次にやること: /02-run を実行してください」と1行で案内。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="stops" class="card">
+    <h2>停止条件・やらないこと</h2>
+    <div class="stop-box">
+      <strong>停止条件（機械FAILのみ）</strong>
+      <p>run-request.json が無い／読めない、または 00-input/ の設計書が1冊も読み取れない場合のみ停止する。</p>
+    </div>
+    <div class="gate-box">
+      <strong>停止しないこと</strong>
+      <p>シートの役割が推定であることや、未知フォーマットの存在では停止しない（警告に記録して進む）。</p>
+    </div>
+    <div class="note-box">
+      <strong>禁止事項（原本の「〜しない」文）</strong>
+      <ul>
+        <li>生の .xlsx しか無く中身を読めない場合は、推測で続行しない。</li>
+        <li>J-01 以外は生成しない。</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="src-note">正本: <code>.github/prompts/01-setup.prompt.md</code>, <code>.github/skills/detail-design-workflow/RUNBOOK.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>共通ルール | 詳細設計ワークフロー v3.1.0 解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">共通ルール</span>
+  <span class="nav-spacer"></span>
+</nav>
+<main>
+
+<h1>共通ルール（実行ルールの正本）</h1>
+<p class="purpose"><code>.github/copilot-instructions.md</code> の全9節。/01-setup・/02-run・/03-check の全 Prompt File はこのルールに従い、同じ制約をそれぞれの Prompt File 側には複製しない。</p>
+
+<div class="note-box">
+  このファイルは <strong>全 Prompt 共通の暗黙コンテキスト</strong>です。/01-setup・/02-run・/03-check のいずれも実行時にこのルールを読み込んでおり、各工程ページの「入力」欄にも参照として現れます。
+</div>
+
+<div class="used-by">
+  <a class="chip" href="prompt-01-setup.html">/01-setup</a>
+  <a class="chip" href="prompt-02-run.html">/02-run</a>
+  <a class="chip" href="prompt-03-check.html">/03-check</a>
+  <span class="chip">が共通ルールとして読む</span>
+</div>
+
+<section id="scope" class="card">
+  <h2>対象範囲（スコープ）</h2>
+  <ul>
+    <li>目的: Excel設計書を出典付き JSON（J-* JSON）へ変換し、その JSON から責務分割された詳細設計 Markdown（<code>spec/</code> ツリー）を作る。</li>
+    <li>スコープ外: コード実装・実装計画・テストコードの作成/変更はしない。設計と実装の対応（クラス名・パス規則）は <code>spec/trace/</code> と <code>spec/common/src-mapping.md</code> に「予定」として記すだけで、実コードは生成しない。</li>
+    <li>元の設計書は変更しない。Prompt File が指定した出力先以外を変更しない。</li>
+  </ul>
+</section>
+
+<section id="sources" class="card">
+  <h2>根拠と出典</h2>
+  <ul>
+    <li>業務仕様の根拠は、指定された Excel設計書またはその入力スナップショット（CSV/TSV 等）だけにする。</li>
+    <li>指定されていない設計書・既存コード・Web・別ブックを根拠に使わない（原本外根拠の禁止）。</li>
+    <li>確定した各レコードには1件以上の <code>sourceRefs</code> を必ず付ける。出典の無い仕様は書かない。</li>
+    <li><code>sourceRef</code> は <code>{ workbook, sheet, range, displayedValue, formula(取得できれば), evidenceType }</code> とする。</li>
+    <li>設計書に書かれていない内容を AI が推測で補わない。読み取れない・判断できないものは推測せず「未確認」として残す。</li>
+  </ul>
+</section>
+
+<section id="na-null" class="card">
+  <h2>「該当なし」と「未確認」の区別（混同禁止）</h2>
+  <div class="cards cols-2">
+    <div class="fact"><span class="fact-label"><code>[]</code>（空配列）＝該当なし</span>資料を確認した結果、対象レコードが無い状態。</div>
+    <div class="fact"><span class="fact-label"><code>null</code>＝未確認</span>資料不足・読み取り不能・判断不能で確定できない状態。</div>
+  </div>
+  <p>この2つを混同しない。空文字や「不明」などの文字列で代用しない。</p>
+</section>
+
+<section id="json-rules" class="card">
+  <h2>JSON出力（J-* JSON）</h2>
+  <ul>
+    <li><a href="group-contracts-json.html">contracts/json/ の対応スキーマ</a>に従う。定義外のキーは増やさない。軽量モデルがスキーマから外れても全停止はさせない — 構造の最終チェックは <a href="verify-ps1.html">verify.ps1</a> が行う。</li>
+    <li>各レコードは <code>recordId</code>（一意）／<code>recordType</code>／<code>layers</code>／<code>scope</code>／<code>sourceRefs</code>（1件以上）／<code>evidenceState</code> を持つ。</li>
+    <li><code>recordId</code> 形式: <code>{機能ID or 画面ID}-{recordTypeの略号}-{連番3桁}</code>（例: <code>FUNC0123-ITEM-012</code>）。</li>
+    <li><code>evidenceState</code>: <code>explicit</code>（原本に明記）／<code>derived</code>（原本の記述から導出）／<code>ambiguous</code>（判断保留）。</li>
+    <li>同じ入力に対しては ID と並び順を安定させる。</li>
+    <li>数式を取得できる場合は表示値と数式文字列の両方を保持する。</li>
+    <li>非表示行・列を、非表示であることだけを理由に除外しない。</li>
+    <li>画像・図形・コメント等は見た目から仕様を推測せず、アセットとして分離し <a href="group-templates-markdown.html#t-layout">layout.md</a> からリンクする。</li>
+    <li>レコードの網羅性（数え上げ）をモデルの自己申告で保証しない。網羅性の照合は verify.ps1（機械照合）と人間レビューで行う。</li>
+  </ul>
+</section>
+
+<section id="er-rules" class="card">
+  <h2>ER関連（entity_relation）の生成規則</h2>
+  <ul>
+    <li>テーブル間の関連（<code>entity_relation</code> レコード）は、設計書に明記された関連だけを作る。
+      <ul>
+        <li><code>basis=explicit</code>: 設計書のテーブル定義・関連欄に明記された関連。</li>
+        <li><code>basis=derived_join</code>: VIEW 定義・検索要領の JOIN 条件から導出した関連（導出元を <code>sourceRefs</code> に残す）。</li>
+      </ul>
+    </li>
+    <li>AI の推測による関連線（設計書に根拠が無い FK・参照の想像）は禁止。</li>
+    <li>ER図（Mermaid）は、全体テーブル定義書がある場合にだけ作る。機能単位のエンティティ定義しか無い段階では ER図を作らず、テーブル定義の取り込みのみ行う。</li>
+  </ul>
+</section>
+
+<section id="routing-principle" class="card">
+  <h2>出力起点ルーティングの原則</h2>
+  <ul>
+    <li>レコードの出力先は「どの設計書から来たか」ではなく「レコードの責務」で決める。実際の対応表は <a href="group-spec-format.html#routing-table">spec-format/routing-table.md</a> を正とする。</li>
+    <li>1冊の設計書が複数の spec ファイルに分かれるのは正常。1つの spec ファイルに複数の設計書由来のレコードが集まるのも正常。</li>
+    <li>共有領域（<code>spec/db/</code>・<code>spec/common/</code>・<code>spec/rules/</code>）は、該当レコードを持つどの作業でも追記・更新してよい。既存の記述と矛盾する内容を検出したら、上書きせず両論併記とし、<code>warnings.md</code> へ警告を残して人間の判断に委ねる。</li>
+  </ul>
+</section>
+
+<section id="markdown-rules" class="card">
+  <h2>Markdown出力（spec/ ツリー）</h2>
+  <ul>
+    <li><a href="group-templates-markdown.html">contracts/markdown/ のテンプレート</a>に従う。</li>
+    <li>各仕様行には Record ID と出典（シート名!範囲 の短縮表記）を付ける。JSON に無い仕様を Markdown 側で創作しない。</li>
+    <li>対応する確定レコードが無い分野のファイルは作らない。共通仕様は各ファイルへ全文複製せず、<code>spec/rules/</code> または <code>spec/common/</code> へのリンクで参照する。</li>
+  </ul>
+</section>
+
+<section id="gates" class="card">
+  <h2>ゲートと停止条件</h2>
+  <div class="stop-box">
+    <strong>停止するのは機械FAILのときだけ</strong>（JSON が壊れている・<code>sourceRefs</code> 欠落・ルーティング表に無い種別/シート 等）。検出したらそのタスクを実行せず <code>warnings.md</code> に記録して止まる。
+  </div>
+  <div class="gate-box">
+    人間レビューは非ブロッキング。未レビューでも作業は止めない。未解消の警告は <code>warnings.md</code> に一覧として残し、実行のたびに要約表示する。
+  </div>
+  <p>承認ファイル（<code>status.md</code> や G0/G1/G2 のようなゲート）は使わない。人間確認の状態を JSON や Markdown に持たせない。</p>
+  <div class="note-box">
+    参考（RUNBOOKより）: /03-check の意味照合の判定は <span class="verdict-pass">PASS</span> / <span class="verdict-warn">PASS_WITH_WARNINGS</span> / <span class="verdict-fail">FAIL</span> の3値。これも人間レビューと同じく非ブロッキングで、FAIL でも成果物は自動修正されない（直すときは /02-run を再実行）。詳しくは <a href="prompt-03-check.html">prompt-03-check.html</a>。
+  </div>
+</section>
+
+<section id="chat-response" class="card">
+  <h2>チャット応答</h2>
+  <ul>
+    <li>指定された成果物だけを作成・更新する。</li>
+    <li>最終応答は、やったこと・出力先・作成/省略/削除したファイル・件数・判定・未解消の警告だけを簡潔に報告する。</li>
+  </ul>
+</section>
+
+<footer class="src-note">正本: <code>.github/copilot-instructions.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

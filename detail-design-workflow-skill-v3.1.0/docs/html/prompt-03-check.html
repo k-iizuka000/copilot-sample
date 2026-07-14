@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/03-check 意味照合 | 詳細設計ワークフロー v3.1.0 解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">/03-check 意味照合</span>
+  <span class="nav-spacer"></span>
+  <a class="nav-link" href="verify-ps1.html">← verify.ps1</a>
+</nav>
+<main>
+
+  <header class="page-head">
+    <h1>/03-check 意味照合 <span class="badge badge-ev">意味照合</span></h1>
+    <div class="src-file">原本: <code>.github/prompts/03-check.prompt.md</code></div>
+  </header>
+
+  <div class="purpose">
+    J-* JSON と生成済み spec/ Markdown を突き合わせ、意味の欠落・創作・「該当なし/未確認」混同・basis妥当性を評価する意味照合専用プロンプト（機械照合は verify.ps1 の責務で重複しない）。
+    見方: 中央の手順カードをクリックすると使う入力が点灯する。
+  </div>
+
+  <section id="summary" class="card">
+    <h2>サマリー</h2>
+    <div class="fact-grid">
+      <div class="fact">
+        <span class="fact-label">いつ実行するか（frontmatter description）</span>
+        J-* JSON と spec/ Markdown の意味照合（欠落・創作・「該当なし/未確認」混同・basis 妥当性）を評価する。02-run とは別チャットで実行する。
+      </div>
+      <div class="fact">
+        <span class="fact-label">使うモデル</span>
+        GPT-5.4（原本frontmatter指定。RUNBOOKモデル割当表と一致）
+      </div>
+      <div class="fact">
+        <span class="fact-label">前工程 → この工程 → 後工程</span>
+        verify.ps1 → /03-check → 人間が確認（FAILなら /02-run へ戻る）
+      </div>
+    </div>
+  </section>
+
+  <section id="inputs" class="card">
+    <h2>入力</h2>
+
+    <div class="gate-box">
+      <strong>前提（満たさなければ評価しない）</strong>
+      <p><code>runDir/20-check/verify-result.md</code> が存在し、verify.ps1 の結果が OK（機械照合が緑）であること。
+      未実行、または FAIL の場合は評価に入らず、「先に verify.ps1（scripts/verify.ps1 -RunDir &lt;runDir&gt; -SpecDir &lt;specDir&gt;）を実行してください」と案内して終了する。</p>
+    </div>
+    <div class="gate-box">
+      <strong>役割</strong>
+      <p>意味照合だけを行う。spec/ Markdown を修正しない（修正は /02-run の再実行で行う）。</p>
+    </div>
+    <div class="note-box">
+      <strong>別チャットで実行する</strong>
+      <p>/02-run とは別のチャットで実行する（評価者を生成者から分ける）。理由: 生成時の途中経過（推論や言い訳）を引き継ぐと評価が甘くなるため、入力・成果物・スキーマだけを渡した新しい会話でチェックする（RUNBOOK手順4より）。</p>
+    </div>
+
+    <table class="params-table">
+      <thead><tr><th>パラメータ</th><th>渡すもの（原本の説明文）</th><th>必須</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>runDir</code></td>
+          <td>作業ディレクトリ（例 runs/FUNC0123）</td>
+          <td>必須</td>
+        </tr>
+        <tr>
+          <td><code>specDir</code></td>
+          <td>最終出力ツリー。既定は spec/</td>
+          <td>任意（既定: spec/）</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="hint">以下はすべて実行時に読み込まれるコンテキスト（＝入力）です。</p>
+    <div class="cards cols-2">
+      <div class="card">
+        <strong>共通ルール</strong>
+        <p>出典必須・推測禁止・「該当なし(=[])」と「未確認(=null)」の区別などの正本。</p>
+        <p><a href="group-rules.html">→ group-rules.html</a> ／ 原本: <code>.github/copilot-instructions.md</code></p>
+      </div>
+      <div class="card">
+        <strong>対象の J-* JSON</strong>
+        <p>評価対象そのもの（欠落・創作・混同・basis妥当性を照合する元データ）。</p>
+        <p><a href="group-contracts-json.html">→ group-contracts-json.html</a> ／ 原本: <code>runDir/10-json/</code></p>
+      </div>
+      <div class="card">
+        <strong>生成済み spec/ Markdown</strong>
+        <p>評価対象そのもの（J-* JSON の意味が失われていないかを照合する先）。</p>
+        <p><a href="group-templates-markdown.html">→ group-templates-markdown.html</a> ／ 原本: <code>specDir/</code></p>
+      </div>
+      <div class="card">
+        <strong>ルーティング表</strong>
+        <p>recordType→出力先の対応。</p>
+        <p><a href="group-spec-format.html#routing-table">→ group-spec-format.html#routing-table</a> ／ 原本: <code>spec-format/routing-table.md</code></p>
+      </div>
+      <div class="card">
+        <strong>検証結果</strong>
+        <p>verify.ps1 の出力。前提ゲートとして参照する。</p>
+        <p><a href="verify-ps1.html">→ verify-ps1.html</a> ／ 原本: <code>.github/skills/detail-design-workflow/scripts/verify.ps1</code> の出力 <code>runDir/20-check/verify-result.md</code></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="flow" class="card">
+    <h2>処理フロー</h2>
+    <p class="how-to-read">見方: 中央の検査項目を上から順に読む。項目をクリックすると、その項目が使う入力と書く出力だけが点灯する。</p>
+    <div class="legend">
+      <span class="chip chip-input">入力</span><span class="chip chip-step">検査項目</span>
+      <span class="chip chip-output">出力</span><span class="chip chip-stop">停止あり</span>
+    </div>
+    <p class="hint">👆 検査項目カード・入出力カードをクリック（もう一度クリックで解除）。<button class="reset-flow" type="button">全体表示に戻す</button></p>
+
+    <div class="flow">
+      <div class="flow-col col-input">
+        <h3>入力</h3>
+        <div class="io-item" data-io-id="p-rundir"><span class="io-name">runDir（作業ディレクトリ）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="p-specdir"><span class="io-name">specDir（最終出力ツリー）</span><span class="io-sub">実行パラメータ</span></div>
+        <div class="io-item" data-io-id="ref-verifyresult"><span class="io-name">検証結果 verify-result.md</span><span class="io-sub">参照ファイル（前提ゲート）</span></div>
+        <div class="io-item" data-io-id="ref-rules"><span class="io-name">共通ルール</span><span class="io-sub">参照ファイル</span></div>
+        <div class="io-item" data-io-id="ref-jjson"><span class="io-name">対象の J-* JSON</span><span class="io-sub">評価対象（runDir/10-json/）</span></div>
+        <div class="io-item" data-io-id="ref-specmd"><span class="io-name">生成済み spec/ Markdown</span><span class="io-sub">評価対象（specDir/）</span></div>
+        <div class="io-item" data-io-id="ref-routing"><span class="io-name">ルーティング表</span><span class="io-sub">参照ファイル</span></div>
+      </div>
+
+      <div class="flow-col col-steps">
+        <h3>検査項目（原本の順序のまま）＋結果の書き出し</h3>
+        <div class="step" data-num="1" data-reads="ref-jjson,ref-specmd" data-writes="">
+          <span class="step-num">1</span>
+          <span class="step-name">欠落が無いか確認する</span>
+          <span class="step-cap">J-* JSON の条件・否定・例外・数値・順序が spec/ Markdown で失われていないか。</span>
+        </div>
+        <div class="step" data-num="2" data-reads="ref-jjson,ref-specmd" data-writes="">
+          <span class="step-num">2</span>
+          <span class="step-name">創作が無いか確認する</span>
+          <span class="step-cap">spec/ にだけ存在する仕様が無いか。JSON に根拠が無い記述はすべて指摘する。</span>
+        </div>
+        <div class="step" data-num="3" data-reads="ref-jjson,ref-specmd,ref-rules" data-writes="">
+          <span class="step-num">3</span>
+          <span class="step-name">「該当なし」と「未確認」の混同が無いか確認する</span>
+          <span class="step-cap">「該当なし」（=[]）と「未確認」（=null）の混同が無いか。</span>
+        </div>
+        <div class="step" data-num="4" data-reads="ref-jjson" data-writes="">
+          <span class="step-num">4</span>
+          <span class="step-name">entity_relation の basis 妥当性を確認する</span>
+          <span class="step-cap">explicit→出典(sourceRefs)実在／derived_join→導出元実在／どちらでもないAI推測の関連（推測線は禁止）が無いか。</span>
+        </div>
+        <div class="step" data-num="5" data-reads="" data-writes="out-checkresult,out-warnings">
+          <span class="step-num">5</span>
+          <span class="step-name">結果を書き出す</span>
+          <span class="step-cap">判定（PASS/PASS_WITH_WARNINGS/FAIL）とfindings表をcheck-result.mdに書く。findingsはwarnings.md（種別:EV指摘）にも追記する。</span>
+        </div>
+      </div>
+
+      <div class="flow-col col-output">
+        <h3>出力</h3>
+        <div class="io-item io-out" data-io-id="out-checkresult"><span class="io-name">check-result.md（判定＋findings）</span><span class="io-sub">runDir/20-check/ へ</span></div>
+        <div class="io-item io-out" data-io-id="out-warnings"><span class="io-name">warnings.md 追記</span><span class="io-sub">runDir/20-check/ へ（種別: EV指摘）</span></div>
+      </div>
+    </div>
+
+    <div class="step-detail" id="step-detail" hidden>
+      <div class="sd-title" data-f="title"></div>
+      <div class="sd-note" data-f="note"></div>
+      <div class="sd-grid">
+        <div><span class="sd-label">使う入力</span><span data-f="reads"></span></div>
+        <div><span class="sd-label">出す出力</span><span data-f="writes"></span></div>
+        <div><span class="sd-label">停止・分岐</span><span data-f="stop"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="outputs" class="card">
+    <h2>出力</h2>
+    <div class="cards cols-2">
+      <div class="card">
+        <strong>check-result.md（判定＋findings）</strong>
+        <p>どこへ: <code>runDir/20-check/check-result.md</code></p>
+        <p>
+          <span class="verdict-pass">PASS</span>: 欠落・創作・混同・basis不正がいずれも無い。／
+          <span class="verdict-warn">PASS_WITH_WARNINGS</span>: blockingでない指摘のみが残る。／
+          <span class="verdict-fail">FAIL</span>: 欠落・創作・出典欠落・basis不正・矛盾のいずれかがある。
+        </p>
+        <p>限定表現: FAIL でも成果物（spec/）は修正しない。判定と findings を残すだけにする。</p>
+      </div>
+      <div class="card">
+        <strong>warnings.md 追記</strong>
+        <p>何が: findings（種別: EV指摘）。</p>
+        <p>どこへ: <code>runDir/20-check/warnings.md</code></p>
+      </div>
+      <div class="card">
+        <strong>チャット応答</strong>
+        <p>判定・findings件数・出力先を簡潔に報告し、FAILがあれば「修正は /02-run を再実行してください」と1行で案内する。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="stops" class="card">
+    <h2>停止条件・やらないこと</h2>
+    <div class="stop-box">
+      <strong>評価に入らない条件</strong>
+      <p>verify-result.md が無い（未実行）、または verify.ps1 の結果が FAIL の場合は評価に入らず、「先に verify.ps1 を実行してください」と案内して終了する。</p>
+    </div>
+    <div class="note-box">
+      <strong>禁止事項（原本の「〜しない」文）</strong>
+      <ul>
+        <li>機械照合（構造・件数・リンク実在など）は verify.ps1 の責務なので、ここでは重複してやらない。</li>
+        <li>spec/ Markdown を修正しない（修正は /02-run の再実行で行う）。</li>
+        <li>FAIL でも成果物（spec/）は修正しない。判定と findings を残すだけにする。</li>
+        <li>AI 推測による entity_relation（推測線）は禁止。basis が explicit / derived_join のどちらにも該当しない関連は指摘する。</li>
+      </ul>
+    </div>
+    <p class="hint">停止条件・ゲートの共通の考え方は <a href="group-rules.html#gates">group-rules.html#gates</a> を参照。</p>
+  </section>
+
+  <footer class="src-note">正本: <code>.github/prompts/03-check.prompt.md</code>, <code>.github/skills/detail-design-workflow/RUNBOOK.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>
