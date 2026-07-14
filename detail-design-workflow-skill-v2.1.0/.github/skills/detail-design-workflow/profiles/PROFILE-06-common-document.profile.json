@@ -1,0 +1,35 @@
+{
+  "profileId": "PROFILE-06",
+  "version": "1.0.0",
+  "documentType": "common-document",
+  "status": "provisional",
+  "documentScope": "common",
+  "description": "規約・文書系向けの暫定プロファイル。D00調査後に具体的な候補Profileへ置き換える。",
+  "sheetRules": [
+    {
+      "ruleId": "P06-S01",
+      "matchType": "regex",
+      "pattern": ".*",
+      "role": "unknown",
+      "skills": [
+        "E2J-00",
+        "E2J-05",
+        "UNKNOWN"
+      ],
+      "outputContracts": [
+        "J-01",
+        "J-40"
+      ],
+      "priority": 1,
+      "notes": "このまま通常変換に使わない。D00を先に実行し、シート固有ルールを持つ候補Profileを人間承認する。"
+    }
+  ],
+  "policies": {
+    "hiddenRows": "include_and_mark",
+    "formula": "display_and_formula",
+    "assets": "separate_manifest",
+    "canonicalSource": "D00調査後に確定。",
+    "unknownSheet": "fail",
+    "profileMismatch": "fail"
+  }
+}

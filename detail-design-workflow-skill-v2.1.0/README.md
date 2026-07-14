@@ -1,28 +1,62 @@
-# 詳細設計ワークフロースキル v2.1.0
+# 詳細設計ワークフロー
 
-このZIPは、Excel設計書を出典付き構造化JSONへ変換し、そのJSONから詳細設計Markdown、実装計画、1タスク実装、実装後レビューまでを進めるContract First型の作業キットです。
-
-## 最初に開くファイル
-
-1. `RUNBOOK.md` — 画面・機能単位の実行順序
-2. `PROMPT-INDEX.md` — 実際に実行するプロンプト一覧
-3. `03_CONTRACTS/CONTRACT-INDEX.md` — JSON・Markdown・評価契約
-4. `90_DEPLOY_TO_REPOSITORY/README.md` — VS Code/Copilotへ配置する手順
-
-## 今回のパッケージ構成
+Excel設計書を、出典付きJSONへ構造化してから詳細設計Markdownへ変換するためのGitHub Copilot用パッケージです。
 
 ```text
-00_START_HERE/                入口、概要、クイックスタート
-01_RUNBOOK/                   画面・機能単位の手順書
-02_PROMPTS/                   実際の全文プロンプト集
-03_CONTRACTS/                 入出力契約、JSON Schema、Markdownテンプレート
-04_PROFILES/                  設計書種類別プロファイル
-05_PLAN/                      全体計画、役割マトリックス、移行計画
-06_EXAMPLES/                  入力、JSON、Markdownの例
-07_TESTS/                     ゴールデンサンプル、受入・漏れ確認
-08_RUN_TEMPLATE/              画面・機能単位の作業フォルダ雛形
-09_SKILL/                     Agent Skill本体
-90_DEPLOY_TO_REPOSITORY/      リポジトリへ配置するための可視フォルダ
+Excel設計書
+  → J-* 構造化JSON
+  → EV-01 原本照合
+  → M-* 詳細設計Markdown
+  → EV-02 Markdown整合性確認
 ```
 
-主要ファイルをドットで始まる隠しフォルダの中だけに置いていません。`02_PROMPTS`にはリンクだけのランチャーではなく、契約番号、停止条件、手順、出力条件を含む全文プロンプトを収録しています。
+実装計画、コード実装、実装レビュー、テスト生成は対象外です。
+
+## 導入
+
+このディレクトリの`.github`と`.vscode`を、使用するリポジトリのルートへコピーします。既存の`.vscode/settings.json`がある場合は、`json.schemas`と`chat.promptFilesLocations`を上書きせず統合してください。
+
+VS Codeを再読み込みし、Copilot Chatで`/01-e2j-inventory-route`が候補に出れば準備完了です。
+
+## 最初に読むもの
+
+1. [標準作業手順](.github/skills/detail-design-workflow/RUNBOOK.md)
+2. [入出力契約一覧](.github/skills/detail-design-workflow/contracts/CONTRACT-INDEX.md)
+3. [設計書プロファイル一覧](.github/skills/detail-design-workflow/profiles/PROFILE-INDEX.md)
+
+## 通常の実行順序
+
+```text
+/01-e2j-inventory-route
+→ routingPlanで必要とされた /02〜/07
+→ 作成したJ-*ごとに /08-ev-source-fidelity
+→ 人間がJSONを確認
+→ /09-j2m-detail-design
+→ /10-ev-markdown-integrity
+→ 人間が詳細設計を確認
+```
+
+`/00-d00-format-survey`は、未知または改訂済みのExcelフォーマットを初めて扱う場合だけ使用します。
+
+番号付きPromptを`/00`から`/10`まで各1回実行するのではありません。`/01`は1冊ごと、`/02`〜`/07`はJ-01が指定したシートまたは論理ブロックごと、`/08`は生成JSONごとに繰り返し、`/09`と`/10`はrunの最後に各1回実行します。
+
+生のExcelを読めない場合のCSV/TSV書き出しは、番号付きPromptの外側で人間が行う前処理です。CSV/TSVから直接Markdownへ変換せず、必ず出典付きJSONとEV-01を経由します。
+
+## 構成
+
+```text
+.github/
+  copilot-instructions.md                 共通ルールの正本
+  prompts/                                実行するPrompt Files 00〜10
+  skills/detail-design-workflow/
+    SKILL.md                              スキル入口
+    RUNBOOK.md                            手順書の正本
+    contracts/input/                      入力契約
+    contracts/json/                       中間JSON Schema
+    contracts/markdown/                   詳細設計Markdownテンプレート
+    profiles/                             Excel種類別プロファイル
+    run-template/FEATURE-ID/              1画面・1機能用の作業雛形
+.vscode/settings.json                     Prompt FilesとJSON Schemaの設定
+```
+
+共通ルールは`.github/copilot-instructions.md`だけを正本とし、各Prompt Fileには工程固有の指示だけを置きます。
