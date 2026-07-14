@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "J-90.schema.json",
+  "title": "J-90 評価結果（軽量版）",
+  "description": "03-check（意味照合）の結果。result 別のカウント強制（allOf）と数え上げ metrics は廃止し、result + findings の単純なリストにする。機械照合は verify.ps1 の責務であり、ここでは重複しない。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractId", "schemaVersion", "target", "result", "findings"],
+  "properties": {
+    "contractId": { "const": "J-90" },
+    "schemaVersion": { "const": "1.0.0" },
+    "evaluator": {
+      "description": "評価の実行主体（例 03-check）。",
+      "type": ["string", "null"]
+    },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "target": {
+      "description": "評価対象（J-* JSON や spec ファイルのパス等）。",
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "result": { "enum": ["PASS", "PASS_WITH_WARNINGS", "FAIL"] },
+    "checks": {
+      "description": "意味照合の観点別の結果（任意）。",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "result"],
+        "properties": {
+          "checkId": { "type": "string" },
+          "name": { "type": "string" },
+          "result": { "enum": ["PASS", "WARNING", "FAIL", "NOT_APPLICABLE"] },
+          "details": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "findings": {
+      "description": "検出事項の一覧。FAIL でも成果物は修正せず（修正は 02-run 再実行）、warnings.md へ追記する。",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "summary"],
+        "properties": {
+          "findingId": { "type": "string" },
+          "severity": { "enum": ["blocking", "warning", "info"] },
+          "category": { "type": ["string", "null"] },
+          "summary": { "type": "string", "minLength": 1 },
+          "evidence": { "type": "array", "items": { "type": "string" } },
+          "affectedIds": { "type": "array", "items": { "type": "string" } },
+          "recommendedAction": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

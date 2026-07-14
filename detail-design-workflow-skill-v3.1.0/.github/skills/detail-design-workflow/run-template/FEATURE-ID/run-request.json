@@ -1,0 +1,15 @@
+{
+  "featureId": "FEATURE-ID",
+  "featureName": "顧客マスタ照会",
+  "idType": "機能ID",
+  "designDocuments": [
+    {
+      "documentType": "screen_design",
+      "profileId": "PROFILE-01",
+      "sourcePath": "00-input/screen-design.csv",
+      "version": "1.0"
+    }
+  ],
+  "outputSpecRoot": "spec",
+  "operator": "yamada.taro"
+}

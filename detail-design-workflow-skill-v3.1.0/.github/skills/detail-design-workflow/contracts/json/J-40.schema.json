@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "J-40.schema.json",
+  "title": "J-40 権限・共通（軽量版）",
+  "description": "画面/動作権限・ロール階層・案件参照権限・文書ヘッダ・共通規約。共通フィールドは J-00 を参照。common_rule のうち命名規約系は common/naming.md、コード値系は common/codes/、複数機能適用の業務ルールは rules/BR-*.md へ。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractId", "schemaVersion", "records"],
+  "properties": {
+    "contractId": { "const": "J-40" },
+    "schemaVersion": { "const": "1.0.0" },
+    "run": { "$ref": "J-00.schema.json#/$defs/runInfo" },
+    "document": { "$ref": "J-00.schema.json#/$defs/documentRef" },
+    "issues": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/issue" } },
+    "assets": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/assetRef" } },
+    "records": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "screen_action_permission" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "1行=画面/動作/イベント/ロール権限。派生SQLは derivedSql に、evidenceState=derived で記す。",
+                "type": "object",
+                "required": ["system", "functionName", "majorCategory", "middleCategory", "minorCategory", "action", "note", "userRole", "screenId", "eventId", "dataRegistrationUse", "allowed", "derivedSql"],
+                "properties": {
+                  "system": { "type": ["string", "null"] },
+                  "functionName": { "type": ["string", "null"] },
+                  "majorCategory": { "type": ["string", "null"] },
+                  "middleCategory": { "type": ["string", "null"] },
+                  "minorCategory": { "type": ["string", "null"] },
+                  "action": { "type": ["string", "null"] },
+                  "note": { "type": ["string", "null"] },
+                  "userRole": { "type": ["string", "null"] },
+                  "screenId": { "type": ["string", "null"] },
+                  "eventId": { "type": ["string", "null"] },
+                  "dataRegistrationUse": { "type": ["string", "null"] },
+                  "allowed": { "type": ["boolean", "null"] },
+                  "derivedSql": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "role_hierarchy" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "type": "object",
+                "required": ["roleName", "parentRole", "level", "description"],
+                "properties": {
+                  "roleName": { "type": ["string", "null"] },
+                  "parentRole": { "type": ["string", "null"] },
+                  "level": { "type": ["integer", "string", "null"] },
+                  "description": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "case_reference_permission" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "type": "object",
+                "required": ["caseCategory", "originOrganization", "visibilitySetting", "destinationOrganization", "tabName", "allowed", "scenario", "supplement"],
+                "properties": {
+                  "caseCategory": { "type": ["string", "null"] },
+                  "originOrganization": { "type": ["string", "null"] },
+                  "visibilitySetting": { "type": ["string", "null"] },
+                  "destinationOrganization": { "type": ["string", "null"] },
+                  "tabName": { "type": ["string", "null"] },
+                  "allowed": { "type": ["boolean", "null"] },
+                  "scenario": { "type": ["string", "null"] },
+                  "supplement": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "document_header_metadata" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "type": "object",
+                "required": ["documentId", "documentName", "version", "dateCreated", "createdBy", "dateUpdated", "updatedBy", "projectCode", "projectName", "systemName"],
+                "properties": {
+                  "documentId": { "type": ["string", "null"] },
+                  "documentName": { "type": ["string", "null"] },
+                  "version": { "type": ["string", "null"] },
+                  "dateCreated": { "type": ["string", "null"] },
+                  "createdBy": { "type": ["string", "null"] },
+                  "dateUpdated": { "type": ["string", "null"] },
+                  "updatedBy": { "type": ["string", "null"] },
+                  "projectCode": { "type": ["string", "null"] },
+                  "projectName": { "type": ["string", "null"] },
+                  "systemName": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "common_rule" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "category が命名規約系なら common/naming.md、コード値・enum系なら common/codes/{分類}.md、複数機能適用の業務ロジックなら rules/BR-{番号}.md へ。",
+                "type": "object",
+                "required": ["ruleId", "category", "title", "statement", "applicability", "exceptions", "priority", "effectiveVersion"],
+                "properties": {
+                  "ruleId": { "type": ["string", "null"] },
+                  "category": { "type": ["string", "null"] },
+                  "title": { "type": ["string", "null"] },
+                  "statement": { "type": ["string", "null"] },
+                  "applicability": { "type": ["string", "null"] },
+                  "exceptions": { "type": ["string", "null"] },
+                  "priority": { "type": ["string", "null"] },
+                  "effectiveVersion": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

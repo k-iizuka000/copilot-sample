@@ -1,0 +1,95 @@
+{
+  "profileId": "PROFILE-01",
+  "version": "1.0.0",
+  "documentType": "screen-design",
+  "status": "stable",
+  "documentScope": "feature",
+  "description": "画面帳票設計書。8シート想定。固定セルA1に役割タグ明記（roleTag）があればシート名マッチングより優先する。",
+  "sheetRules": [
+    {
+      "ruleId": "P01-S01",
+      "matchType": "exact",
+      "pattern": "改訂履歴",
+      "roleTag": ["改訂履歴"],
+      "role": "metadata",
+      "outputContracts": ["J-01"],
+      "priority": 100,
+      "notes": "最新版情報のみ document へ。"
+    },
+    {
+      "ruleId": "P01-S02",
+      "matchType": "exact",
+      "pattern": "レイアウト",
+      "roleTag": ["レイアウト"],
+      "role": "asset",
+      "outputContracts": ["J-01", "J-10", "J-60"],
+      "priority": 100,
+      "notes": "画像を正とし、表示モード等の明示メタデータだけ layout_reference で抽出。"
+    },
+    {
+      "ruleId": "P01-S03",
+      "matchType": "exact",
+      "pattern": "項目",
+      "roleTag": ["画面項目(Form)", "画面項目"],
+      "role": "extract",
+      "outputContracts": ["J-10"],
+      "priority": 100,
+      "notes": "1行=画面項目。"
+    },
+    {
+      "ruleId": "P01-S04",
+      "matchType": "exact",
+      "pattern": "項目制御",
+      "roleTag": ["項目制御"],
+      "role": "extract",
+      "outputContracts": ["J-11"],
+      "priority": 100,
+      "notes": "表示モード・活性等。"
+    },
+    {
+      "ruleId": "P01-S05",
+      "matchType": "exact",
+      "pattern": "バリデーション",
+      "roleTag": ["バリデーション"],
+      "role": "extract",
+      "outputContracts": ["J-11"],
+      "priority": 100,
+      "notes": "数式は表示値+数式。相関チェックは別ブロック。"
+    },
+    {
+      "ruleId": "P01-S06",
+      "matchType": "exact",
+      "pattern": "イベント",
+      "roleTag": ["イベント"],
+      "role": "extract",
+      "outputContracts": ["J-11"],
+      "priority": 100,
+      "notes": "1行=イベント。"
+    },
+    {
+      "ruleId": "P01-S07",
+      "matchType": "exact",
+      "pattern": "メッセージ",
+      "roleTag": ["メッセージ"],
+      "role": "extract",
+      "outputContracts": ["J-11"],
+      "priority": 100,
+      "notes": "1行=メッセージ条件。"
+    },
+    {
+      "ruleId": "P01-S08",
+      "matchType": "exact",
+      "pattern": "パラメータ",
+      "roleTag": [],
+      "role": "extract",
+      "outputContracts": ["J-10", "J-11"],
+      "priority": 100,
+      "notes": "表示モード・URL・パラメータ。"
+    }
+  ],
+  "policies": {
+    "canonicalSource": "正確な8シート名を優先。レイアウトはassetと明示メタデータに分離。",
+    "unknownSheet": "investigate",
+    "profileMismatch": "warning"
+  }
+}

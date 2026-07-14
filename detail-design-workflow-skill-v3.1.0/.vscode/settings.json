@@ -1,0 +1,61 @@
+{
+  "chat.promptFilesLocations": {
+    ".github/prompts": true
+  },
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "**/10-json/J-00*.json"
+      ],
+      "url": "./.github/skills/detail-design-workflow/contracts/json/J-00.schema.json"
+    },
+    {
+      "fileMatch": [
+        "**/10-json/J-01*.json"
+      ],
+      "url": "./.github/skills/detail-design-workflow/contracts/json/J-01.schema.json"
+    },
+    {
+      "fileMatch": [
+        "**/10-json/J-10*.json"
+      ],
+      "url": "./.github/skills/detail-design-workflow/contracts/json/J-10.schema.json"
+    },
+    {
+      "fileMatch": [
+        "**/10-json/J-11*.json"
+      ],
+      "url": "./.github/skills/detail-design-workflow/contracts/json/J-11.schema.json"
+    },
+    {
+      "fileMatch": [
+        "**/10-json/J-20*.json"
+      ],
+      "url": "./.github/skills/detail-design-workflow/contracts/json/J-20.schema.json"
+    },
+    {
+      "fileMatch": [
+        "**/10-json/J-30*.json"
+      ],
+      "url": "./.github/skills/detail-design-workflow/contracts/json/J-30.schema.json"
+    },
+    {
+      "fileMatch": [
+        "**/10-json/J-40*.json"
+      ],
+      "url": "./.github/skills/detail-design-workflow/contracts/json/J-40.schema.json"
+    },
+    {
+      "fileMatch": [
+        "**/10-json/J-60*.json"
+      ],
+      "url": "./.github/skills/detail-design-workflow/contracts/json/J-60.schema.json"
+    },
+    {
+      "fileMatch": [
+        "**/10-json/J-90*.json"
+      ],
+      "url": "./.github/skills/detail-design-workflow/contracts/json/J-90.schema.json"
+    }
+  ]
+}
