@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "J-01.schema.json",
+  "title": "J-01 文書マニフェスト（軽量版）",
+  "description": "01-setup が設計書1冊を棚卸しした結果。シート分類（役割）と後続の抽出計画（routingPlan）を持つ。coverage / summary の数え上げは廃止。routingPlan の各エントリは 10-json/ 内の出力ファイル1個と1対1で対応し、02-run はそのファイルが存在するかで未処理判定する（ステートレス）。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractId", "schemaVersion", "profileId", "document", "sheets", "routingPlan"],
+  "properties": {
+    "contractId": { "const": "J-01" },
+    "schemaVersion": { "const": "1.0.0" },
+    "profileId": {
+      "description": "適用したプロファイルID。",
+      "type": "string",
+      "pattern": "^PROFILE-\\d{2}[A-Z]?$"
+    },
+    "run": { "$ref": "J-00.schema.json#/$defs/runInfo" },
+    "document": { "$ref": "J-00.schema.json#/$defs/documentRef" },
+    "issues": {
+      "type": "array",
+      "items": { "$ref": "J-00.schema.json#/$defs/issue" }
+    },
+    "assets": {
+      "type": "array",
+      "items": { "$ref": "J-00.schema.json#/$defs/assetRef" }
+    },
+    "sheets": {
+      "description": "シートの棚卸し結果。役割の判定根拠（matchSource）を必ず残す。シートに役割タグ明記（A1）があれば roleTag に控え matchSource=role_tag とし、シート名マッチングより優先する。",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sheetName", "role", "matchSource"],
+        "properties": {
+          "sheetName": { "type": "string", "minLength": 1 },
+          "visibility": { "enum": ["visible", "hidden", "very_hidden", "unknown"] },
+          "role": { "enum": ["metadata", "extract", "asset", "ignore_candidate", "reference_only", "unknown"] },
+          "roleTag": {
+            "description": "固定セル A1 に明記された役割タグの値（あれば）。無ければ null。",
+            "type": ["string", "null"]
+          },
+          "matchSource": {
+            "description": "役割の判定根拠。role_tag=A1タグ明記（最優先）, sheet_name_match=プロファイルのシート名一致, inferred=推定, manual=人間指定, unknown。",
+            "enum": ["role_tag", "sheet_name_match", "inferred", "manual", "unknown"]
+          },
+          "matchedProfileRule": { "type": ["string", "null"] },
+          "outputContracts": {
+            "description": "このシートが供給する出力契約。",
+            "type": "array",
+            "items": { "enum": ["J-01", "J-10", "J-11", "J-20", "J-30", "J-40", "J-60"] },
+            "uniqueItems": true
+          },
+          "reason": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "routingPlan": {
+      "description": "抽出計画。1エントリ = 1抽出単位（シートまたはブロック）= 10-json/ 内の出力ファイル1個。outputFile の命名規則は <outputContract>-<抽出単位の短いslug>.json（例 J-10-items.json / J-11-validation.json / J-30-entity.json）で、10-json/ 内で一意。",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["order", "sheetName", "recordTypes", "outputContract", "outputFile"],
+        "properties": {
+          "order": { "type": "integer", "minimum": 1 },
+          "sheetName": {
+            "description": "抽出対象シート名。",
+            "type": "string",
+            "minLength": 1
+          },
+          "blockSelector": {
+            "description": "シート内で単位を絞る場合のブロック指定（見出し・親キー等）。シート全体なら null。",
+            "type": ["string", "null"]
+          },
+          "recordTypes": {
+            "description": "この抽出単位で想定される recordType 群。",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "outputContract": { "enum": ["J-10", "J-11", "J-20", "J-30", "J-40", "J-60"] },
+          "outputFile": {
+            "description": "10-json/ 内の出力ファイル名（一意）。02-run はこのファイルの有無で未処理判定する。",
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "description": "任意の進捗印。正は outputFile の実在（ステートレス）で、この値は補助。",
+            "enum": ["pending", "done"]
+          },
+          "reason": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

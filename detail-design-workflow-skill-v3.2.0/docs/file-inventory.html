@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ファイル一覧 — 詳細設計ワークフロー v3.2.0</title>
+<style>
+  :root { --ink:#1f2430; --sub:#5b6473; --line:#e3e7ee; --bg:#f7f8fa; --card:#ffffff; --accent:#2563eb; --human:#b45309; --humanbg:#fef3c7; --ai:#047857; --aibg:#d1fae5; --ref:#475569; --refbg:#e2e8f0; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif; color:var(--ink); background:var(--bg); line-height:1.7; }
+  .wrap { max-width:1080px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  .lead { color:var(--sub); margin:0 0 24px; }
+  h2 { font-size:19px; margin:40px 0 4px; padding-left:10px; border-left:4px solid var(--accent); }
+  .path { font-family:Consolas,Menlo,monospace; font-size:13px; color:var(--sub); margin:0 0 10px 14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  .tablewrap { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:14px; }
+  th { background:#f1f4f9; text-align:left; padding:9px 12px; font-size:13px; color:var(--sub); white-space:nowrap; }
+  td { padding:9px 12px; border-top:1px solid var(--line); vertical-align:top; }
+  td.file { font-family:Consolas,Menlo,monospace; font-size:13px; white-space:nowrap; }
+  .badge { display:inline-block; font-size:12px; font-weight:600; padding:1px 9px; border-radius:999px; white-space:nowrap; }
+  .b-human { color:var(--human); background:var(--humanbg); }
+  .b-ai { color:var(--ai); background:var(--aibg); }
+  .b-ref { color:var(--ref); background:var(--refbg); }
+  .legend { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin:0 0 8px; font-size:14px; }
+  .legend .badge { margin-right:4px; }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+  .note { color:var(--sub); font-size:13px; margin:8px 2px 0; }
+  code { background:#eef1f6; border-radius:4px; padding:1px 5px; font-size:12.5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>ファイル一覧 — 詳細設計ワークフロー v3.2.0</h1>
+<p class="lead">このパッケージに入っている全ファイルの「意味」と「人間が触るかどうか」の一覧。<br>
+人間が起こすアクションの具体的な手順は <a href="./human-actions.md">human-actions.md</a> が正本（表中の A-1 などはその項番）。</p>
+
+<div class="legend">
+  凡例:
+  <span class="badge b-human">人間</span> 人間がアクションを起こすファイル
+  <span class="badge b-ai">AI(自動)</span> Copilot が自動で読む・作るファイル（人間は触らない）
+  <span class="badge b-ref">参照</span> 迷ったとき・確認したいときに人間が読むファイル
+</div>
+
+<h2>まず読む3つ</h2>
+<div class="card"><div class="tablewrap"><table>
+<tr><th>ファイル</th><th>意味</th><th>人間のアクション</th></tr>
+<tr><td class="file"><a href="../README.md">README.md</a></td><td>パッケージの導入手順とクイックスタート。最初に読む入口</td><td><span class="badge b-human">人間</span> 導入（A-1〜A-3）と変換の流れの把握</td></tr>
+<tr><td class="file"><a href="../.github/skills/detail-design-workflow/RUNBOOK.md">RUNBOOK.md</a></td><td>日々の作業手順の正本。上から順に読めば迷わない詳細版</td><td><span class="badge b-human">人間</span> 変換作業（C-1〜C-7）のガイド</td></tr>
+<tr><td class="file"><a href="./human-actions.md">docs/human-actions.md</a></td><td>人間が手を動かす必要があるものだけを集めた一覧</td><td><span class="badge b-human">人間</span> 迷ったらここに戻る</td></tr>
+</table></div></div>
+
+<h2>docs/ — 説明・仕様・依頼の文書</h2>
+<div class="card"><div class="tablewrap"><table>
+<tr><th>ファイル</th><th>意味</th><th>人間のアクション</th></tr>
+<tr><td class="file"><a href="./design-doc-request.md">design-doc-request.md</a></td><td><b>設計チームへ渡す要望書</b>。A1役割タグ・ファイル名の命名規約（<code>{設計書種別}_{ID}_{機能名}.xlsx</code>）・行ID・関連欄・結合セル回避の5つのお願い</td><td><span class="badge b-human">人間</span> 設計チームへ渡す（B-1）。種別名称の確定時に更新（B-2）</td></tr>
+<tr><td class="file"><a href="./spec-v3.2.0.md">spec-v3.2.0.md</a></td><td>v3.2.0（生Excel入力化）の合意仕様の正本。決定事項と未確定事項</td><td><span class="badge b-ref">参照</span> 仕様の確認・未確定事項の消し込み</td></tr>
+<tr><td class="file"><a href="./conversation-record-2026-07-15.md">conversation-record-2026-07-15.md</a></td><td>v3.2.0 の認識合わせ（インタビュー）の経緯記録。「なぜそう決めたか」</td><td><span class="badge b-ref">参照</span></td></tr>
+<tr><td class="file">file-inventory.html</td><td>本資料（全ファイルの意味の一覧）</td><td><span class="badge b-ref">参照</span></td></tr>
+<tr><td class="file"><a href="./html/index.html">html/（12ページ）</a></td><td>パッケージ各ファイルの内容をブラウザで読める説明ページ一式。入口は index.html</td><td><span class="badge b-ref">参照</span> 中身を詳しく知りたいとき</td></tr>
+</table></div></div>
+
+<h2>.github/ — Copilot への指示（プロンプト・ルール）</h2>
+<div class="card"><div class="tablewrap"><table>
+<tr><th>ファイル</th><th>意味</th><th>人間のアクション</th></tr>
+<tr><td class="file">copilot-instructions.md</td><td>実行ルールの正本（出典必須・推測禁止・「該当なし/未確認」の区別など）。全プロンプトがここに従う</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">prompts/01-setup.prompt.md</td><td><code>/01-setup</code> の実体。Excel の受け入れ・作業フォルダと run-request.json の自動生成・棚卸し・ルーティング計画（J-01）作成</td><td><span class="badge b-human">人間</span> チャットで実行し、Excel のパスと出力先を伝える（C-2）</td></tr>
+<tr><td class="file">prompts/02-run.prompt.md</td><td><code>/02-run</code> の実体。次の1タスク（抽出→spec生成→trace生成）を自動選択して1つだけ実行</td><td><span class="badge b-human">人間</span> 案内が終わるまで繰り返し実行（C-4）</td></tr>
+<tr><td class="file">prompts/03-check.prompt.md</td><td><code>/03-check</code> の実体。JSON と spec/ の意味照合（欠落・創作の検出）。別チャットで実行</td><td><span class="badge b-human">人間</span> verify 緑の後に別チャットで実行（C-6）</td></tr>
+</table></div></div>
+
+<h2>.vscode/ — VS Code 設定</h2>
+<div class="card"><div class="tablewrap"><table>
+<tr><th>ファイル</th><th>意味</th><th>人間のアクション</th></tr>
+<tr><td class="file">settings.json</td><td><code>/01-setup</code> 等をチャット候補に出す設定と、J-* JSON へのスキーマ割当</td><td><span class="badge b-human">人間</span> 導入時に既存 settings へ2項目を継ぎ足す（A-2）</td></tr>
+</table></div></div>
+
+<h2>.github/skills/detail-design-workflow/ — スキル本体</h2>
+<div class="card"><div class="tablewrap"><table>
+<tr><th>ファイル</th><th>意味</th><th>人間のアクション</th></tr>
+<tr><td class="file">SKILL.md</td><td>スキルの入口定義（自動では発火しない・人間が使うと決めたときだけ）</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">RUNBOOK.md</td><td>日々の作業手順の正本（上の「まず読む3つ」参照）</td><td><span class="badge b-human">人間</span></td></tr>
+<tr><td class="file">scripts/verify.ps1</td><td>機械チェック（JSON構造・出典・リンク実在など）。PowerShell で人間が実行。結果は <code>20-check/verify-result.md</code></td><td><span class="badge b-human">人間</span> /02-run 完了後に実行（C-5）</td></tr>
+</table></div></div>
+
+<h2>contracts/ — 中間 JSON と spec の契約（書式の正本）</h2>
+<p class="path">.github/skills/detail-design-workflow/contracts/</p>
+<div class="card"><div class="tablewrap"><table>
+<tr><th>ファイル</th><th>意味</th><th>人間のアクション</th></tr>
+<tr><td class="file">CONTRACT-INDEX.md</td><td>契約（J-* スキーマ）の一覧と役割の索引</td><td><span class="badge b-ref">参照</span></td></tr>
+<tr><td class="file">json/J-00.schema.json</td><td>共通定義（Record ID・出典・issue・アセットの型）</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">json/J-01.schema.json</td><td>文書マニフェスト（シート分類＋抽出計画 routingPlan）。/01-setup の出力契約</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">json/J-10.schema.json</td><td>画面構造（画面項目・表示モード・パラメータ等）</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">json/J-11.schema.json</td><td>画面動作（項目制御・バリデーション・イベント・メッセージ）</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">json/J-20.schema.json</td><td>処理・バッチ（処理記述・検索/更新要領・バッチ制御）</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">json/J-30.schema.json</td><td>データモデル・連携（DB対応・エンティティ・VIEW・外部IF・テーブル関連）</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">json/J-40.schema.json</td><td>権限・共通（権限マトリクス・ロール・共通規約）</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">json/J-60.schema.json</td><td>アセットマニフェスト（画像・図形・コメント等の分離管理）</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">json/J-90.schema.json</td><td>評価結果（/03-check の判定と findings の構造契約）</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">markdown/T-*.template.md（12個）</td><td>spec/ 生成用の Markdown テンプレート。画面項目（T-items）・レイアウト（T-layout）・バリデーション（T-validation）・ロジック（T-logic）・メソッド（T-methods）・検索（T-queries）・テーブル定義（T-db-table）・ER全体（T-er-overview）・バッチ制御/入出力（T-batch-control / T-batch-io）・トレース（T-trace）・警告記録（T-warnings）の書式</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+</table></div></div>
+
+<h2>profiles/ — 設計書の読み取り方の定義</h2>
+<p class="path">.github/skills/detail-design-workflow/profiles/</p>
+<div class="card"><div class="tablewrap"><table>
+<tr><th>ファイル</th><th>意味</th><th>人間のアクション</th></tr>
+<tr><td class="file">PROFILE-INDEX.md</td><td>プロファイル一覧と roleTag 優先ルール（A1 タグ &gt; シート名推定）の索引</td><td><span class="badge b-ref">参照</span></td></tr>
+<tr><td class="file">PROFILE-00.schema.json</td><td>プロファイル定義ファイル自体の構造の契約</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">PROFILE-01〜06（7個）</td><td>設計書種類ごとのシート分類ルール。01=画面帳票／02=処理機能記述／02B=バッチ（暫定）／03=エンティティ定義／04=VIEW定義／05=権限マトリクス／06=共通文書（暫定）</td><td><span class="badge b-ai">AI(自動)</span> 未知フォーマット時のみ人間が候補を判断（D-2）</td></tr>
+</table></div></div>
+
+<h2>run-template/ — 作業フォルダの雛形（v3.2.0 から自動コピー）</h2>
+<p class="path">.github/skills/detail-design-workflow/run-template/FEATURE-ID/</p>
+<div class="card"><div class="tablewrap"><table>
+<tr><th>ファイル</th><th>意味</th><th>人間のアクション</th></tr>
+<tr><td class="file">run-request.json</td><td>変換対象の記録（機能ID・機能名・ID種別・設計書一覧・出力先）の雛形。<b>/01-setup が設計書のファイル名から自動生成する</b></td><td><span class="badge b-human">人間</span> 空欄と案内されたときだけ埋める（C-3）</td></tr>
+<tr><td class="file">00-input/</td><td>Excel 原本コピーの置き場（/01-setup が自動配置。人間は置かない）</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">10-json/</td><td>中間 JSON（J-01 と抽出結果 J-*）の置き場</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">20-check/</td><td>検査結果の置き場（verify-result.md・check-result.md・warnings.md）</td><td><span class="badge b-human">人間</span> warnings.md を確認する（C-7）</td></tr>
+</table></div></div>
+
+<h2>spec-format/ — 最終出力（spec/）の形式の正本</h2>
+<div class="card"><div class="tablewrap"><table>
+<tr><th>ファイル</th><th>意味</th><th>人間のアクション</th></tr>
+<tr><td class="file">output-structure.md</td><td>spec/ ツリー（最終出力のフォルダ・ファイル構成）の正本</td><td><span class="badge b-ref">参照</span></td></tr>
+<tr><td class="file">routing-table.md</td><td>recordType → 出力先 spec ファイルの対応表の正本</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">consumption-matrix.md</td><td>trace に載せる消費マトリクス（どの設計がどこで使われるか）の元</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+<tr><td class="file">src-mapping.template.md</td><td>設計→実装（クラス名・パス規則）の対応「予定」を書く雛形</td><td><span class="badge b-ai">AI(自動)</span></td></tr>
+</table></div></div>
+
+<h2>実行時に生成されるもの（パッケージには入っていない）</h2>
+<div class="card"><div class="tablewrap"><table>
+<tr><th>場所</th><th>意味</th><th>人間のアクション</th></tr>
+<tr><td class="file">runs/{ID}/</td><td>1機能ぶんの作業フォルダ（/01-setup が自動作成）。変換が終わったら削除してよい</td><td><span class="badge b-ref">参照</span> warnings.md・run-request.json の確認</td></tr>
+<tr><td class="file">spec/</td><td><b>最終成果物</b>。責務分割された詳細設計 Markdown のツリー</td><td><span class="badge b-human">人間</span> 内容のレビュー（振り分け・trace の妥当性）</td></tr>
+</table></div></div>
+
+<p class="note">最終更新: 2026-07-15（v3.2.0 作成時）。ファイルを追加・改廃したら本資料も更新すること。</p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "J-60.schema.json",
+  "title": "J-60 アセットマニフェスト（軽量版）",
+  "description": "画像・図形・コメント等のアセット一覧。実体は runs/{ID}/00-input/assets/ に書き出し、layout.md 等からリンクする。共通型は J-00 を参照。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractId", "schemaVersion", "assets"],
+  "properties": {
+    "contractId": { "const": "J-60" },
+    "schemaVersion": { "const": "1.0.0" },
+    "run": { "$ref": "J-00.schema.json#/$defs/runInfo" },
+    "document": { "$ref": "J-00.schema.json#/$defs/documentRef" },
+    "issues": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/issue" } },
+    "assets": {
+      "type": "array",
+      "items": { "$ref": "J-00.schema.json#/$defs/assetRef" }
+    }
+  }
+}

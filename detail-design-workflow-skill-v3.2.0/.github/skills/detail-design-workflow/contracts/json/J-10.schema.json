@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "J-10.schema.json",
+  "title": "J-10 画面構造（軽量版）",
+  "description": "画面項目・表示モード・パラメータ・レイアウト参照。共通フィールドは J-00 を参照。facts は additionalProperties を課さない（緩和）。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractId", "schemaVersion", "records"],
+  "properties": {
+    "contractId": { "const": "J-10" },
+    "schemaVersion": { "const": "1.0.0" },
+    "run": { "$ref": "J-00.schema.json#/$defs/runInfo" },
+    "document": { "$ref": "J-00.schema.json#/$defs/documentRef" },
+    "issues": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/issue" } },
+    "assets": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/assetRef" } },
+    "records": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "screen_item" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "1行=画面項目。",
+                "type": "object",
+                "required": ["itemNumber", "name", "attribute", "i18n", "minimum", "maximum", "format", "align", "note", "initialDisplay", "listDisplay"],
+                "properties": {
+                  "itemNumber": { "type": ["string", "null"] },
+                  "name": { "type": ["string", "null"] },
+                  "attribute": { "type": ["string", "null"] },
+                  "i18n": { "type": ["string", "null"] },
+                  "minimum": { "type": ["integer", "number", "string", "null"] },
+                  "maximum": { "type": ["integer", "number", "string", "null"] },
+                  "format": { "type": ["string", "null"] },
+                  "align": { "type": ["string", "null"] },
+                  "note": { "type": ["string", "null"] },
+                  "initialDisplay": { "type": ["string", "null"] },
+                  "listDisplay": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "display_mode" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "type": "object",
+                "required": ["displayMode", "description", "layoutAssetId"],
+                "properties": {
+                  "displayMode": { "type": ["string", "null"] },
+                  "description": { "type": ["string", "null"] },
+                  "layoutAssetId": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "parameter_definition" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "type": "object",
+                "required": ["displayMode", "urlFormat", "parameterName", "usage"],
+                "properties": {
+                  "displayMode": { "type": ["string", "null"] },
+                  "urlFormat": { "type": ["string", "null"] },
+                  "parameterName": { "type": ["string", "null"] },
+                  "usage": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "layout_reference" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "Thymeleaf仕様・レイアウト明記事項・スクリーンショット参照。front/{画面ID}/layout.md へ。",
+                "type": "object",
+                "required": ["assetId", "displayMode", "description"],
+                "properties": {
+                  "assetId": { "type": ["string", "null"] },
+                  "displayMode": { "type": ["string", "null"] },
+                  "description": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

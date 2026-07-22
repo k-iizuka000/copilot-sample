@@ -1,0 +1,15 @@
+{
+  "featureId": "ab1234",
+  "featureName": "顧客マスタ照会",
+  "idType": "画面ID",
+  "designDocuments": [
+    {
+      "documentType": "screen_design",
+      "profileId": "PROFILE-01",
+      "sourcePath": "00-input/画面設計書_ab1234_顧客マスタ照会.xlsx",
+      "version": "1.0"
+    }
+  ],
+  "outputSpecRoot": "spec",
+  "operator": ""
+}
