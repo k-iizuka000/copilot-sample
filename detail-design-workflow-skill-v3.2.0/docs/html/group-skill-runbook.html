@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>導入・入口スキル・日々の手順・モデル割当 | 詳細設計ワークフロー v3.2.0 解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">導入・入口スキル・日々の手順</span>
+  <span class="nav-spacer"></span>
+</nav>
+<main>
+
+<h1>導入・入口スキル・日々の手順・モデル割当</h1>
+<p class="purpose">SKILL.md（入口）・RUNBOOK.md（日々の手順の正本）・README.md（導入とクイックスタート）・<code>.vscode/settings.json</code>（VS Code設定）をまとめたページ。導入 → 実行の流れ → モデル割当 → 困ったとき、の順に読む。</p>
+
+<div class="used-by">
+  <span class="chip">人間が導入時・実行時に読む</span>
+  <a class="chip" href="prompt-01-setup.html">/01-setup</a>
+  <a class="chip" href="prompt-02-run.html">/02-run</a>
+  <a class="chip" href="verify-ps1.html">verify.ps1</a>
+  <a class="chip" href="prompt-03-check.html">/03-check</a>
+  <span class="chip">の実行手順として参照する</span>
+</div>
+
+<section id="skill" class="card">
+  <h2>入口スキル（SKILL.md）</h2>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">name</span>detail-design-workflow</div>
+    <div class="fact"><span class="fact-label">description</span>人間が明示的に「Excel設計書を詳細設計（出典付きJSON・責務分割Markdown）へ変換する」作業を行うときの入口。自動では発火しない。</div>
+    <div class="fact"><span class="fact-label">user-invocable: true</span>人間が明示的に呼び出せるスキルである。</div>
+    <div class="fact"><span class="fact-label">disable-model-invocation: true</span>AIが自動では起動しない。人間が明示的に起動する必要がある。</div>
+  </div>
+  <p><strong>まず読むもの</strong></p>
+  <ol>
+    <li>パッケージ導入とクイックスタート: README.md（このページ #install）</li>
+    <li>日々の作業手順（正本）: RUNBOOK.md（このページ #flow-overview）</li>
+    <li>実行ルールの正本: <a href="group-rules.html">共通ルール（copilot-instructions.md）</a></li>
+  </ol>
+  <p><strong>実行入口</strong>（<code>.github/prompts/</code> の Prompt File を使う）</p>
+  <ul>
+    <li><a href="prompt-01-setup.html">/01-setup</a> — 初回・設計書追加時の棚卸しとルーティング計画</li>
+    <li><a href="prompt-02-run.html">/02-run</a> — 次の1タスクを自動選択して実行（反復）</li>
+    <li><a href="prompt-03-check.html">/03-check</a> — 意味照合（/02-run とは別チャットで実行）</li>
+  </ul>
+  <p class="note-box">スコープ外: コード実装・実装計画・テスト生成へは進まない。</p>
+</section>
+
+<section id="install" class="card">
+  <h2>導入手順（README.md §2・最初に1回だけ）</h2>
+  <ol>
+    <li><code>.github</code>・<code>.vscode</code>・<code>spec-format</code> の3フォルダを、変換したいリポジトリのルートへコピーする（<code>spec-format</code> は出力形式の正本でプロンプトが参照するため必須。<code>docs</code> はコピー不要）。</li>
+    <li>コピー先に既存の <code>.vscode/settings.json</code> がある場合は<strong>上書きしない</strong>。このパッケージの <code>settings.json</code> にある2項目を既存ファイルへ継ぎ足す。</li>
+    <li>VS Code を再読み込みする（コマンドパレット <code>Ctrl+Shift+P</code> → <code>Reload Window</code>）。</li>
+    <li>動作確認: Copilot Chat の入力欄で <code>/01-setup</code> と打ち、候補に出れば準備完了。</li>
+  </ol>
+  <p><strong><code>.vscode/settings.json</code> の2キー（何のためか）</strong></p>
+  <div class="cards cols-2">
+    <div class="fact"><span class="fact-label">chat.promptFilesLocations</span>プロンプトファイルの置き場所（<code>.github/prompts</code>）を Copilot Chat に教え、チャット欄での <code>/01-setup</code> 等の候補表示を有効にする。</div>
+    <div class="fact"><span class="fact-label">json.schemas</span><code>10-json/</code> 配下の J-00〜J-90 各JSONにスキーマを紐付け、VS Code 上での形式検証を効かせる（9スキーマ全件。一覧は <a href="group-contracts-json.html">group-contracts-json.html</a>）。</div>
+  </div>
+</section>
+
+<section id="flow-overview" class="card">
+  <h2>全体の流れ（RUNBOOK.md）</h2>
+  <p class="how-to-read">見方: 上から順に実行する5つの区分。「/02-run を繰り返す」だけは案内が変わるまで何度も回す。</p>
+  <p class="note-box">「次はどれをやる？」を人間が考えなくていいように作ってある。同じ /02-run を、案内が「完了」と出るまで繰り返し実行するだけでよい。</p>
+
+  <h3>初回セットアップ（最初の1回だけ）</h3>
+  <ol>
+    <li>対象リポジトリを VS Code で開く。</li>
+    <li>変換したい設計書の Excel（生の .xlsx のまま）を用意する。ファイル名は命名規約 <code>{設計書種別}_{ID}_{機能名}.xlsx</code> に合わせる。</li>
+    <li>作業フォルダのコピー・run-request.json の記入・CSV/TSV への書き出しは不要（すべて <code>/01-setup</code> が自動で行う）。</li>
+  </ol>
+
+  <h3>手順1: <a href="prompt-01-setup.html">/01-setup</a>（設計書の棚卸しとルーティング計画）</h3>
+  <ol>
+    <li>VS Code の Copilot チャットを開く（モデル: GPT-5.4。詳細は <a href="#models">#models</a>）。</li>
+    <li>チャット欄で <code>/01-setup</code> と入力して Enter。</li>
+    <li>対象の設計書（.xlsx）のパスと、出力先（既定は <code>spec/</code>）を伝える。1回につき1冊。</li>
+    <li>Copilot が作業フォルダ・Excel 原本コピー・run-request.json を自動生成し、設計書を棚卸しして、計画ファイル <code>runs/{ID}/10-json/J-01-*.json</code> を作る。</li>
+    <li>Copilot が「次は /02-run を実行」と案内したら、この手順は完了。</li>
+    <li>空欄は featureId のみ停止条件。Excel が読み取れない場合は原因を報告して停止し、未知のフォーマットは止まらず調査モードで警告する。</li>
+  </ol>
+
+  <h3>手順2: <a href="prompt-02-run.html">/02-run</a> を繰り返す（次の1タスクを自動実行）</h3>
+  <ol>
+    <li>Copilot チャットで <code>/02-run</code> と入力して Enter。</li>
+    <li>Copilot は毎回、冒頭で「今回やること」を1行宣言してから、次の優先順で最初に該当する1タスクだけを実行する: 設計書の抽出（シート/ブロック → J-* JSON）／<code>spec/</code> の責務ファイル生成／<code>spec/trace/{機能ID}.md</code> の生成。</li>
+    <li>Copilot は末尾で「次にやること」を1行案内し、未解消の警告があれば要約表示する。</li>
+    <li>案内が「まだ残りがある」内容なら、もう一度 <code>/02-run</code> を入力して Enter。これを、案内が「verify.ps1 の実行と /03-check を案内」に変わるまで繰り返す。</li>
+    <li>途中で機械FAIL（JSONが壊れている・出典が無い等）を検出したタスクは実行されず、<code>runs/FUNC0123/20-check/warnings.md</code> に記録されて止まる。人間レビュー待ちでは止まらない。</li>
+  </ol>
+
+  <h3>手順3: <a href="verify-ps1.html">verify.ps1</a>（機械チェック）</h3>
+  <ol>
+    <li>PowerShell を開く（開き方は資料で2通り示されている: ① Windows のスタートメニューから開く＝RUNBOOKより ② VS Code のターミナル「Terminal → New Terminal」で PowerShell を選択＝READMEより。以降は同じ）。</li>
+    <li><code>cd</code> で対象リポジトリのフォルダに移動する（例: <code>cd C:\work\my-repo</code>）。</li>
+    <li>次を1行で入力して Enter（<code>FUNC0123</code> は対象の機能IDに置き換える）:
+      <pre><code>.\.github\skills\detail-design-workflow\scripts\verify.ps1 -RunDir runs\FUNC0123 -SpecDir spec</code></pre>
+    </li>
+    <li>画面に OK / WARN / FAIL が日本語で表示される。詳細は <code>runs\FUNC0123\20-check\verify-result.md</code> に出る。</li>
+    <li>FAIL（機械的に壊れている）が出たら、<code>/02-run</code> をもう一度実行して該当箇所を作り直す。verify が FAIL のまま次へ進まない。WARN だけなら次へ進んでよい。</li>
+  </ol>
+
+  <h3>手順4: <a href="prompt-03-check.html">/03-check</a>（意味チェック・別チャットで実行）</h3>
+  <ol>
+    <li>Copilot チャットの上部で「新しいチャット」を開く（/02-run を回したチャットとは別にする）。理由: 生成時の途中経過（推論や言い訳）を引き継ぐと評価が甘くなるため、入力・成果物・スキーマだけを渡した新しい会話でチェックする。</li>
+    <li>新しいチャットで <code>/03-check</code> と入力して Enter（モデル: GPT-5.4）。</li>
+    <li>対象の作業フォルダ（例: <code>runs/FUNC0123</code>）を伝える。前提として <code>verify.ps1</code> が緑（FAILなし）であること。未実行なら先に手順3を行う。</li>
+    <li>Copilot は意味照合だけを行う（条件・否定・例外・数値・順序が spec/ で失われていないか、創作が無いか、「該当なし」と「未確認」の混同が無いか等）。機械照合は verify.ps1 の担当なので重複してやらない。</li>
+    <li>結果は <code>runs/FUNC0123/20-check/check-result.md</code> に PASS / PASS_WITH_WARNINGS / FAIL で出る。FAIL でも Copilot は成果物を直さない。直すときは /02-run を再実行する。</li>
+  </ol>
+</section>
+
+<section id="models" class="card">
+  <h2>モデル割当（RUNBOOK.md）</h2>
+  <p>工程ごとに使うモデルを決めてある。間違えると手戻りが大きい工程は、軽量モデル（GPT-5.4 mini）だけで完結させない。</p>
+  <table>
+    <thead><tr><th>工程</th><th>モデル</th></tr></thead>
+    <tbody>
+      <tr><td><a href="prompt-01-setup.html">/01-setup</a></td><td>GPT-5.4</td></tr>
+      <tr><td><a href="prompt-02-run.html">/02-run</a>（シート抽出）</td><td>GPT-5.4 mini</td></tr>
+      <tr><td><a href="prompt-02-run.html">/02-run</a>（spec生成・trace生成）</td><td>GPT-5.4</td></tr>
+      <tr><td><a href="prompt-03-check.html">/03-check</a></td><td>GPT-5.4</td></tr>
+      <tr><td><a href="verify-ps1.html">verify.ps1</a></td><td>モデル不使用（PowerShell スクリプト）</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="review" class="card">
+  <h2>人間レビューの推奨タイミング（RUNBOOK.md）</h2>
+  <div class="gate-box">
+    以下は「見ておくと安心」という推奨であって、レビューをしないと先へ進めない仕組みではない（<strong>非ブロッキング</strong>）。未レビューでも作業は止まらず、気づいた点は <code>warnings.md</code> に残していく。
+  </div>
+  <ul>
+    <li>JSON ができた後（/01-setup の J-01、/02-run の抽出 JSON）… 出典やシート分類の判定が妥当か、ざっと確認する。</li>
+    <li>spec/ の Markdown ができた後（/02-run の生成物）… 責務の振り分け・trace の対応表が意図どおりか確認する。</li>
+  </ul>
+</section>
+
+<section id="troubleshooting" class="card">
+  <h2>困ったとき（RUNBOOK.md + README.md 統合表）</h2>
+  <table>
+    <thead><tr><th>症状</th><th>対応</th><th>由来</th></tr></thead>
+    <tbody>
+      <tr><td>/01-setup などが候補に出ない</td><td><code>.github/prompts/*.prompt.md</code> と <code>.vscode/settings.json</code> を確認し、VS Code を再読み込みする</td><td>RUNBOOK</td></tr>
+      <tr><td>Excel が読み取れないと言われた</td><td>表示された原因（破損・保護ビュー・パスワード付き等）を取り除いて <code>/01-setup</code> を再実行する。CSV/TSV への書き出しは不要</td><td>RUNBOOK</td></tr>
+      <tr><td>run-request.json に空欄がある</td><td>featureId が空欄のときだけ埋めて <code>/01-setup</code> を再実行する。他の空欄は後埋めでよい</td><td>RUNBOOK</td></tr>
+      <tr><td>verify.ps1 が FAIL</td><td>表示された箇所を /02-run の再実行で作り直す。手で直接編集して直さない</td><td>RUNBOOK</td></tr>
+      <tr><td>/03-check が FAIL</td><td>/02-run へ戻って該当タスクを作り直す。/03-check は成果物を修正しない</td><td>RUNBOOK</td></tr>
+      <tr><td>警告がたまっていく</td><td><code>runs/{機能ID}/20-check/warnings.md</code> を人間が確認し、解消したら状態を「解消」に更新する</td><td>RUNBOOK</td></tr>
+      <tr><td>警告（warnings）が出た</td><td>変換は止まらない。警告は <code>runs/&lt;機能ID&gt;/20-check/warnings.md</code> にまとまる。「未レビュー」「EV指摘」などは人が後で確認するためのメモ。直したい場合は /02-run をやり直せば反映される</td><td>README</td></tr>
+      <tr><td>FAIL で止まった（機械FAIL）</td><td>出力が機械的に壊れているサイン（JSONの形が不正・出典が空 等）。該当のJSONを作り直すために /02-run を再実行する。人の承認待ちで止まることはない（止まるのは機械FAILのときだけ）</td><td>README</td></tr>
+      <tr><td>未知のフォーマットと言われた</td><td>/01-setup は止まらず「調査モード」で候補を提示し、確認をうながす警告を出す。提示された候補が正しいか確認し、必要なら設計書の役割の書き方を担当者に相談する</td><td>README</td></tr>
+      <tr><td>設計書の書き方をそろえたい</td><td><code>docs/design-doc-request.md</code>（設計書フォーマットの要望書）を設計チームへ渡す。対応が進むほど AI の間違いが減る（→ <a href="group-profiles.html#design-doc-request">group-profiles.html#design-doc-request</a>）</td><td>README</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer class="src-note">正本: <code>.github/skills/detail-design-workflow/SKILL.md</code>, <code>.github/skills/detail-design-workflow/RUNBOOK.md</code>, <code>README.md</code>, <code>.vscode/settings.json</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

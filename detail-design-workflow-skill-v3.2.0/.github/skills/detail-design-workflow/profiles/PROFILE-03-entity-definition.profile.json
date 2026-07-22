@@ -1,0 +1,105 @@
+{
+  "profileId": "PROFILE-03",
+  "version": "1.0.0",
+  "documentType": "entity-definition",
+  "status": "stable",
+  "documentScope": "shared_master",
+  "description": "エンティティ定義書。正本・旧版・移行・作業シートが混在。固定セルA1に役割タグ明記（roleTag）があればシート名マッチングより優先する。",
+  "sheetRules": [
+    {
+      "ruleId": "P03-S01",
+      "matchType": "exact",
+      "pattern": "エンティティ定義書",
+      "roleTag": ["エンティティ定義(DTO)", "エンティティ定義"],
+      "role": "extract",
+      "outputContracts": ["J-30"],
+      "priority": 200,
+      "notes": "正本。entity_field を抽出。"
+    },
+    {
+      "ruleId": "P03-S02",
+      "matchType": "exact",
+      "pattern": "アトリビュートリスト",
+      "roleTag": [],
+      "role": "extract",
+      "outputContracts": ["J-30"],
+      "priority": 190,
+      "notes": "属性標準（attribute_definition）。"
+    },
+    {
+      "ruleId": "P03-S03",
+      "matchType": "exact",
+      "pattern": "アトリビュート辞書",
+      "roleTag": [],
+      "role": "extract",
+      "outputContracts": ["J-30"],
+      "priority": 190,
+      "notes": "論理名/物理名対応（attribute_dictionary_entry）。"
+    },
+    {
+      "ruleId": "P03-S04",
+      "matchType": "exact",
+      "pattern": "select",
+      "roleTag": [],
+      "role": "extract",
+      "outputContracts": ["J-30"],
+      "priority": 180,
+      "notes": "型・修飾子・NotNull制約（select_constraint）。"
+    },
+    {
+      "ruleId": "P03-S05",
+      "matchType": "exact",
+      "pattern": "エンティティ定義書_移行",
+      "roleTag": [],
+      "role": "reference_only",
+      "outputContracts": ["J-01", "J-30"],
+      "priority": 120,
+      "notes": "正本へ混ぜず、差分確認用。"
+    },
+    {
+      "ruleId": "P03-S06",
+      "matchType": "exact",
+      "pattern": "A5SQLワーク",
+      "roleTag": [],
+      "role": "reference_only",
+      "outputContracts": ["J-01", "J-30"],
+      "priority": 110,
+      "notes": "派生・作業情報。"
+    },
+    {
+      "ruleId": "P03-S07",
+      "matchType": "regex",
+      "pattern": "(^エンティティ定義書_[0-9]+$|_bk$|^古い|旧版)",
+      "roleTag": [],
+      "role": "ignore_candidate",
+      "outputContracts": ["J-01"],
+      "priority": 300,
+      "notes": "旧版・バックアップ。"
+    },
+    {
+      "ruleId": "P03-S08",
+      "matchType": "regex",
+      "pattern": "^(Format|要望一覧|No152)$",
+      "roleTag": [],
+      "role": "metadata",
+      "outputContracts": ["J-01"],
+      "priority": 100,
+      "notes": null
+    },
+    {
+      "ruleId": "P03-S09",
+      "matchType": "regex",
+      "pattern": "組織.*権限.*イメージ",
+      "roleTag": [],
+      "role": "asset",
+      "outputContracts": ["J-01", "J-60"],
+      "priority": 100,
+      "notes": "drawing/mediaを含む。"
+    }
+  ],
+  "policies": {
+    "canonicalSource": "無印のエンティティ定義書を正本。複数正本候補があれば調査モードへ。",
+    "unknownSheet": "investigate",
+    "profileMismatch": "warning"
+  }
+}

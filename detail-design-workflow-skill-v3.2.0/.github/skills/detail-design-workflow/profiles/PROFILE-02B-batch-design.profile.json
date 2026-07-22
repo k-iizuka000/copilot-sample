@@ -1,0 +1,65 @@
+{
+  "profileId": "PROFILE-02B",
+  "version": "1.0.0",
+  "documentType": "batch-design",
+  "status": "provisional",
+  "documentScope": "feature",
+  "description": "暫定: 処理機能記述書と同型と仮定したバッチプロファイル。実物の設計書での検証後に確定。固定セルA1に役割タグ明記（roleTag）があればシート名マッチングより優先する。不一致は停止せず調査モードへ。",
+  "sheetRules": [
+    {
+      "ruleId": "P02B-S01",
+      "matchType": "exact",
+      "pattern": "改訂履歴",
+      "roleTag": ["改訂履歴"],
+      "role": "metadata",
+      "outputContracts": ["J-01"],
+      "priority": 100,
+      "notes": null
+    },
+    {
+      "ruleId": "P02B-S02",
+      "matchType": "regex",
+      "pattern": "^(処理機能記述|バッチ機能記述|バッチ設計)$",
+      "roleTag": ["処理記述"],
+      "role": "extract",
+      "outputContracts": ["J-20"],
+      "priority": 100,
+      "notes": "実物未確認。バッチ制御（batch_control）を含む想定。"
+    },
+    {
+      "ruleId": "P02B-S03",
+      "matchType": "exact",
+      "pattern": "検索要領",
+      "roleTag": ["検索要領"],
+      "role": "extract",
+      "outputContracts": ["J-20", "J-30"],
+      "priority": 90,
+      "notes": null
+    },
+    {
+      "ruleId": "P02B-S04",
+      "matchType": "exact",
+      "pattern": "更新要領",
+      "roleTag": ["更新要領"],
+      "role": "extract",
+      "outputContracts": ["J-20", "J-30"],
+      "priority": 90,
+      "notes": null
+    },
+    {
+      "ruleId": "P02B-S05",
+      "matchType": "exact",
+      "pattern": "項目DB対応表",
+      "roleTag": ["DB項目対応"],
+      "role": "extract",
+      "outputContracts": ["J-30"],
+      "priority": 90,
+      "notes": null
+    }
+  ],
+  "policies": {
+    "canonicalSource": "PROFILE-02との同型を仮定。バッチ固有ヘッダーを検出したら調査モードへ。",
+    "unknownSheet": "investigate",
+    "profileMismatch": "investigate"
+  }
+}

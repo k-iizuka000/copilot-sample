@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "PROFILE-00.schema.json",
+  "title": "設計書プロファイル（軽量版）",
+  "description": "設計書フォーマットごとのシート分類ルール。skill⇔outputContract の双方向強制（allOf）は撤去し、対応は PROFILE-INDEX.md の表で示す。シートの固定セル A1 に役割タグの明記（roleTag）があれば、シート名マッチング（pattern）より roleTag を優先する。unknownSheet / profileMismatch は停止させず調査・警告に倒す（機械FAILのみ停止・人間レビューは非ブロッキング）。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["profileId", "version", "documentType", "status", "documentScope", "description", "sheetRules", "policies"],
+  "properties": {
+    "profileId": { "type": "string", "pattern": "^PROFILE-\\d{2}[A-Z]?$" },
+    "version": { "type": "string" },
+    "documentType": { "type": "string" },
+    "status": { "enum": ["stable", "provisional"] },
+    "documentScope": { "enum": ["feature", "shared_master", "common", "unknown"] },
+    "description": { "type": "string" },
+    "sheetRules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ruleId", "matchType", "pattern", "role", "outputContracts", "priority"],
+        "properties": {
+          "ruleId": { "type": "string" },
+          "matchType": { "enum": ["exact", "regex"] },
+          "pattern": {
+            "description": "シート名のマッチパターン。roleTag が一致した場合はこの pattern より優先される。",
+            "type": "string"
+          },
+          "roleTag": {
+            "description": "このルールに対応する固定セル A1 役割タグの候補値。設計書に明記があれば pattern より優先。無い設計書では空配列でよい。",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "role": { "enum": ["metadata", "extract", "asset", "ignore_candidate", "reference_only", "unknown"] },
+          "outputContracts": {
+            "type": "array",
+            "items": { "enum": ["J-01", "J-10", "J-11", "J-20", "J-30", "J-40", "J-60"] }
+          },
+          "priority": { "type": "integer" },
+          "notes": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "policies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonicalSource", "unknownSheet", "profileMismatch"],
+      "properties": {
+        "canonicalSource": {
+          "description": "正本の選び方（どのシート/行を正とするか）。抽出挙動（非表示行・数式の扱い等）は copilot-instructions.md を正本とし、ここには書かない。",
+          "type": "string"
+        },
+        "unknownSheet": {
+          "description": "未知シート検出時の扱い。investigate=調査モードで候補提示（停止しない）, warning=警告のみ, ignore=無視。",
+          "enum": ["investigate", "warning", "ignore"]
+        },
+        "profileMismatch": {
+          "description": "プロファイル前提と実物が不一致のときの扱い。investigate=調査モードへ, warning=警告のみ（いずれも停止しない）。",
+          "enum": ["investigate", "warning"]
+        }
+      }
+    }
+  }
+}

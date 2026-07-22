@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>詳細設計ワークフロー v3.2.0 解説マップ</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<main>
+
+<h1>詳細設計ワークフロー v3.2.0 解説マップ</h1>
+<p class="purpose">detail-design-workflow-skill v3.2.0 の入力・処理・出力を図で見せる解説サイトです。まず下の概要とパイプライン図で全体像をつかみ、気になる工程・正本のページへ進んでください。</p>
+
+<section id="overview" class="card">
+  <h2>概要</h2>
+  <p>Excel設計書 → 出典付きJSON → 詳細設計Markdown（<code>spec/</code>）へ、GitHub Copilot が半自動で変換します。毎回同じ命令を繰り返し打つだけで進み、「次は何をすればいいか」を人が考える必要はありません。</p>
+
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">入力</span>生の Excel設計書（.xlsx）。ファイル名は命名規約 {設計書種別}_{ID}_{機能名}.xlsx</div>
+    <div class="fact"><span class="fact-label">出力</span><code>spec/</code> 詳細設計 Markdown + <code>runs/</code> 作業中間物</div>
+    <div class="fact"><span class="fact-label">スコープ外</span>コード実装・実装計画・テスト生成はしない</div>
+  </div>
+
+  <h3>用語メモ（README より）</h3>
+  <table>
+    <thead><tr><th>用語</th><th>意味</th></tr></thead>
+    <tbody>
+      <tr><td>Copilot Chat</td><td>VS Code の右側に出る、AI と会話する欄。ここに <code>/命令</code> を打って使う。</td></tr>
+      <tr><td>プロンプト（<code>/01-setup</code> など）</td><td>あらかじめ用意した命令。チャット欄で <code>/</code> を打つと候補が出る。</td></tr>
+      <tr><td>run-template</td><td>1つの機能を変換するための作業フォルダの雛形。<code>/01-setup</code> が自動でコピーする。</td></tr>
+      <tr><td>run-request.json</td><td>機能ID・設計書一覧・出力先を記録するファイル。<code>/01-setup</code> が自動生成する。</td></tr>
+      <tr><td>命名規約</td><td>設計書ファイル名の決まり <code>{設計書種別}_{ID}_{機能名}.xlsx</code>。</td></tr>
+      <tr><td><code>spec/</code></td><td>変換結果（詳細設計Markdown）が入る、最終出力のフォルダ。</td></tr>
+      <tr><td><code>runs/</code></td><td>変換の作業途中ファイルが入るフォルダ。作業が終われば消してかまわない。</td></tr>
+      <tr><td>verify.ps1</td><td>出力が壊れていないかを自動でチェックする PowerShell スクリプト。</td></tr>
+      <tr><td>プロファイル</td><td>設計書の種類ごとの読み取り方の定義。役割が書かれていない設計書は、これで役割を推定する。</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="pipeline" class="card">
+  <h2>パイプライン図</h2>
+  <p class="how-to-read">見方: 上から下へ実行順。琥珀の点線は人間の操作、それ以外はクリックで各工程ページへ移動できます。</p>
+  <div class="legend">
+    <span><span class="badge badge-e2j">e2j</span> 青=計画</span>
+    <span><span class="badge badge-j2m">j2m</span> 緑=生成</span>
+    <span><span class="badge badge-d00">d00</span> グレー=機械チェック</span>
+    <span><span class="badge badge-ev">ev</span> 琥珀=意味照合</span>
+    <span><span class="badge badge-human">human</span> 琥珀枠=人間の操作</span>
+  </div>
+
+  <div class="pipe">
+    <div class="pipe-gate">
+      <span class="pipe-name">人間: 設計書（.xlsx）を用意</span>
+      <span class="pipe-sub">ファイル名を命名規約に合わせる（CSV/TSV 書き出し・run-request 記入は不要）</span>
+    </div>
+    <div class="pipe-arrow">↓</div>
+    <a class="pipe-node stage-e2j" href="prompt-01-setup.html">
+      <span class="pipe-name">/01-setup</span>
+      <span class="pipe-sub">受け入れ・run-request 自動生成・棚卸し・J-01 計画</span>
+    </a>
+    <div class="pipe-arrow">↓</div>
+    <a class="pipe-node stage-j2m" href="prompt-02-run.html">
+      <span class="pipe-name">/02-run</span>
+      <span class="pipe-sub">抽出 → spec生成 → trace生成</span>
+      <span class="pipe-sub">↻ 繰り返し（案内が「完了」と出るまで何度も）</span>
+    </a>
+    <div class="pipe-arrow">↓</div>
+    <a class="pipe-node stage-d00" href="verify-ps1.html">
+      <span class="pipe-name">verify.ps1</span>
+      <span class="pipe-sub">機械チェック</span>
+    </a>
+    <div class="pipe-arrow">↓</div>
+    <a class="pipe-node stage-ev" href="prompt-03-check.html">
+      <span class="pipe-name">/03-check</span>
+      <span class="pipe-sub">意味照合・別チャットで実行</span>
+    </a>
+  </div>
+  <p class="hint">止まるのは機械FAILのときだけ。人間レビューは非ブロッキング（→ <a href="group-rules.html#gates">group-rules.html#gates</a>）</p>
+</section>
+
+<section id="pages" class="card">
+  <h2>ページ目次</h2>
+
+  <h3>工程ページ（実行順）</h3>
+  <table>
+    <thead><tr><th>順序</th><th>名前</th><th>一言</th><th>ステージ</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td><a href="prompt-01-setup.html">/01-setup</a></td>
+        <td>生のExcel設計書を受け入れ、作業フォルダと run-request.json を自動生成し、棚卸しとルーティング計画(J-01)を作る。初回・設計書追加時に実行する。</td>
+        <td><span class="badge badge-e2j">計画</span></td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td><a href="prompt-02-run.html">/02-run</a></td>
+        <td>次の1タスクを自動選択して1つだけ実行する。抽出→spec生成→trace生成まで、同じコマンドを繰り返し呼ぶ。</td>
+        <td><span class="badge badge-j2m">生成</span></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><a href="verify-ps1.html">verify.ps1</a></td>
+        <td>detail-design-workflow-skill v3.2.0 の機械照合スクリプト（verify）。</td>
+        <td><span class="badge badge-d00">機械チェック</span></td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><a href="prompt-03-check.html">/03-check</a></td>
+        <td>J-* JSON と spec/ Markdown の意味照合（欠落・創作・「該当なし/未確認」混同・basis 妥当性）を評価する。02-run とは別チャットで実行する。</td>
+        <td><span class="badge badge-ev">意味照合</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>まとまりページ（正本群）</h3>
+  <div class="cards cols-3">
+    <div class="card"><a href="group-rules.html">group-rules.html</a><p>共通ルール（実行ルールの正本）</p></div>
+    <div class="card"><a href="group-skill-runbook.html">group-skill-runbook.html</a><p>導入・入口スキル・日々の手順・モデル割当</p></div>
+    <div class="card"><a href="group-spec-format.html">group-spec-format.html</a><p>出力形式の正本4本</p></div>
+    <div class="card"><a href="group-contracts-json.html">group-contracts-json.html</a><p>J-* JSONスキーマ9本 + 読み書きマトリクス</p></div>
+    <div class="card"><a href="group-templates-markdown.html">group-templates-markdown.html</a><p>T-* Markdownテンプレート12本</p></div>
+    <div class="card"><a href="group-profiles.html">group-profiles.html</a><p>設計書プロファイル7本 + 構造スキーマ + 要望書</p></div>
+    <div class="card"><a href="group-run-template.html">group-run-template.html</a><p>作業フォルダ雛形（runs/{機能ID}）</p></div>
+  </div>
+  <h3>v3.2.0 関連文書</h3>
+  <div class="cards cols-3">
+    <div class="card"><a href="../spec-v3.2.0.md">spec-v3.2.0.md</a><p>合意仕様</p></div>
+    <div class="card"><a href="../human-actions.md">human-actions.md</a><p>人間アクション一覧</p></div>
+    <div class="card"><a href="../file-inventory.html">file-inventory.html</a><p>ファイル一覧</p></div>
+    <div class="card"><a href="../conversation-record-2026-07-15.md">conversation-record-2026-07-15.md</a><p>経緯の記録</p></div>
+  </div>
+
+  <p class="note-box">モデルの目安: <code>/02-run</code> の抽出は GPT-5.4 mini でも可。spec生成・trace生成の回は GPT-5.4 を使う（間違えると手戻りが大きい）。→ 詳細は<a href="group-skill-runbook.html#models">モデル割当表（group-skill-runbook.html#models）</a></p>
+</section>
+
+<footer class="src-note">正本: <code>README.md</code>, <code>.github/skills/detail-design-workflow/SKILL.md</code>, <code>.github/skills/detail-design-workflow/RUNBOOK.md</code>（工程一言は各 <code>.github/prompts/*.prompt.md</code> の frontmatter description・<code>scripts/verify.ps1</code> の .SYNOPSIS 由来） — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

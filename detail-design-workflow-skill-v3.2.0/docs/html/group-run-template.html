@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>作業フォルダ雛形（runs/{機能ID}） | 詳細設計ワークフロー v3.2.0 解説</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">作業フォルダ雛形（runs/{機能ID}）</span>
+  <span class="nav-spacer"></span>
+</nav>
+
+<main>
+  <h1>作業フォルダ雛形（runs/{機能ID}）</h1>
+  <p class="purpose"><code>run-template/FEATURE-ID/</code> は1機能ぶんの作業を進めるフォルダの雛形。<code>/01-setup</code> が自動でコピーしてから実行する。</p>
+
+  <div class="used-by">
+    <a class="badge badge-e2j" href="prompt-01-setup.html">/01-setup が読む</a>
+    <a class="badge badge-j2m" href="prompt-02-run.html">/02-run が読み書きする</a>
+    <a class="badge badge-d00" href="verify-ps1.html">verify.ps1 が読み書きする</a>
+    <a class="badge badge-ev" href="prompt-03-check.html">/03-check が読み書きする</a>
+      <span class="badge badge-human">人間が確認する</span>
+  </div>
+
+  <section id="tree" class="card">
+    <h2>フォルダツリー</h2>
+    <p class="how-to-read">見方: <code>/01-setup</code> が <code>run-template/FEATURE-ID/</code> の構成で <code>runs/{ID}/</code> を自動生成する。</p>
+<pre>runs/{機能ID}/
+├── run-request.json   /01-setup が設計書ファイル名から自動生成する定義ファイル
+├── 00-input/           /01-setup が Excel 原本コピーを自動配置（人間は置かない）
+├── 10-json/            出典付きの中間 JSON（J-*）。自動生成
+└── 20-check/           verify結果・warnings・check結果。自動生成</pre>
+    <div class="note-box">output-structure.md §1 では <code>00-input/</code> に画像等のアセット置き場 <code>assets/</code> も含められるとされている。</div>
+  </section>
+
+  <section id="run-request" class="card">
+    <h2>run-request.json の全キー</h2>
+    <div class="used-by">
+      <span class="badge badge-e2j">書く: /01-setup（自動生成）</span>
+      <a class="badge badge-e2j" href="prompt-01-setup.html">読む: /01-setup</a>
+    </div>
+    <p class="how-to-read">見方: <code>/01-setup</code> がファイル名から自動生成する。空欄は featureId のみ停止条件で、他は後埋めできる。</p>
+    <table>
+      <thead><tr><th>キー</th><th>役割</th><th>雛形の値</th></tr></thead>
+      <tbody>
+        <tr><td><code>featureId</code></td><td>機能ID。IDの桁数から自動判定</td><td><code>ab1234</code></td></tr>
+        <tr><td><code>featureName</code></td><td>機能名</td><td><code>顧客マスタ照会</code></td></tr>
+        <tr><td><code>idType</code></td><td>ID種別</td><td><code>画面ID</code></td></tr>
+        <tr><td><code>designDocuments</code></td><td>対象設計書の配列（下記4キーを要素に持つ）</td><td>—</td></tr>
+        <tr><td>　├ <code>documentType</code></td><td>設計書の種別</td><td><code>screen_design</code></td></tr>
+        <tr><td>　├ <code>profileId</code></td><td>適用する<a href="group-profiles.html">設計書プロファイル</a>のID</td><td><code>PROFILE-01</code></td></tr>
+        <tr><td>　├ <code>sourcePath</code></td><td>00-input/ 配下の Excel 原本コピー</td><td><code>00-input/画面設計書_ab1234_顧客マスタ照会.xlsx</code></td></tr>
+        <tr><td>　└ <code>version</code></td><td>設計書のバージョン</td><td><code>1.0</code></td></tr>
+        <tr><td><code>outputSpecRoot</code></td><td>出力先。spec/ を記入する（RUNBOOKより）</td><td><code>spec</code></td></tr>
+        <tr><td><code>operator</code></td><td>作業者を表すフィールド</td><td><code>""</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="dir-00-input" class="card">
+    <h2>00-input/</h2>
+    <p><code>/01-setup</code> が変換対象の Excel 原本コピーを自動配置する。人間はファイルを置かない。</p>
+    <div class="used-by">
+      <span class="badge badge-e2j">書く: /01-setup（自動配置）</span>
+      <a class="badge badge-e2j" href="prompt-01-setup.html">読む: /01-setup</a>
+      <a class="badge badge-j2m" href="prompt-02-run.html">読む: /02-run（抽出）</a>
+    </div>
+  </section>
+
+  <section id="dir-10-json" class="card">
+    <h2>10-json/</h2>
+    <p>/01-setup と /02-run が出力する、出典付きの中間 JSON（J-* ファイル）が入る（README.mdより）。人間が手で書き換える必要はない。</p>
+    <div class="used-by">
+      <a class="badge badge-e2j" href="prompt-01-setup.html">書く: /01-setup（J-01）</a>
+      <a class="badge badge-j2m" href="prompt-02-run.html">書く/読む: /02-run（抽出・生成タスク）</a>
+      <a class="badge badge-d00" href="verify-ps1.html">読む: verify.ps1</a>
+      <a class="badge badge-ev" href="prompt-03-check.html">読む: /03-check</a>
+    </div>
+  </section>
+
+  <section id="dir-20-check" class="card">
+    <h2>20-check/</h2>
+    <p>自動チェックの結果が入る（README.mdより）: verify.ps1 の結果（verify-result.md）、警告一覧（warnings.md）、/03-check の意味照合結果（check-result.md）など。困ったときはまず warnings.md を読む。</p>
+    <div class="used-by">
+      <a class="badge badge-e2j" href="prompt-01-setup.html">書く: /01-setup（未レビュー・未知フォーマット→warnings.md）</a>
+      <a class="badge badge-j2m" href="prompt-02-run.html">書く: /02-run（機械FAIL・矛盾検出→warnings.md）</a>
+      <a class="badge badge-d00" href="verify-ps1.html">書く: verify.ps1（verify-result.md・reverse-map.md・warnings.md）</a>
+      <a class="badge badge-ev" href="prompt-03-check.html">書く: /03-check（check-result.md、EV指摘→warnings.md）</a>
+      <span class="badge badge-human">読む: 人間</span>
+    </div>
+    <div class="note-box">v2.1.0 にあった承認ファイル（status.md 等）はここには無い。承認ファイル（G0/G1/G2 のようなゲート）は使わず、人間確認の状態を JSON や Markdown に持たせない（原本: copilot-instructions.md「ゲートと停止条件」より）。</div>
+  </section>
+
+  <footer class="src-note">正本: <code>.github/skills/detail-design-workflow/run-template/FEATURE-ID/</code>, <code>spec-format/output-structure.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

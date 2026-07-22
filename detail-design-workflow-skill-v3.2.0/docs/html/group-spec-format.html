@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>出力形式の正本 | 詳細設計ワークフロー v3.2.0 解説</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  table { table-layout: fixed; }
+  td, th { overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">出力形式の正本</span>
+  <span class="nav-spacer"></span>
+</nav>
+<main>
+
+<h1>出力形式の正本</h1>
+<p class="purpose">recordType の振り分け先（ルーティング表）・spec/ のツリー構造・実装物ごとの読むべき spec（消費マトリクス）・クラス名/パス規則（src マッピング）の4正本をまとめた。/02-run が生成時に、verify.ps1 が照合時に参照する。</p>
+
+<div class="used-by">
+  <a class="chip" href="prompt-01-setup.html">/01-setup</a>
+  <a class="chip" href="prompt-02-run.html">/02-run</a>
+  <a class="chip" href="prompt-03-check.html">/03-check</a>
+  <a class="chip" href="verify-ps1.html">verify.ps1</a>
+  <span>が参照する（ファイルごとの読む工程は各カードに記載）</span>
+</div>
+
+<section id="routing-table" class="card">
+  <h2>ルーティング表（recordType → 出力先）</h2>
+  <div class="gate-box">暫定: このルーティング表は、実物の設計書での検証後に確定する。</div>
+  <p class="note-box">「どの recordType のレコードをどの spec ファイルへ振り分けるか」の<strong>唯一の正本</strong>。テンプレート（T-*）・プロンプト・verify.ps1 はここを参照し、規則を各所に複製しない。</p>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">振り分けの原則</span>「どの設計書から来たか」ではなく「レコードの責務」で振り分ける</div>
+    <div class="fact"><span class="fact-label">1冊 ⇔ 複数ファイル</span>1冊の設計書が複数の spec ファイルに散るのは正常。1つの spec ファイルに複数の設計書由来のレコードが集まるのも正常</div>
+  </div>
+  <table>
+    <thead><tr><th>recordType</th><th>出力先</th><th>実装対応（消費者）</th></tr></thead>
+    <tbody>
+      <tr><td>screen_item, display_mode, parameter_definition</td><td>front/{画面ID}/items.md</td><td>Form.java</td></tr>
+      <tr><td>layout_reference（Thymeleaf仕様・レイアウト明記事項・スクショ参照）</td><td>front/{画面ID}/layout.md</td><td>Thymeleafテンプレート</td></tr>
+      <tr><td>validation_rule, item_control, correlation_validation, message_rule</td><td>front/{画面ID}/validation.md</td><td>Form/Validator</td></tr>
+      <tr><td>ui_event</td><td>back/{機能ID}/methods.md</td><td>Controller</td></tr>
+      <tr><td>process_section</td><td>back/{機能ID}/methods.md または logic.md（処理概要=methods、業務ロジック本文=logic）</td><td>Controller/Service</td></tr>
+      <tr><td>search_requirement, update_requirement, select_constraint, item_db_mapping</td><td>back/{機能ID}/queries.md</td><td>Mapper XML / DAO</td></tr>
+      <tr><td>batch_control</td><td>batch/{ジョブID}/control.md</td><td>バッチ起動/制御</td></tr>
+      <tr><td>external_interface</td><td>batch/{ジョブID}/io.md（バッチ文脈）/ back/{機能ID}/methods.md（画面文脈）</td><td>連携処理</td></tr>
+      <tr><td>entity_field, attribute_definition, view_definition, view_query_block</td><td>db/{テーブル物理名}.md</td><td>Entity/DTO/Mapper</td></tr>
+      <tr><td>entity_relation</td><td>db/_er-overview.md および trace のER断片</td><td>—</td></tr>
+      <tr><td>attribute_dictionary_entry（論理名/物理名の対応辞書）</td><td>common/naming.md</td><td>全般</td></tr>
+      <tr><td>document_header_metadata（改訂履歴等の文書ヘッダ）</td><td>spec 出力なし（非ルーティング。verify.ps1 のルーティング整合・トレース照合の対象外）</td><td>—</td></tr>
+      <tr><td>screen_action_permission, case_reference_permission, role_hierarchy</td><td>common/permissions/</td><td>権限チェック</td></tr>
+      <tr><td>common_rule（命名規約系）</td><td>common/naming.md</td><td>全般</td></tr>
+      <tr><td>common_rule（コード値・enum系）</td><td>common/codes/{分類}.md</td><td>enum/定数</td></tr>
+      <tr><td>業務ルール（複数機能に適用と明記されたロジック）</td><td>rules/BR-{番号}.md</td><td>Service</td></tr>
+      <tr><td>アセット（画像・図形）</td><td>runs/{ID}/00-input/assets/ に書き出し、layout.md からリンク</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <h3>enum 値（verify.ps1 の照合対象）</h3>
+  <p class="how-to-read">verify.ps1 は各レコードの layers と recordType がこの一覧の値に含まれるかを機械照合する（詳細は <a href="verify-ps1.html">verify-ps1.html</a>）。</p>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">layers（J-00 共通）</span>frontend / backend / db / batch / integration / authorization / common</div>
+    <div class="fact"><span class="fact-label">recordType</span>screen_item / display_mode / parameter_definition / layout_reference / validation_rule / item_control / correlation_validation / message_rule / ui_event / process_section / search_requirement / update_requirement / select_constraint / item_db_mapping / batch_control / external_interface / entity_field / attribute_definition / attribute_dictionary_entry / view_definition / view_query_block / entity_relation / screen_action_permission / case_reference_permission / role_hierarchy / document_header_metadata / common_rule</div>
+  </div>
+  <p class="hint">「業務ルール」「アセット」は上記 recordType の分類・派生（多機能適用の process_section／common_rule、および J-60 アセット）を指す運用上の振り分けであり、新しい recordType 値ではない。document_header_metadata は enum として妥当だが spec への出力を持たない（非ルーティング）。</p>
+
+  <h3>entity_relation（関連線）の採否規則</h3>
+  <div class="stop-box">
+    ER の関連線として描いてよいのは以下の2種のみ。<strong>AI の推測による関連生成は禁止。</strong>
+    <ul>
+      <li><code>explicit</code>: 設計書に明記された関連（FK・参照関係の明記）</li>
+      <li><code>derived_join</code>: VIEW 定義・検索要領の JOIN 条件から導出した関連</li>
+    </ul>
+  </div>
+  <p>カーディナリティが不明なら <code>unknown</code> とする。全体テーブル定義書が来た場合のみ全体ER（db/_er-overview.md）を作成し、機能単位のエンティティ定義書だけの段階では ER 図を作らない（テーブル定義の取り込みのみ）。</p>
+
+  <h3>共有領域（db/ common/ rules/）の扱い</h3>
+  <p>該当レコードを持つどの run も追記・更新してよい。既存記述と矛盾する内容（例: 同一テーブル・同一カラムの型・桁の不一致）を検出した場合は、<strong>上書きせず両論併記</strong>とし、runs/{ID}/20-check/warnings.md に「矛盾検出」として記録して人間の判断に委ねる。verify.ps1 が db/ の同一テーブル・同一カラムの矛盾定義を検出して警告する（決定#7: 機械FAIL のみ停止。矛盾は警告であり停止しない）。</p>
+</section>
+
+<section id="output-structure" class="card">
+  <h2>出力構造（spec/ ツリーと標準ファイルセット）</h2>
+  <p>利用先リポジトリに生成する spec/ ツリーと、各責務領域の標準ファイルセットの正本。振り分け規則は<a href="#routing-table">ルーティング表</a>、各ファイルの中身の形式は <code>contracts/markdown/</code> の T-* テンプレートが正本（ここには複製しない）。</p>
+  <p class="how-to-read">見方: インデントの深さが親子関係を表す。spec/ が最終出力（機能横断の共有ツリー）、runs/{機能ID}/ が作業中間物（作業後削除可）。</p>
+  <pre><code>&lt;利用先リポジトリ&gt;/
+├── spec/                    ← 最終出力（機能横断の共有ツリー）
+│   ├── front/{画面ID}/      layout.md, items.md, validation.md
+│   ├── back/{機能ID}/       methods.md, logic.md, queries.md
+│   ├── batch/{ジョブID}/    control.md, io.md, logic.md, queries.md   ※標準セットは暫定
+│   ├── db/                  {テーブル物理名}.md, _er-overview.md（全体定義書がある場合のみ）
+│   ├── common/              src-mapping.md, naming.md, codes/, permissions/
+│   ├── rules/               BR-{番号}.md
+│   └── trace/               {機能ID}.md
+└── runs/{機能ID}/           ← 作業中間物（作業後削除可）
+    ├── run-request.json
+    ├── 00-input/            ← Excel設計書の原本コピー（.xlsx。/01-setup が自動配置）、assets/
+    ├── 10-json/             ← J-* JSON
+    └── 20-check/            ← verify 結果・warnings.md・check 結果・reverse-map.md
+</code></pre>
+  <p class="hint">spec/ 配下のファイル名・ディレクトリ名は ASCII。日本語はファイル内容にのみ使う。1冊の設計書が複数の spec ファイルに散るのは正常（振り分けは「レコードの責務」で決める）。</p>
+
+  <h3>責務領域ごとの標準ファイルセット</h3>
+  <table>
+    <thead><tr><th>責務領域</th><th>ディレクトリ</th><th>標準ファイル</th><th>使うテンプレート</th><th>生成条件</th></tr></thead>
+    <tbody>
+      <tr><td>フロント（画面項目）</td><td>front/{画面ID}/</td><td>items.md</td><td>T-items</td><td>画面項目レコードがある</td></tr>
+      <tr><td>フロント（レイアウト）</td><td>front/{画面ID}/</td><td>layout.md</td><td>T-layout</td><td>layout_reference レコードがある</td></tr>
+      <tr><td>フロント（入力検証）</td><td>front/{画面ID}/</td><td>validation.md</td><td>T-validation</td><td>バリデーション系レコードがある</td></tr>
+      <tr><td>バック（メソッド）</td><td>back/{機能ID}/</td><td>methods.md</td><td>T-methods</td><td>ui_event / process_section 概要 / 画面文脈 external_interface がある</td></tr>
+      <tr><td>バック（業務ロジック）</td><td>back/{機能ID}/</td><td>logic.md</td><td>T-logic</td><td>process_section 本文がある</td></tr>
+      <tr><td>バック（検索/更新）</td><td>back/{機能ID}/</td><td>queries.md</td><td>T-queries</td><td>search/update/select_constraint/item_db_mapping がある</td></tr>
+      <tr><td>バッチ（制御）</td><td>batch/{ジョブID}/</td><td>control.md</td><td>T-batch-control</td><td>batch_control レコードがある</td></tr>
+      <tr><td>バッチ（入出力）</td><td>batch/{ジョブID}/</td><td>io.md</td><td>T-batch-io</td><td>バッチ文脈の external_interface がある</td></tr>
+      <tr><td>バッチ（業務ロジック）</td><td>batch/{ジョブID}/</td><td>logic.md</td><td>T-logic を流用</td><td>バッチのロジックがある</td></tr>
+      <tr><td>バッチ（検索/更新）</td><td>batch/{ジョブID}/</td><td>queries.md</td><td>T-queries を流用</td><td>バッチの検索/更新要領がある</td></tr>
+      <tr><td>DB（テーブル定義）</td><td>db/</td><td>{テーブル物理名}.md</td><td>T-db-table</td><td>テーブル/VIEW 定義レコードがある</td></tr>
+      <tr><td>DB（全体ER）</td><td>db/</td><td>_er-overview.md</td><td>T-er-overview</td><td>全体テーブル定義書が取り込まれている場合のみ</td></tr>
+      <tr><td>共通（パス規則）</td><td>common/</td><td>src-mapping.md</td><td>src-mapping.template.md</td><td>常設（初期は雛形。実物照合後に更新）</td></tr>
+      <tr><td>共通（命名規約）</td><td>common/</td><td>naming.md</td><td>—</td><td>common_rule（命名規約系）がある</td></tr>
+      <tr><td>共通（コード値）</td><td>common/codes/</td><td>{分類}.md</td><td>—</td><td>common_rule（コード値・enum 系）がある</td></tr>
+      <tr><td>共通（権限）</td><td>common/permissions/</td><td>権限系ファイル</td><td>—</td><td>権限系レコードがある</td></tr>
+      <tr><td>業務ルール</td><td>rules/</td><td>BR-{番号}.md</td><td>—</td><td>複数機能に適用と明記された業務ルールがある</td></tr>
+      <tr><td>トレース</td><td>trace/</td><td>{機能ID}.md</td><td>T-trace</td><td>対象機能の spec ファイルが生成済み</td></tr>
+      <tr><td>警告台帳</td><td>runs/{ID}/20-check/</td><td>warnings.md</td><td>T-warnings</td><td>ラン開始時に常設</td></tr>
+    </tbody>
+  </table>
+  <p class="hint">該当レコードが無い標準ファイルは生成しない（空ファイルを作らない）。逆に、標準セットに無い責務が現れたら routing-table.md の改定サイン。</p>
+
+  <div class="gate-box">暫定: バッチの標準ファイルセット（control.md / io.md / logic.md / queries.md）は、実物のバッチ設計書での検証後に確定する。専用テンプレートは制御（T-batch-control）と入出力（T-batch-io）の2つのみで、バッチの業務ロジックと検索/更新は画面/機能用の T-logic / T-queries を流用する（id はジョブIDにする）。</div>
+
+  <h3>ID 規約</h3>
+  <p>画面系は画面ID、機能系は機能ID、バッチはジョブID を ID に使う。ID の種別が判別できない場合は runs/{ID}/run-request.json の宣言を正とする（設計書側への明記依頼は <a href="group-profiles.html#design-doc-request">design-doc-request.md</a> で行う）。</p>
+
+  <h3>関連する正本</h3>
+  <div class="used-by">
+    <a class="chip" href="#routing-table">振り分け規則: ルーティング表</a>
+    <a class="chip" href="#consumption-matrix">消費マトリクス（暫定）</a>
+    <a class="chip" href="#src-mapping">パス規則: src-mapping（初期雛形）</a>
+  </div>
+</section>
+
+<section id="consumption-matrix" class="card">
+  <h2>消費マトリクス</h2>
+  <div class="gate-box">暫定: この消費マトリクスは、実物の設計書での検証後に確定する。</div>
+  <p class="note-box">「実装物（生成するクラス／テンプレート）を作るとき、どの spec ファイルを読むか」の<strong>唯一の正本</strong>。trace（T-trace）の「消費マトリクス抜粋」はこの表から必要な行を抜き出したもの。各所に規則を複製しない。</p>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">考え方</span>Copilot への入力は「多いほど良い」ではなく「タスクに必要なものだけ」が最も精度が高く安い（plan-deck の思想）</div>
+    <div class="fact"><span class="fact-label">分離の原則</span>「Form を生成するタスクに、レイアウト仕様を読ませない」＝インターフェース分離原則の設計書版。リンクの向きは人ではなくこの表で機械的に決める</div>
+  </div>
+  <h3>消費マトリクス（MyBatis 構成: Controller / Service / Form / DTO / DAO / Mapper XML / Thymeleaf）</h3>
+  <table>
+    <thead><tr><th>生成物</th><th>読む spec ファイル</th></tr></thead>
+    <tbody>
+      <tr><td>Form（入力フォーム）</td><td>front/{画面ID}/items.md + front/{画面ID}/validation.md</td></tr>
+      <tr><td>Validator</td><td>front/{画面ID}/validation.md + front/{画面ID}/items.md</td></tr>
+      <tr><td>Thymeleaf テンプレート</td><td>front/{画面ID}/layout.md + front/{画面ID}/items.md</td></tr>
+      <tr><td>Controller</td><td>back/{機能ID}/methods.md + front/{画面ID}/validation.md + common/permissions/（権限がある場合）</td></tr>
+      <tr><td>Service</td><td>back/{機能ID}/methods.md + back/{機能ID}/logic.md + db/{テーブル物理名}.md + rules/BR-{番号}.md（該当ルールがある場合）</td></tr>
+      <tr><td>DTO（データ転送オブジェクト）</td><td>db/{テーブル物理名}.md + back/{機能ID}/queries.md</td></tr>
+      <tr><td>DAO（Mapper インターフェース）</td><td>back/{機能ID}/queries.md + db/{テーブル物理名}.md</td></tr>
+      <tr><td>Mapper XML（SQL）</td><td>back/{機能ID}/queries.md + db/{テーブル物理名}.md</td></tr>
+      <tr><td>バッチ本体</td><td>batch/{ジョブID}/control.md + batch/{ジョブID}/logic.md + batch/{ジョブID}/queries.md</td></tr>
+      <tr><td>バッチ入出力処理</td><td>batch/{ジョブID}/io.md + db/{テーブル物理名}.md</td></tr>
+      <tr><td>権限チェック</td><td>common/permissions/ + back/{機能ID}/methods.md</td></tr>
+    </tbody>
+  </table>
+  <p class="hint">クラス名の命名規則・配置パス規則はこの表の範囲外。正本は生成物 spec/common/src-mapping.md（初期雛形は<a href="#src-mapping">src マッピング</a>）。「該当テーブル」は対象機能が触るテーブルの db/{テーブル物理名}.md。どのテーブルを触るかは back/{機能ID}/queries.md の item_db_mapping / 検索要領から辿る。</p>
+
+  <h3>受け入れの目安</h3>
+  <ul>
+    <li>各生成物が読む spec は 2〜4 ファイルに収まること（超える場合は責務分割の見直しサイン）。</li>
+    <li>「FUNC-XXXX に関連する spec ファイル・テーブル・業務ルールを全部挙げて」に、trace（T-trace）＋この表で正答できること。</li>
+  </ul>
+</section>
+
+<section id="src-mapping" class="card">
+  <h2>src マッピング テンプレート</h2>
+  <div class="gate-box">暫定: この対応表は実測未検証の雛形。実物のソース／設計書での照合後に確定する（front-matter <code>provisional: true</code>）。</div>
+  <p class="note-box">役割 → クラス名命名規則 → 配置パス規則の対応表。このテンプレートをコピーして spec/common/src-mapping.md を作る。trace（T-trace）はクラス名・パスの規則をここへ参照する（複製しない）。下表の命名規則・パス規則は現時点の推測であり、全行 状態=実測未検証。確定するまで、生成物のフルパスを断定しない。</p>
+  <table>
+    <thead><tr><th>役割</th><th>クラス名命名規則（暫定）</th><th>配置パス規則（暫定）</th><th>状態</th></tr></thead>
+    <tbody>
+      <tr><td>Controller</td><td>{{機能名}}Controller</td><td>{{basePackage}}/web/{{機能領域}}/</td><td>実測未検証</td></tr>
+      <tr><td>Service</td><td>{{機能名}}Service（実装は {{機能名}}ServiceImpl）</td><td>{{basePackage}}/service/{{機能領域}}/</td><td>実測未検証</td></tr>
+      <tr><td>Form</td><td>{{画面名}}Form</td><td>{{basePackage}}/web/{{機能領域}}/form/</td><td>実測未検証</td></tr>
+      <tr><td>Validator</td><td>{{画面名}}Validator</td><td>{{basePackage}}/web/{{機能領域}}/validator/</td><td>実測未検証</td></tr>
+      <tr><td>DTO</td><td>{{名称}}Dto</td><td>{{basePackage}}/dto/</td><td>実測未検証</td></tr>
+      <tr><td>Entity</td><td>{{テーブル論理名}}Entity</td><td>{{basePackage}}/entity/</td><td>実測未検証</td></tr>
+      <tr><td>DAO（Mapper インターフェース）</td><td>{{テーブル/機能名}}Mapper</td><td>{{basePackage}}/mapper/</td><td>実測未検証</td></tr>
+      <tr><td>Mapper XML（SQL）</td><td>{{テーブル/機能名}}Mapper.xml</td><td>src/main/resources/mapper/</td><td>実測未検証</td></tr>
+      <tr><td>Thymeleaf テンプレート</td><td>{{画面名}}.html</td><td>src/main/resources/templates/{{機能領域}}/</td><td>実測未検証</td></tr>
+      <tr><td>バッチ本体</td><td>{{ジョブ名}}Tasklet / {{ジョブ名}}Job</td><td>{{basePackage}}/batch/{{ジョブ領域}}/</td><td>実測未検証</td></tr>
+    </tbody>
+  </table>
+  <p class="hint">{{basePackage}}・{{機能領域}}・{{ジョブ領域}} は代表機能の実物照合で確定する。</p>
+  <div class="stop-box">状態が「実測未検証」の行の規則を根拠に、コードのフルパスを断定してはならない。</div>
+
+  <h3>確定手順</h3>
+  <ol>
+    <li>代表機能を1〜2個選ぶ（画面系1・バッチ系1が望ましい）。</li>
+    <li>その機能の実物ソース（既存 Java／リポジトリ構成）と設計書を突き合わせ、各役割の実際のクラス名・配置パスを確認する。</li>
+    <li>確認できた行の命名規則・配置パス規則を実測値へ更新し、状態を「実測未検証」→「実測確認済（{{代表機能名}}）」に変える。</li>
+    <li>front-matter の generatedFrom に照合した代表機能名、provisional を false（全行確認できた場合のみ）に更新する。</li>
+    <li>未確認の役割が残る場合は、その行だけ「実測未検証」を残し、provisional: true を維持する。</li>
+  </ol>
+</section>
+
+<footer class="src-note">正本: <code>spec-format/routing-table.md</code>, <code>spec-format/output-structure.md</code>, <code>spec-format/consumption-matrix.md</code>, <code>spec-format/src-mapping.template.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>

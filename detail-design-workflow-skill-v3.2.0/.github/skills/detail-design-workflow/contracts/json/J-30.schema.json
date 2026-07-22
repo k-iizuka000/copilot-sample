@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "J-30.schema.json",
+  "title": "J-30 データモデル・連携（軽量版）",
+  "description": "DB項目対応・エンティティ項目・属性・VIEW・外部IF・エンティティ間関連。共通フィールドは J-00 を参照。entity_relation は設計書に明記された関連（basis=explicit）または VIEW/検索要領の JOIN 由来（basis=derived_join）のみ。AI の推測による関連生成は禁止（copilot-instructions.md）。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractId", "schemaVersion", "records"],
+  "properties": {
+    "contractId": { "const": "J-30" },
+    "schemaVersion": { "const": "1.0.0" },
+    "run": { "$ref": "J-00.schema.json#/$defs/runInfo" },
+    "document": { "$ref": "J-00.schema.json#/$defs/documentRef" },
+    "issues": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/issue" } },
+    "assets": { "type": "array", "items": { "$ref": "J-00.schema.json#/$defs/assetRef" } },
+    "records": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "item_db_mapping" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "1行=画面項目とDB項目の対応。queries.md へ。",
+                "type": "object",
+                "required": ["itemNumber", "screenItemName", "tableId", "tableName", "columnName", "specialNotes"],
+                "properties": {
+                  "itemNumber": { "type": ["string", "null"] },
+                  "screenItemName": { "type": ["string", "null"] },
+                  "tableId": { "type": ["string", "null"] },
+                  "tableName": { "type": ["string", "null"] },
+                  "columnName": { "type": ["string", "null"] },
+                  "specialNotes": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "entity_field" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "db/{テーブル物理名}.md へ。",
+                "type": "object",
+                "required": ["objectName", "entityLogicalName", "entityPhysicalName", "itemCategory", "itemName", "sourceItem", "itemPhysicalName", "type", "length", "pk", "notNull", "indexes", "notes", "lastModified"],
+                "properties": {
+                  "objectName": { "type": ["string", "null"] },
+                  "entityLogicalName": { "type": ["string", "null"] },
+                  "entityPhysicalName": { "type": ["string", "null"] },
+                  "itemCategory": { "type": ["string", "null"] },
+                  "itemName": { "type": ["string", "null"] },
+                  "sourceItem": { "type": ["string", "null"] },
+                  "itemPhysicalName": { "type": ["string", "null"] },
+                  "type": { "type": ["string", "null"] },
+                  "length": { "type": ["integer", "number", "string", "null"] },
+                  "pk": { "type": ["boolean", "null"] },
+                  "notNull": { "type": ["boolean", "null"] },
+                  "indexes": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+                  "notes": { "type": ["string", "null"] },
+                  "lastModified": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "attribute_definition" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "type": "object",
+                "required": ["usageCount", "duplicateCheck", "itemName", "type", "length", "modifier", "notes", "physicalName", "lastModified"],
+                "properties": {
+                  "usageCount": { "type": ["integer", "string", "null"] },
+                  "duplicateCheck": { "type": ["string", "null"] },
+                  "itemName": { "type": ["string", "null"] },
+                  "type": { "type": ["string", "null"] },
+                  "length": { "type": ["integer", "number", "string", "null"] },
+                  "modifier": { "type": ["string", "null"] },
+                  "notes": { "type": ["string", "null"] },
+                  "physicalName": { "type": ["string", "null"] },
+                  "lastModified": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "attribute_dictionary_entry" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "論理名/物理名の対応辞書。",
+                "type": "object",
+                "required": ["logicalName", "physicalName"],
+                "properties": {
+                  "logicalName": { "type": ["string", "null"] },
+                  "physicalName": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "select_constraint" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "type": "object",
+                "required": ["type", "modifier", "notNullConstraint"],
+                "properties": {
+                  "type": { "type": ["string", "null"] },
+                  "modifier": { "type": ["string", "null"] },
+                  "notNullConstraint": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "view_definition" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "type": "object",
+                "required": ["viewLogicalName", "viewPhysicalName", "purpose", "design", "implementation"],
+                "properties": {
+                  "viewLogicalName": { "type": ["string", "null"] },
+                  "viewPhysicalName": { "type": ["string", "null"] },
+                  "purpose": { "type": ["string", "null"] },
+                  "design": { "type": ["string", "null"] },
+                  "implementation": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "view_query_block" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "VIEW物理名/論理名を親キーとしてブロック分割。",
+                "type": "object",
+                "required": ["viewLogicalName", "viewPhysicalName", "inputTables", "searchRequirements", "outputItems", "joins", "aggregation"],
+                "properties": {
+                  "viewLogicalName": { "type": ["string", "null"] },
+                  "viewPhysicalName": { "type": ["string", "null"] },
+                  "inputTables": { "type": "array", "items": { "type": "string" } },
+                  "searchRequirements": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "tableId": { "type": ["string", "null"] },
+                        "columnName": { "type": ["string", "null"] },
+                        "operator": { "type": ["string", "null"] },
+                        "value": { "type": ["string", "null"] },
+                        "condition": { "type": ["string", "null"] }
+                      }
+                    }
+                  },
+                  "outputItems": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "viewItemName": { "type": ["string", "null"] },
+                        "tableId": { "type": ["string", "null"] },
+                        "columnName": { "type": ["string", "null"] }
+                      }
+                    }
+                  },
+                  "joins": { "type": "array", "items": { "type": "string" } },
+                  "aggregation": { "type": "array", "items": { "type": "string" } }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "external_interface" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "バッチ文脈は batch/{ID}/io.md、画面文脈は back/{機能ID}/methods.md へ。",
+                "type": "object",
+                "required": ["interfaceId", "direction", "medium", "source", "destination", "fields", "conditions"],
+                "properties": {
+                  "interfaceId": { "type": ["string", "null"] },
+                  "direction": { "enum": ["inbound", "outbound", "bidirectional", "unknown"] },
+                  "medium": { "type": ["string", "null"] },
+                  "source": { "type": ["string", "null"] },
+                  "destination": { "type": ["string", "null"] },
+                  "fields": { "type": "array", "items": { "type": "string" } },
+                  "conditions": { "type": "array", "items": { "type": "string" } }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["recordId", "recordType", "scope", "layers", "evidenceState", "sourceRefs", "facts"],
+            "properties": {
+              "recordId": { "$ref": "J-00.schema.json#/$defs/recordId" },
+              "recordType": { "const": "entity_relation" },
+              "scope": { "$ref": "J-00.schema.json#/$defs/scope" },
+              "layers": { "$ref": "J-00.schema.json#/$defs/layers" },
+              "evidenceState": { "$ref": "J-00.schema.json#/$defs/evidenceState" },
+              "sourceRefs": { "$ref": "J-00.schema.json#/$defs/sourceRefs" },
+              "facts": {
+                "description": "エンティティ間の関連。db/_er-overview.md および trace のER断片へ。設計書に明記された関連のみ。AI推測による関連生成は禁止。",
+                "type": "object",
+                "required": ["leftTable", "rightTable", "cardinality", "basis", "description"],
+                "properties": {
+                  "leftTable": { "type": ["string", "null"] },
+                  "rightTable": { "type": ["string", "null"] },
+                  "cardinality": { "enum": ["1:1", "1:N", "N:1", "N:M", "unknown"] },
+                  "basis": {
+                    "description": "explicit=設計書に明記された関連 / derived_join=VIEW定義・検索要領のJOIN条件由来。",
+                    "enum": ["explicit", "derived_join"]
+                  },
+                  "description": { "type": ["string", "null"] }
+                }
+              },
+              "notes": { "type": ["string", "null"] }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

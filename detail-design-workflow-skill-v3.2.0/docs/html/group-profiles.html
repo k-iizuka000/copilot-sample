@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>設計書プロファイル | 詳細設計ワークフロー v3.2.0 解説</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  table { table-layout: fixed; }
+  td, th { overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<nav class="site-nav">
+  <a class="nav-home" href="index.html">◀ 全体マップ</a>
+  <span class="nav-title">設計書プロファイル</span>
+  <span class="nav-spacer"></span>
+</nav>
+<main>
+
+<h1>設計書プロファイル</h1>
+<p class="purpose">/01-setup がシートの役割を推定するときに読む7本のプロファイルと共通の構造スキーマ、設計チームへの要望書をまとめた。各カードで対象設計書・状態・シート分類ルールを確認できる。</p>
+
+<div class="used-by">
+  <a class="chip" href="prompt-01-setup.html">/01-setup</a>
+  <span>がシート役割の推定に読む（書く工程は無し）</span>
+</div>
+
+<section id="roletag" class="card">
+  <h2>roleTag 優先ルール</h2>
+  <p>シートの固定セル A1 に役割タグの明記（roleTag）があれば、シート名マッチング（pattern）より優先する。役割タグが無い設計書はプロファイルのシート名 pattern で推定し、推定であることを J-01 の <code>sheets[].matchSource</code>（<code>inferred</code>）に記録する。</p>
+  <p class="how-to-read">見方: 番号が判定の優先順位（小さいほど先に評価される）。</p>
+  <div class="legend">
+    <span class="chip">① roleTag（A1 セル明記）</span>
+    <span class="chip">② シート名 pattern（推定）</span>
+  </div>
+  <p class="hint">役割タグの候補値（<a href="#design-doc-request">設計書フォーマット要望書</a>の一覧より）:</p>
+  <div class="legend">
+    <span class="chip">レイアウト</span><span class="chip">画面項目(Form)</span><span class="chip">バリデーション</span>
+    <span class="chip">項目制御</span><span class="chip">イベント</span><span class="chip">メッセージ</span>
+    <span class="chip">処理記述</span><span class="chip">検索要領</span><span class="chip">更新要領</span>
+    <span class="chip">DB項目対応</span><span class="chip">エンティティ定義(DTO)</span><span class="chip">DAOレコード定義</span>
+    <span class="chip">権限</span><span class="chip">コード値</span><span class="chip">共通規約</span>
+    <span class="chip">改訂履歴</span><span class="chip">その他</span>
+  </div>
+</section>
+
+<section id="mapping" class="card">
+  <h2>抽出対象 → 出力契約の対応</h2>
+  <p class="note-box">PROFILE-00 にあった skill⇔outputContract の双方向強制（allOf）は撤去し、対応はこの表（ドキュメント）で示す。各 profile の <code>sheetRules[].outputContracts</code> はこの対応に沿う。recordType→spec 出力先の詳細は <a href="group-spec-format.html#routing-table">spec-format/routing-table.md</a> を正本とする。</p>
+  <table>
+    <thead><tr><th>抽出対象（シート役割）</th><th>出力契約</th></tr></thead>
+    <tbody>
+      <tr><td>改訂履歴・ヘッダ等のメタデータ</td><td>J-01</td></tr>
+      <tr><td>画面項目・レイアウト・パラメータ</td><td>J-10（レイアウト画像は J-60 併用）</td></tr>
+      <tr><td>項目制御・バリデーション・イベント・メッセージ</td><td>J-11</td></tr>
+      <tr><td>処理機能記述・検索要領・更新要領・バッチ制御</td><td>J-20</td></tr>
+      <tr><td>項目DB対応・検索/更新要領のDB面・エンティティ定義・VIEW・外部IF・エンティティ関連</td><td>J-30</td></tr>
+      <tr><td>権限マトリクス・案件参照権限・ロール・共通規約</td><td>J-40</td></tr>
+      <tr><td>画像・図形・コメント等のアセット</td><td>J-60</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="profile-00" class="card">
+  <h2>PROFILE-00 構造スキーマ</h2>
+  <p><span class="chip">読む工程: /01-setup</span></p>
+  <p>7本のプロファイル JSON が共通で従う構造。<code>unknownSheet</code> / <code>profileMismatch</code> は停止させず調査・警告に倒す（機械FAILのみ停止・人間レビューは非ブロッキング）。</p>
+  <table>
+    <thead><tr><th>トップレベルキー</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td><code>profileId</code></td><td>例: <code>PROFILE-01</code>（パターン <code>^PROFILE-\d{2}[A-Z]?$</code>）</td></tr>
+      <tr><td><code>version</code> / <code>documentType</code> / <code>description</code></td><td>プロファイルの識別・説明</td></tr>
+      <tr><td><code>status</code></td><td>enum: <code>stable</code> / <code>provisional</code></td></tr>
+      <tr><td><code>documentScope</code></td><td>enum: <code>feature</code> / <code>shared_master</code> / <code>common</code> / <code>unknown</code></td></tr>
+      <tr><td><code>sheetRules[]</code></td><td>シート単位の分類ルール配列（下表）</td></tr>
+      <tr><td><code>policies</code></td><td>canonicalSource・unknownSheet・profileMismatch（下表）</td></tr>
+    </tbody>
+  </table>
+  <table>
+    <thead><tr><th>sheetRules[] の主キー</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td><code>ruleId</code> / <code>matchType</code>（exact/regex）/ <code>pattern</code></td><td>シート名のマッチ条件（必須）</td></tr>
+      <tr><td><code>roleTag[]</code></td><td>A1 セル役割タグの候補値。pattern より優先（任意項目）</td></tr>
+      <tr><td><code>role</code></td><td>enum: metadata / extract / asset / ignore_candidate / reference_only / unknown</td></tr>
+      <tr><td><code>outputContracts[]</code></td><td>enum: J-01 / J-10 / J-11 / J-20 / J-30 / J-40 / J-60</td></tr>
+      <tr><td><code>priority</code>（整数） / <code>notes</code>（string または null）</td><td>マッチ優先度 ／ 補足</td></tr>
+    </tbody>
+  </table>
+  <table>
+    <thead><tr><th>policies の主キー</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td><code>canonicalSource</code></td><td>正本の選び方（正とするシート/行）</td></tr>
+      <tr><td><code>unknownSheet</code></td><td>enum: investigate（調査モードで候補提示・停止しない）/ warning（警告のみ）/ ignore（無視）</td></tr>
+      <tr><td><code>profileMismatch</code></td><td>enum: investigate（調査モードへ・停止しない）/ warning（警告のみ）。いずれも停止しない</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="profile-01" class="card">
+  <h2>PROFILE-01 画面帳票設計書</h2>
+  <p><span class="chip chip-output">状態: stable</span> <span class="chip">読む工程: /01-setup</span></p>
+  <p>画面帳票設計書。8シート想定。</p>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">スコープ</span>feature</div>
+    <div class="fact"><span class="fact-label">正本の選び方</span>正確な8シート名を優先。レイアウトは asset と明示メタデータに分離</div>
+    <div class="fact"><span class="fact-label">unknownSheet</span>investigate</div>
+    <div class="fact"><span class="fact-label">profileMismatch</span>warning</div>
+  </div>
+  <table>
+    <thead><tr><th>ruleId</th><th>シート名（matchType）</th><th>roleTag</th><th>role</th><th>出力契約</th><th>priority</th><th>notes</th></tr></thead>
+    <tbody>
+      <tr><td>P01-S01</td><td>改訂履歴（exact）</td><td>改訂履歴</td><td>metadata</td><td>J-01</td><td>100</td><td>最新版情報のみ document へ</td></tr>
+      <tr><td>P01-S02</td><td>レイアウト（exact）</td><td>レイアウト</td><td>asset</td><td>J-01, J-10, J-60</td><td>100</td><td>画像を正とし、表示モード等の明示メタデータだけ layout_reference で抽出</td></tr>
+      <tr><td>P01-S03</td><td>項目（exact）</td><td>画面項目(Form), 画面項目</td><td>extract</td><td>J-10</td><td>100</td><td>1行=画面項目</td></tr>
+      <tr><td>P01-S04</td><td>項目制御（exact）</td><td>項目制御</td><td>extract</td><td>J-11</td><td>100</td><td>表示モード・活性等</td></tr>
+      <tr><td>P01-S05</td><td>バリデーション（exact）</td><td>バリデーション</td><td>extract</td><td>J-11</td><td>100</td><td>数式は表示値+数式。相関チェックは別ブロック</td></tr>
+      <tr><td>P01-S06</td><td>イベント（exact）</td><td>イベント</td><td>extract</td><td>J-11</td><td>100</td><td>1行=イベント</td></tr>
+      <tr><td>P01-S07</td><td>メッセージ（exact）</td><td>メッセージ</td><td>extract</td><td>J-11</td><td>100</td><td>1行=メッセージ条件</td></tr>
+      <tr><td>P01-S08</td><td>パラメータ（exact）</td><td>—</td><td>extract</td><td>J-10, J-11</td><td>100</td><td>表示モード・URL・パラメータ</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="profile-02" class="card">
+  <h2>PROFILE-02 処理機能記述書</h2>
+  <p><span class="chip chip-output">状態: stable</span> <span class="chip">読む工程: /01-setup</span></p>
+  <p>処理機能記述書。5シート想定。</p>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">スコープ</span>feature</div>
+    <div class="fact"><span class="fact-label">正本の選び方</span>5シートを正本。処理機能記述はイベントIDを親キーにする</div>
+    <div class="fact"><span class="fact-label">unknownSheet</span>investigate</div>
+    <div class="fact"><span class="fact-label">profileMismatch</span>warning</div>
+  </div>
+  <table>
+    <thead><tr><th>ruleId</th><th>シート名（matchType）</th><th>roleTag</th><th>role</th><th>出力契約</th><th>priority</th><th>notes</th></tr></thead>
+    <tbody>
+      <tr><td>P02-S01</td><td>改訂履歴（exact）</td><td>改訂履歴</td><td>metadata</td><td>J-01</td><td>100</td><td>—</td></tr>
+      <tr><td>P02-S02</td><td>処理機能記述（exact）</td><td>処理記述</td><td>extract</td><td>J-20</td><td>100</td><td>イベントID/処理節単位に分割。文章と表を混同しない</td></tr>
+      <tr><td>P02-S03</td><td>検索要領（exact）</td><td>検索要領</td><td>extract</td><td>J-20, J-30</td><td>100</td><td>検索要領番号または親イベントIDで複数ブロックを分割</td></tr>
+      <tr><td>P02-S04</td><td>更新要領（exact）</td><td>更新要領</td><td>extract</td><td>J-20, J-30</td><td>100</td><td>対象テーブル+編集要領</td></tr>
+      <tr><td>P02-S05</td><td>項目DB対応表（exact）</td><td>DB項目対応</td><td>extract</td><td>J-30</td><td>100</td><td>1行=画面項目とDB項目の対応</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="profile-02b" class="card">
+  <h2>PROFILE-02B バッチ設計書</h2>
+  <p><span class="chip chip-human">状態: provisional（暫定）</span> <span class="chip">読む工程: /01-setup</span></p>
+  <p>暫定: 処理機能記述書と同型と仮定したバッチプロファイル。実物の設計書での検証後に確定する。</p>
+  <div class="gate-box">記載前提と実物が一致する場合だけ通常変換に使う。実物のシート名・見出しと一致しない場合は、推測で既存プロファイルを流用せず、01-setup を調査モードで実行して候補 Profile を作り人間確認へ戻す（停止はしない。機械FAILのみ停止・人間レビューは非ブロッキング）。</div>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">スコープ</span>feature</div>
+    <div class="fact"><span class="fact-label">正本の選び方</span>PROFILE-02 との同型を仮定。バッチ固有ヘッダーを検出したら調査モードへ</div>
+    <div class="fact"><span class="fact-label">unknownSheet</span>investigate</div>
+    <div class="fact"><span class="fact-label">profileMismatch</span>investigate（他の stable プロファイルは主に warning）</div>
+  </div>
+  <table>
+    <thead><tr><th>ruleId</th><th>シート名（matchType）</th><th>roleTag</th><th>role</th><th>出力契約</th><th>priority</th><th>notes</th></tr></thead>
+    <tbody>
+      <tr><td>P02B-S01</td><td>改訂履歴（exact）</td><td>改訂履歴</td><td>metadata</td><td>J-01</td><td>100</td><td>—</td></tr>
+      <tr><td>P02B-S02</td><td>^(処理機能記述|バッチ機能記述|バッチ設計)$（regex）</td><td>処理記述</td><td>extract</td><td>J-20</td><td>100</td><td>実物未確認。バッチ制御（batch_control）を含む想定</td></tr>
+      <tr><td>P02B-S03</td><td>検索要領（exact）</td><td>検索要領</td><td>extract</td><td>J-20, J-30</td><td>90</td><td>—</td></tr>
+      <tr><td>P02B-S04</td><td>更新要領（exact）</td><td>更新要領</td><td>extract</td><td>J-20, J-30</td><td>90</td><td>—</td></tr>
+      <tr><td>P02B-S05</td><td>項目DB対応表（exact）</td><td>DB項目対応</td><td>extract</td><td>J-30</td><td>90</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="profile-03" class="card">
+  <h2>PROFILE-03 エンティティ・データモデル定義書</h2>
+  <p><span class="chip chip-output">状態: stable</span> <span class="chip">読む工程: /01-setup</span></p>
+  <p>エンティティ定義書。正本・旧版・移行・作業シートが混在。</p>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">スコープ</span>shared_master</div>
+    <div class="fact"><span class="fact-label">正本の選び方</span>無印のエンティティ定義書を正本。複数正本候補があれば調査モードへ</div>
+    <div class="fact"><span class="fact-label">unknownSheet</span>investigate</div>
+    <div class="fact"><span class="fact-label">profileMismatch</span>warning</div>
+  </div>
+  <table>
+    <thead><tr><th>ruleId</th><th>シート名（matchType）</th><th>roleTag</th><th>role</th><th>出力契約</th><th>priority</th><th>notes</th></tr></thead>
+    <tbody>
+      <tr><td>P03-S01</td><td>エンティティ定義書（exact）</td><td>エンティティ定義(DTO), エンティティ定義</td><td>extract</td><td>J-30</td><td>200</td><td>正本。entity_field を抽出</td></tr>
+      <tr><td>P03-S02</td><td>アトリビュートリスト（exact）</td><td>—</td><td>extract</td><td>J-30</td><td>190</td><td>属性標準（attribute_definition）</td></tr>
+      <tr><td>P03-S03</td><td>アトリビュート辞書（exact）</td><td>—</td><td>extract</td><td>J-30</td><td>190</td><td>論理名/物理名対応（attribute_dictionary_entry）</td></tr>
+      <tr><td>P03-S04</td><td>select（exact）</td><td>—</td><td>extract</td><td>J-30</td><td>180</td><td>型・修飾子・NotNull制約（select_constraint）</td></tr>
+      <tr><td>P03-S05</td><td>エンティティ定義書_移行（exact）</td><td>—</td><td>reference_only</td><td>J-01, J-30</td><td>120</td><td>正本へ混ぜず、差分確認用</td></tr>
+      <tr><td>P03-S06</td><td>A5SQLワーク（exact）</td><td>—</td><td>reference_only</td><td>J-01, J-30</td><td>110</td><td>派生・作業情報</td></tr>
+      <tr><td>P03-S07</td><td>(^エンティティ定義書_[0-9]+$|_bk$|^古い|旧版)（regex）</td><td>—</td><td>ignore_candidate</td><td>J-01</td><td>300</td><td>旧版・バックアップ</td></tr>
+      <tr><td>P03-S08</td><td>^(Format|要望一覧|No152)$（regex）</td><td>—</td><td>metadata</td><td>J-01</td><td>100</td><td>—</td></tr>
+      <tr><td>P03-S09</td><td>組織.*権限.*イメージ（regex）</td><td>—</td><td>asset</td><td>J-01, J-60</td><td>100</td><td>drawing/media を含む</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="profile-04" class="card">
+  <h2>PROFILE-04 VIEW定義書</h2>
+  <p><span class="chip chip-output">状態: stable</span> <span class="chip">読む工程: /01-setup</span></p>
+  <p>VIEW定義書。検索要領内に複数VIEWブロックが縦積み。</p>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">スコープ</span>shared_master</div>
+    <div class="fact"><span class="fact-label">正本の選び方</span>VIEW一覧の物理名と検索要領ブロック見出しを対応させる</div>
+    <div class="fact"><span class="fact-label">unknownSheet</span>investigate</div>
+    <div class="fact"><span class="fact-label">profileMismatch</span>warning</div>
+  </div>
+  <table>
+    <thead><tr><th>ruleId</th><th>シート名（matchType）</th><th>roleTag</th><th>role</th><th>出力契約</th><th>priority</th><th>notes</th></tr></thead>
+    <tbody>
+      <tr><td>P04-S01</td><td>VIEW一覧（exact）</td><td>—</td><td>extract</td><td>J-30</td><td>100</td><td>1行=VIEW（view_definition）</td></tr>
+      <tr><td>P04-S02</td><td>検索要領（exact）</td><td>検索要領</td><td>extract</td><td>J-30</td><td>100</td><td>VIEW物理名/論理名を親キーとしてブロック分割（view_query_block）。非表示行も含める</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="profile-05" class="card">
+  <h2>PROFILE-05 権限マトリクス</h2>
+  <p><span class="chip chip-output">状態: stable</span> <span class="chip">読む工程: /01-setup</span></p>
+  <p>権限マトリクス。階層ヘッダー、非表示行、コメント、drawing/media/VML、派生SQLを含む。</p>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">スコープ</span>shared_master</div>
+    <div class="fact"><span class="fact-label">正本の選び方</span>マトリクス行を正本。SQL生成列はderived。コメント/画像/VMLはJ-60</div>
+    <div class="fact"><span class="fact-label">unknownSheet</span>investigate</div>
+    <div class="fact"><span class="fact-label">profileMismatch</span>warning</div>
+  </div>
+  <table>
+    <thead><tr><th>ruleId</th><th>シート名（matchType）</th><th>roleTag</th><th>role</th><th>出力契約</th><th>priority</th><th>notes</th></tr></thead>
+    <tbody>
+      <tr><td>P05-S01</td><td>権限マトリクス（exact）</td><td>権限</td><td>extract</td><td>J-40</td><td>200</td><td>1行=画面/動作/イベント/ロール権限</td></tr>
+      <tr><td>P05-S02</td><td>案件の参照権限（exact）</td><td>権限</td><td>extract</td><td>J-40</td><td>190</td><td>1行=案件条件×参照先組織×タブ可否</td></tr>
+      <tr><td>P05-S03</td><td>[補足]案件の参照権限（exact）</td><td>—</td><td>extract</td><td>J-40</td><td>180</td><td>補足シナリオ。正本と競合時は両論併記＋warnings.md</td></tr>
+      <tr><td>P05-S04</td><td>ヘッダ設定情報（exact）</td><td>—</td><td>metadata</td><td>J-01, J-40</td><td>100</td><td>文書識別情報</td></tr>
+      <tr><td>P05-S05</td><td>^(改訂履歴|変更履歴|説明)$（regex）</td><td>改訂履歴</td><td>metadata</td><td>J-01</td><td>100</td><td>—</td></tr>
+      <tr><td>P05-S06</td><td>^(フォーマット|フォーマット\(ヘッダ設定有\)|サンプル)$（regex）</td><td>—</td><td>asset</td><td>J-01, J-60</td><td>100</td><td>テンプレート/サンプル。業務レコードへ混ぜない</td></tr>
+      <tr><td>P05-S07</td><td>(_bk$|_フローで分割$)（regex）</td><td>—</td><td>ignore_candidate</td><td>J-01</td><td>300</td><td>旧版・分割作業シート</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="profile-06" class="card">
+  <h2>PROFILE-06 共通規約・文書（調査用の入口）</h2>
+  <p><span class="chip chip-human">状態: provisional（暫定）</span> <span class="chip">読む工程: /01-setup</span></p>
+  <p>暫定: 規約・文書系向けの入口プロファイル。実物の設計書での調査後に具体的な候補Profileへ置き換える。</p>
+  <div class="gate-box">そのまま通常変換には使わない。まず調査モードでシート固有ルールを持つ候補Profileを作り、人間承認する（記載前提と実物が一致しない場合は調査モードへ・停止はしない。PROFILE-02B と同じ暫定運用の対象）。</div>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">スコープ</span>common</div>
+    <div class="fact"><span class="fact-label">正本の選び方</span>調査モードでの確定後に決める</div>
+    <div class="fact"><span class="fact-label">unknownSheet</span>investigate</div>
+    <div class="fact"><span class="fact-label">profileMismatch</span>investigate</div>
+  </div>
+  <table>
+    <thead><tr><th>ruleId</th><th>シート名（matchType）</th><th>roleTag</th><th>role</th><th>出力契約</th><th>priority</th><th>notes</th></tr></thead>
+    <tbody>
+      <tr><td>P06-S01</td><td>.*（regex・全一致）</td><td>—</td><td>unknown</td><td>J-01, J-40</td><td>1</td><td>このまま通常変換に使わない。まず調査モードでシート固有ルールを持つ候補Profileを作り、人間承認する</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="design-doc-request" class="card">
+  <h2>設計書フォーマット要望書</h2>
+  <p>設計チームへ渡す依頼書。対応を待たずに現状の設計書のまま変換作業（プロファイル推定）を開始でき、対応が進むほど AI の推定が減り、変換結果の間違いと手直しが着実に減る。</p>
+  <div class="fact-grid">
+    <div class="fact"><span class="fact-label">1. 各シートに roleTag を明記</span>固定セル A1 に候補一覧から役割タグを1つ記入。シート名からの推測を避け、誤分類による手直しを減らす。</div>
+    <div class="fact"><span class="fact-label">2. ファイル名に ID 種別を明記</span>機能ID / 画面ID / ジョブID のどれか分かる命名にする。出力の格納先（画面・処理・バッチ）の取り違えを防ぐ。</div>
+    <div class="fact"><span class="fact-label">3. 表形式シートに行IDの列を追加</span>各行に一意な行ID（連番可）。行の追加・削除で位置がずれても出典を安定して指し示せる。</div>
+    <div class="fact"><span class="fact-label">4. テーブル関連（FK）を書く欄を設置</span>ER図は設計書に明記された関連だけを根拠にする。AIが関連を推測して線を引くことはしない。</div>
+    <div class="fact"><span class="fact-label">5. 結合セル・非表示の行列を避ける</span>データは1セル1値。結合セルや非表示部分は機械読み取りが不安定になり、取りこぼし・位置ずれの原因になる。</div>
+  </div>
+  <p class="hint">roleTag 候補一覧（各シート A1 セルにこの中の言葉をそのまま記入）:</p>
+  <table>
+    <thead><tr><th>候補</th><th>候補</th><th>候補</th></tr></thead>
+    <tbody>
+      <tr><td>レイアウト</td><td>画面項目(Form)</td><td>バリデーション</td></tr>
+      <tr><td>項目制御</td><td>イベント</td><td>メッセージ</td></tr>
+      <tr><td>処理記述</td><td>検索要領</td><td>更新要領</td></tr>
+      <tr><td>DB項目対応</td><td>エンティティ定義(DTO)</td><td>DAOレコード定義</td></tr>
+      <tr><td>権限</td><td>コード値</td><td>共通規約</td></tr>
+      <tr><td>改訂履歴</td><td>その他</td><td></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer class="src-note">正本: <code>.github/skills/detail-design-workflow/profiles/PROFILE-INDEX.md</code>, <code>.github/skills/detail-design-workflow/profiles/PROFILE-00.schema.json</code>, <code>.github/skills/detail-design-workflow/profiles/PROFILE-01-screen-design.profile.json</code>, <code>.github/skills/detail-design-workflow/profiles/PROFILE-02-process-function.profile.json</code>, <code>.github/skills/detail-design-workflow/profiles/PROFILE-02B-batch-design.profile.json</code>, <code>.github/skills/detail-design-workflow/profiles/PROFILE-03-entity-definition.profile.json</code>, <code>.github/skills/detail-design-workflow/profiles/PROFILE-04-view-definition.profile.json</code>, <code>.github/skills/detail-design-workflow/profiles/PROFILE-05-authorization-matrix.profile.json</code>, <code>.github/skills/detail-design-workflow/profiles/PROFILE-06-common-document.profile.json</code>, <code>docs/design-doc-request.md</code> — このHTMLは解説用の写し。食い違う場合は正本が正。</footer>
+
+</main>
+<script src="assets/app.js"></script>
+</body>
+</html>
