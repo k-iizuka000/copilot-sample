@@ -137,10 +137,12 @@ EC2 が AWS の接続中継サービス（SSM）に「自分はここにいま�
 | 項目 | 設定値 | 補足 |
 |---|---|---|
 | クイックスタートの OS | **Ubuntu** | |
-| AMI | **Ubuntu Server 24.04 LTS (HVM), SSD Volume Type** | 「24.04 LTS」であることを確認。Pro 版や Minimal 版ではない無印を選ぶ |
+| AMI | **一覧の先頭に出る最新の `Ubuntu Server ○○.○○ LTS (HVM), SSD Volume Type`** | 名前に **`LTS`** が入っていることを確認（LTS＝長期サポート版）。Pro 版や Minimal 版ではない無印を選ぶ。**選んだバージョン番号は控えておく**（03 で使います） |
 | アーキテクチャ | **64 ビット (x86)** | m6a は x86 の CPU なのでこちら。Arm ではない |
 
-> この Ubuntu には SSM 接続に必要なプログラム（SSM Agent）が最初から入っています。根拠: [AWS 公式「SSM Agent がプリインストールされた AMI」](https://docs.aws.amazon.com/systems-manager/latest/userguide/ami-preinstalled-agent.html) — プリインストール済み AMI の一覧に Ubuntu Server 24.04 LTS が明記されています。だから EC2 の中に何かを入れる前から SSM 接続ができます
+> **バージョンを固定しない理由**: Ubuntu の LTS は2年ごとに新しいものが出ます。この手順書では常に**その時点の最新 LTS** を選んでください。新しい LTS でも手順は変わりません。
+
+> この Ubuntu には SSM 接続に必要なプログラム（SSM Agent）が最初から入っています。根拠: [Canonical 公式「Ubuntu on AWS」](https://ubuntu.com/aws/docs/aws-how-to/instances/automatically-update-ubuntu-instances/) — 「AWS 向けに最適化された Ubuntu（16.04 LTS 以降）はすべて SSM エージェントがプリインストール済み」と記載されています。だから EC2 の中に何かを入れる前から SSM 接続ができます（[AWS 側の対応 AMI 一覧](https://docs.aws.amazon.com/systems-manager/latest/userguide/ami-preinstalled-agent.html)にも Ubuntu Server が挙がっています。出たばかりの LTS は一覧への反映が遅れることがありますが、同ページに「一覧に無い AWS 管理 AMI でもプリインストールされている場合がある」と注記されています。実際に繋がるかは Step 5 の接続テストで分かります）
 
 **インスタンスタイプ**
 
@@ -352,7 +354,7 @@ EC2 が AWS の接続中継サービス（SSM）に「自分はここにいま�
 - [ ] VPC `dev-vpc` がある（NAT ゲートウェイは無い）
 - [ ] `dev-ec2-key.pem` が PC にダウンロードされている
 - [ ] IAM ロール `ec2-ssm-role`（ポリシー: AmazonSSMManagedInstanceCore）がある
-- [ ] EC2 `dev-ec2`（m6a.xlarge / Ubuntu 24.04 / 50GB / 終了保護あり / インバウンドルール 0 件・アウトバウンドは既定の全許可）が「実行中」
+- [ ] EC2 `dev-ec2`（m6a.xlarge / Ubuntu Server 最新 LTS / 50GB / 終了保護あり / インバウンドルール 0 件・アウトバウンドは既定の全許可）が「実行中」
 - [ ] インスタンス ID（`i-...`）をメモした
 - [ ] セッションマネージャーの画面接続が成功した（Step 5）
 - [ ] 自動停止スケジュール `stop-dev-ec2-2100` が「有効」
