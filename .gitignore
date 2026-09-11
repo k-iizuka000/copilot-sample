@@ -40,3 +40,8 @@ detail-design-workflow-skill-v2.1.0/MANIFEST.sha256
 
 CLAUDE.md
 AGENTS.md
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+.beads-credential-key
+.beads/proxieddb/

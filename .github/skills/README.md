@@ -7,12 +7,13 @@
 「スキルにはだいたい何が書いてあるのか」「どこを読めばよいのか」が分かるようにするための
 チーム内向け取説です。
 
-公式情報を確認したい場合は、GitHub Docs の
-[About agent skills](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills) と
-[Adding agent skills](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills)
+公式情報を確認したい場合は、VS Code Docs の
+[Use Agent Skills in VS Code](https://code.visualstudio.com/docs/agent-customization/agent-skills) と、GitHub Docs の
+[About agent skills](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)
 を参照してください。細かい形式は
 [Agent Skills specification](https://agentskills.io/specification)
-も参考にします。この取説は 2026-05-25 時点の公式ドキュメントを前提にしています。
+も参考にします。この取説は 2026-09-11 時点の公式ドキュメントを前提にしています。
+最新の書き方を調べたいときは、後述の `copilot-customization-advisor` スキルを使ってください。
 
 ## まず結論
 
@@ -277,6 +278,19 @@ TDD、テスト駆動、テストファーストで実装するためのスキ�
 - Green では最小実装だけを行い、Refactor ではテストを緑に保ったまま設計を整える。
 - `1テスト1アサーション` ではなく、`1テスト1つの振る舞い・関心` を基準にする。
 - Red、Green、追加テスト、未検証、残る不確実性を分けて報告する。
+
+### `copilot-customization-advisor`
+
+「Copilot 用に A を作りたい」と言われたときに、skill、custom agent、prompt file、instructions、hooks の
+どれで作るべきかを、公式の最新仕様を根拠に提案するためのスキルです。
+
+主に次のような内容が書いてあります。
+
+- 要望を「副作用、発動条件、入出力、権限とモデル」の 4 点に分解する。
+- 仕様の調査は参照専用の subagent `copilot-docs-researcher` (`.github/agents/`) に任せ、記憶で断言しない。
+- 判定表で第一候補と代替案を決め、既存資産の流用可否と影響を出典付きで返す。
+- 公式ドキュメントの原文を `references/` に同梱し、Web 取得ができない環境でも判断できるようにする。
+- `scripts/refresh-references.sh` (Windows は `.ps1`) で原文を更新する。
 
 ## 新しいスキルを書くときの流れ
 

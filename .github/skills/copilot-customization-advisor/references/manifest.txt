@@ -1,0 +1,33 @@
+# references/ に同梱する公式ドキュメントの一覧。
+# 形式: <保存先ディレクトリ> <GitHub owner/repo> <ブランチ> <リポジトリ内パス>
+# scripts/refresh-references.sh (または .ps1) がこの一覧を読んで raw Markdown を取得する。
+# 行頭 # はコメント。空行は無視。
+
+# --- VS Code 公式 docs (microsoft/vscode-docs, CC-BY-3.0) ---
+vscode-docs microsoft/vscode-docs main docs/agent-customization/overview.md
+vscode-docs microsoft/vscode-docs main docs/agent-customization/agent-skills.md
+vscode-docs microsoft/vscode-docs main docs/agent-customization/custom-agents.md
+vscode-docs microsoft/vscode-docs main docs/agent-customization/custom-instructions.md
+vscode-docs microsoft/vscode-docs main docs/agent-customization/prompt-files.md
+vscode-docs microsoft/vscode-docs main docs/agent-customization/hooks.md
+vscode-docs microsoft/vscode-docs main docs/agent-customization/tool-sets.md
+vscode-docs microsoft/vscode-docs main docs/agent-customization/mcp-servers.md
+vscode-docs microsoft/vscode-docs main docs/agent-customization/language-models.md
+vscode-docs microsoft/vscode-docs main docs/agent-customization/agent-plugins.md
+vscode-docs microsoft/vscode-docs main docs/agents/run/subagents.md
+vscode-docs microsoft/vscode-docs main docs/agents/run/tools.md
+vscode-docs microsoft/vscode-docs main docs/agents/reference/hooks-reference.md
+vscode-docs microsoft/vscode-docs main docs/agents/reference/ai-settings.md
+vscode-docs microsoft/vscode-docs main docs/agents/concepts/customization.md
+vscode-docs microsoft/vscode-docs main docs/agents/guides/customize-copilot-guide.md
+
+# --- GitHub Docs (github/docs, CC-BY-4.0) ---
+github-docs github/docs main content/copilot/reference/custom-agents-configuration.md
+github-docs github/docs main content/copilot/reference/custom-instructions-support.md
+github-docs github/docs main content/copilot/reference/customization-cheat-sheet.md
+github-docs github/docs main content/copilot/reference/hooks-reference.md
+github-docs github/docs main content/copilot/reference/copilot-feature-matrix.md
+github-docs github/docs main content/copilot/concepts/agents/about-agent-skills.md
+github-docs github/docs main content/copilot/reference/ai-models/supported-models.md
+github-docs github/docs main content/copilot/reference/ai-models/model-comparison.md
+github-docs github/docs main content/copilot/how-tos/copilot-cli/customize-copilot/add-skills.md

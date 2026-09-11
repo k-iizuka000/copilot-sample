@@ -9,7 +9,7 @@
 | パス | 内容 |
 | --- | --- |
 | `.github/agents/` | GitHub Copilot / AI エージェント向けの custom agent 定義 |
-| `.github/skills/` | コピーして使える skill |
+| `.github/skills/` | コピーして使える skill。`copilot-customization-advisor` は Copilot カスタマイズの種別判定と最新仕様の調査用 |
 | `.github/instructions/` | 特定用途や特定パス向けの instructions |
 | `office-markdown-vscode-extension/` | Office ファイルを Markdown に変換する VS Code 拡張の独立ツール |
 | `markdown-html-vscode-extension/` | Markdown ファイルを HTML に変換する VS Code 拡張の独立ツール |
